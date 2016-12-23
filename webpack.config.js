@@ -61,7 +61,11 @@ else {
 
 const loaders = [
   {
-    test: /\.(css|scss|styl)$/,
+    test: /\.css$/,
+    loader: 'style!css'
+  },
+  {
+    test: /\.(scss|styl)$/,
     loader: scssLoader
   },
   {
