@@ -1,0 +1,50 @@
+{
+  "name": "ultralight",
+  "version": "1.0.0",
+  "description": "Ultralight - a Logitech Media Server skin",
+  "author": "Daniel Miller",
+  "license": "MIT",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/millerdev/lms-ultralight.git"
+  },
+  "dependencies": {
+    "jumpsuit": "^1.3.5",
+    "sanitize.css": "latest",
+    "trixion": "^0.0.4"
+  },
+  "devDependencies": {
+    "autoprefixer": "^6.3.6",
+    "babel-core": "^6.8.0",
+    "babel-loader": "^6.2.4",
+    "babel-eslint": "^6.0.4",
+    "babel-preset-es2015": "^6.9.0",
+    "babel-preset-react": "^6.5.0",
+    "browser-sync": "^2.12.8",
+    "copy-webpack-plugin": "^3.0.0",
+    "css-loader": "^0.23.1",
+    "eslint": "^2.10.1",
+    "eslint-loader": "^1.3.0",
+    "extract-text-webpack-plugin": "^1.0.1",
+    "file-loader": "^0.8.5",
+    "fontgen-loader": "^0.2.1",
+    "html-webpack-plugin": "^2.17.0",
+    "http-server": "^0.9.0",
+    "json-loader": "^0.5.4",
+    "postcss-loader": "^0.9.1",
+    "style-loader": "^0.13.1",
+    "stylus": "^0.54.5",
+    "stylus-loader": "^2.1.0",
+    "url-loader": "^0.5.7",
+    "webpack": "^1.13.0",
+    "webpack-dev-middleware": "^1.6.1",
+    "webpack-hot-middleware": "^2.10.0"
+  },
+  "scripts": {
+    "start": "npm run build && http-server dist",
+    "build": "node tools/rm dist && NODE_ENV=production webpack --bail -p --progress",
+    "dev": "node tools/srcServer.js",
+    "profile": "NODE_ENV=production webpack -p --profile --json > stats.json"
+  }
+}
