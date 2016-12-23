@@ -10,6 +10,7 @@
     "url": "git+https://github.com/millerdev/lms-ultralight.git"
   },
   "dependencies": {
+    "font-awesome": "^4.7.0",
     "jumpsuit": "^1.3.5",
     "sanitize.css": "latest",
     "trixion": "^0.0.4"
