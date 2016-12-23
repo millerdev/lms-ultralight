@@ -127,7 +127,7 @@ module.exports = {
   devtool: DEBUG ? 'eval' : 'none',
   noInfo: true,
   entry: {
-    app: './src/app.js'
+    app: './src/index.js'
   },
   target: 'web',
   output: {
