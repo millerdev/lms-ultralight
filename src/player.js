@@ -6,6 +6,7 @@ import makeActor from './store'
 
 const actions = {
   togglePlayPause: makeActor("togglePlayPause"),
+  togglePower: makeActor("togglePower"),
 }
 
 const defaultState = {
@@ -18,6 +19,11 @@ function reducer(state=defaultState, action) {
     return {
       isPlaying: !state.isPlaying,
       isPowerOn: state.isPowerOn,
+    }
+  } else if (action.type === "togglePower") {
+    return {
+      isPlaying: state.isPlaying,
+      isPowerOn: !state.isPowerOn,
     }
   }
   return state
@@ -47,8 +53,11 @@ const Player = props => (
       <Button icon="repeat" />
       <Button icon="shuffle" />
     </Button.Group>
-    
-    <Button icon="power" basic />
+
+    <Button basic toggle
+      active={props.isPowerOn}
+      onClick={actions.togglePower}
+      icon="power" />
   </div>
 )
 
