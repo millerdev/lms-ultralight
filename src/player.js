@@ -1,3 +1,4 @@
+import { Map } from 'immutable'
 import React from 'react'
 import { connect } from 'react-redux'
 import { Button } from 'semantic-ui-react'
@@ -9,22 +10,16 @@ const actions = {
   togglePower: makeActor("togglePower"),
 }
 
-const defaultState = {
+const defaultState = Map({
   isPowerOn: false,
   isPlaying: false,
-}
+})
 
 function reducer(state=defaultState, action) {
   if (action.type === "togglePlayPause") {
-    return {
-      isPlaying: !state.isPlaying,
-      isPowerOn: state.isPowerOn,
-    }
+    return state.update('isPlaying', value => !value)
   } else if (action.type === "togglePower") {
-    return {
-      isPlaying: state.isPlaying,
-      isPowerOn: !state.isPowerOn,
-    }
+    return state.update('isPowerOn', value => !value)
   }
   return state
 }
@@ -63,7 +58,7 @@ const Player = props => (
 
 function mapStateToProps(state) {
   // TODO move playerState reference to app.js
-  return state.playerState
+  return state.get('playerState').toObject()
 }
 
 export default connect(mapStateToProps)(Player)

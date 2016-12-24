@@ -11,11 +11,13 @@
   },
   "dependencies": {
     "font-awesome": "^4.7.0",
+    "immutable": "^3.8.1",
     "lodash": "^4.17.2",
     "react": "^15.4.1",
     "react-dom": "^15.4.1",
     "react-redux": "^5.0.1",
     "redux": "^3.6.0",
+    "redux-immutable": "^3.0.9",
     "sanitize.css": "latest",
     "semantic-ui-css": "^2.2.4",
     "semantic-ui-react": "^0.63.1"

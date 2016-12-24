@@ -1,6 +1,6 @@
 import React from 'react'
 import { connect, Provider } from 'react-redux'
-import { combineReducers } from 'redux'
+import { combineReducers } from 'redux-immutable'
 import 'semantic-ui-css/semantic.min.css'
 
 import DevTools from './devtools'

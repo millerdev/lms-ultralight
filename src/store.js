@@ -1,3 +1,4 @@
+import { Map } from 'immutable'
 import _ from 'lodash'
 import { createStore, applyMiddleware, compose, combineReducers } from 'redux'
 import DevTools from './devtools'
@@ -38,7 +39,7 @@ export default function makeActor(name) {
 
 export function makeStore(reducer) {
   //const reducer = combineReducers(reducers)
-  const store = createStore(reducer, {}, enhancer)
+  const store = createStore(reducer, Map(), enhancer)
   _.each(allActions, action => {
     action.dispatch = store.dispatch
   })
