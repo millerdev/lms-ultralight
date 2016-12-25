@@ -3,28 +3,19 @@ import React from 'react'
 import { connect } from 'react-redux'
 import { Button } from 'semantic-ui-react'
 
-import makeActor from './store'
-
-const actions = {
-  togglePlayPause: makeActor("togglePlayPause"),
-  togglePower: makeActor("togglePower"),
-}
+import makeReducer from './store'
 
 const defaultState = Map({
   isPowerOn: false,
   isPlaying: false,
 })
 
-function reducer(state=defaultState, action) {
-  if (action.type === "togglePlayPause") {
-    return state.update('isPlaying', value => !value)
-  } else if (action.type === "togglePower") {
-    return state.update('isPowerOn', value => !value)
-  }
-  return state
-}
-reducer.actions = actions
-export { reducer }
+export const reducer = makeReducer({
+  togglePower: state => state.update('isPowerOn', value => !value),
+  togglePlayPause: state => state.update('isPlaying', value => !value),
+}, defaultState)
+
+const actions = reducer.actions
 
 const IconToggleButton = props => {
   return (<Button
