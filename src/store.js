@@ -23,7 +23,7 @@ export function makeActor(name) {
   if (allActions.hasOwnProperty(name)) {
     throw new Error("cannot create duplicate action: " + name)
   }
-  function actor(state, payload) {
+  function actor(payload) {
     if (actor.dispatch === null) {
       throw new Error("action '" + name + "' dispatch not connected")
     }
