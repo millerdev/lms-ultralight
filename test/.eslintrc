@@ -1,0 +1,9 @@
+{
+  globals: {
+    "chai": true,
+    "assert": true,
+    "expect": true,
+    "describe": true,
+    "it": true,
+  }
+}

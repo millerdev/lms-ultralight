@@ -5,26 +5,22 @@ import { connect } from 'react-redux'
 import { Button, Dropdown } from 'semantic-ui-react'
 
 import makeReducer from './store'
-import { getPlayers } from './lmsclient'
+import * as lms from './lmsclient'
 
-const defaultState = Map({
+export const defaultState = Map({
   players: List(),
   playersError: false,
   isPowerOn: false,
   isPlaying: false,
 })
 
-function updatePlayers() {
-  getPlayers().then(response => {
+export function updatePlayers() {
+  lms.getPlayers().then(response => {
     actions.gotPlayers(response.data)
-  }).catch(err => {
+  }).catch(() => {
     actions.gotPlayers()
   })
 }
-
-// start players update loop
-updatePlayers()
-setInterval(updatePlayers, 30000)
 
 export const reducer = makeReducer({
   gotPlayers: (state, action) => (
@@ -49,7 +45,7 @@ const IconToggleButton = props => {
     />)
 }
 
-const Player = props => (
+export const Player = props => (
   <div>
     <div>
       <Dropdown
