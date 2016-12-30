@@ -5,5 +5,9 @@
     "expect": true,
     "describe": true,
     "it": true,
+    "after": true,
+    "afterEach": true,
+    "before": true,
+    "beforeEach": true
   }
 }

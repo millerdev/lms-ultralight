@@ -15,7 +15,7 @@ describe('player', function () {
       it('should add players to state', function () {
         const action = {
           type: "gotPlayers",
-          payload: fromJS(players),
+          payload: players,
         }
         const result = mod.reducer(Map(), action)
         assert.equal(result, fromJS({

@@ -45,6 +45,7 @@ export default function makeReducer(actionsToReducers, defaultState) {
     }
     return state
   }
+  reducer.defaultState = defaultState
   const actions = reducer.actions = {}
   const reducers = _.fromPairs(_.map(actionsToReducers, (reduce, action) => {
     if (_.isString(action)) {
@@ -61,7 +62,7 @@ export default function makeReducer(actionsToReducers, defaultState) {
   return reducer
 }
 
-export function makeStore(reducer, initialState=Map()) {
+export function makeStore(reducer, initialState=reducer.defaultState || Map()) {
   const store = createStore(reducer, initialState, enhancer)
   _.each(allActions, action => {
     action.dispatch = store.dispatch

@@ -1,15 +1,15 @@
 import React from 'react'
 import { Provider } from 'react-redux'
-import { combineReducers } from 'redux-immutable'
+//import { combineReducers } from 'redux-immutable'
 import 'semantic-ui-css/semantic.min.css'
 
 import DevTools from './devtools'
-import Player, { reducer as playerReducer } from './player'
+import Player, { reducer } from './player'
 import { makeStore } from './store'
 
-const reducer = combineReducers({
-  playerState: playerReducer,
-})
+//const reducer = combineReducers({
+//  player: playerReducer,
+//})
 
 const store = makeStore(reducer)
 

@@ -1,5 +1,6 @@
 // Logitech Media Server client
 import axios from 'axios'
+import _ from 'lodash'
 
 export function getPlayers(index=0, qty=999) {
   function transform(data) {
@@ -7,6 +8,18 @@ export function getPlayers(index=0, qty=999) {
     return data && data.result ? data.result.players_loop : []
   }
   return exec(["", "serverstatus", index, qty], transform)
+}
+
+export function getPlayerStatus(playerid) {
+  function transform(data) {
+    data = JSON.parse(data)
+    return _.extend(data && data.result, {playerid})
+  }
+  return exec([playerid, "status", "-", 1, "tags:uB"], transform)
+}
+
+export function playerCommand(playerid, ...command) {
+  return exec([playerid].concat(command))
 }
 
 /**

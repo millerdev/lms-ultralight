@@ -11,9 +11,22 @@ export const defaultState = Map({
   players: List(),
   playersLoading: false,
   playersError: false,
+  playerid: null,
   isPowerOn: false,
   isPlaying: false,
 })
+
+function playerCommand(playerid, ...command) {
+  lms.playerCommand(playerid, ...command).then(() => loadPlayer(playerid))
+}
+
+function loadPlayer(playerid) {
+  lms.getPlayerStatus(playerid).then(response => {
+    actions.gotPlayer(response.data)
+  }).catch(() => {
+    actions.gotPlayer()
+  })
+}
 
 export const reducer = makeReducer({
   loadPlayers: state => {
@@ -31,10 +44,19 @@ export const reducer = makeReducer({
         .set('playersError', !players)
         .set('playersLoading', false)
       if (players) {
-        map.set('players', fromJS(players))
+        const keeps = ["name", "playerid"]
+        map.set('players', fromJS(_.map(players, item => _.pick(item, keeps))))
       }
     })
   ),
+  gotPlayer: (state, action) => {
+    const obj = action.payload
+    return state.merge({
+      playerid: obj.playerid,
+      isPowerOn: obj.power === 1,
+      isPlaying: obj.mode === "play",
+    })
+  },
   togglePower: state => state.update('isPowerOn', value => !value),
   togglePlayPause: state => state.update('isPlaying', value => !value),
 }, defaultState)
@@ -43,8 +65,9 @@ const actions = reducer.actions
 
 const IconToggleButton = props => {
   return (<Button
-    onClick={props.handleClick}
+    onClick={props.onClick}
     icon={props.isOn() ? props.iconOff : props.iconOn}
+    disabled={props.disabled}
     />)
 }
 
@@ -56,6 +79,7 @@ export const Player = props => (
       <Dropdown
         placeholder="Select Player"
         onClick={onLoadPlayers}
+        onChange={(e, { value }) => loadPlayer(value)}
         options={props.players.map(item => ({
           text: item.get("name"),
           value: item.get("playerid"),
@@ -66,30 +90,42 @@ export const Player = props => (
     </div>
     <div>
       <Button.Group basic size="small">
-        <Button icon="backward" />
+        <Button
+          icon="backward"
+          onClick={() => playerCommand(props.playerid, "playlist", "index", "-1")}
+          disabled={!props.playerid} />
         <IconToggleButton
           isOn={() => props.isPlaying}
-          handleClick={actions.togglePlayPause}
+          onClick={() =>
+            playerCommand(props.playerid, props.isPlaying ? "pause" : "play")}
           iconOn="play"
-          iconOff="pause" />
-        <Button icon="forward"/>
+          iconOff="pause"
+          disabled={!props.playerid} />
+        <Button
+          icon="forward"
+          onClick={() => playerCommand(props.playerid, "playlist", "index", "+1")}
+          disabled={!props.playerid} />
       </Button.Group>
+      {/*
       <Button.Group basic size="small">
-        <Button icon="repeat" />
-        <Button icon="shuffle" />
+        <Button icon="repeat" disabled={!props.playerid} />
+        <Button icon="shuffle" disabled={!props.playerid} />
       </Button.Group>
-
-      <Button basic toggle
-        active={props.isPowerOn}
-        onClick={actions.togglePower}
-        icon="power" />
+      */}
+      <Button.Group basic size="small">
+        <Button basic toggle
+          active={props.isPowerOn}
+          onClick={() =>
+            playerCommand(props.playerid, "power", props.isPowerOn ? 0 : 1)}
+          icon="power"
+          disabled={!props.playerid} />
+      </Button.Group>
     </div>
   </div>
 )
 
 function mapStateToProps(state) {
-  // TODO move playerState reference to app.js
-  return state.get('playerState').toObject()
+  return state.toObject()
 }
 
 export default connect(mapStateToProps)(Player)
