@@ -4,7 +4,7 @@ import { combineReducers } from 'redux-immutable'
 import 'semantic-ui-css/semantic.min.css'
 
 import DevTools from './devtools'
-import Player, { reducer as playerReducer, updatePlayers } from './player'
+import Player, { reducer as playerReducer } from './player'
 import { makeStore } from './store'
 
 const reducer = combineReducers({
@@ -12,10 +12,6 @@ const reducer = combineReducers({
 })
 
 const store = makeStore(reducer)
-
-// start players update loop
-updatePlayers()
-setInterval(updatePlayers, 30000)
 
 const App = props => (
   <Provider store={store}>

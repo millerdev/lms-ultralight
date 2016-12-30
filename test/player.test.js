@@ -1,4 +1,4 @@
-import { fromJS, List, Map } from 'immutable'
+import { fromJS, Map } from 'immutable'
 import React from 'react'
 import { mount, shallow } from 'enzyme'
 import { expect } from 'chai'
@@ -10,7 +10,7 @@ const players = [
   {playerid: "2:2:2:2", name: "Two"},
 ]
 
-describe('player module', function () {
+describe('player', function () {
   describe('reducer', function () {
     describe('gotPlayers', function () {
       it('should add players to state', function () {
@@ -19,17 +19,25 @@ describe('player module', function () {
           payload: fromJS(players),
         }
         const result = mod.reducer(Map(), action)
-        assert.equal(result, fromJS({players, playersError: false}))
+        assert.equal(result, fromJS({
+          players,
+          playersLoading: false,
+          playersError: false,
+        }))
       })
 
       it('should set a flag on error', function () {
-        const state = fromJS({players, playersError: false})
+        const state = fromJS({
+          players,
+          playersLoading: false,
+          playersError: false,
+        })
         const action = {
           type: "gotPlayers",
           payload: undefined,
         }
         const result = mod.reducer(state, action)
-        assert.equal(result, fromJS({players, playersError: true}))
+        assert.equal(result, state.set('playersError', true))
       })
     })
   })

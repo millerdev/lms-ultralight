@@ -9,24 +9,27 @@ import * as lms from './lmsclient'
 
 export const defaultState = Map({
   players: List(),
+  playersLoading: false,
   playersError: false,
   isPowerOn: false,
   isPlaying: false,
 })
 
-export function updatePlayers() {
-  lms.getPlayers().then(response => {
-    actions.gotPlayers(response.data)
-  }).catch(() => {
-    actions.gotPlayers()
-  })
-}
-
 export const reducer = makeReducer({
+  loadPlayers: state => {
+    lms.getPlayers().then(response => {
+      actions.gotPlayers(response.data)
+    }).catch(() => {
+      actions.gotPlayers()
+    })
+    return state.set('playersLoading', true)
+  },
   gotPlayers: (state, action) => (
     state.withMutations(map => {
       const players = action.payload
-      map.set('playersError', !players)
+      map
+        .set('playersError', !players)
+        .set('playersLoading', false)
       if (players) {
         map.set('players', fromJS(players))
       }
@@ -45,15 +48,19 @@ const IconToggleButton = props => {
     />)
 }
 
+const onLoadPlayers = _.throttle(actions.loadPlayers, 30000, {trailing: false})
+
 export const Player = props => (
   <div>
     <div>
       <Dropdown
         placeholder="Select Player"
+        onClick={onLoadPlayers}
         options={props.players.map(item => ({
           text: item.get("name"),
           value: item.get("playerid"),
         })).toJS()}
+        loading={props.playersLoading}
         error={props.playersError}
         selection />
     </div>
