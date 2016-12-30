@@ -1,5 +1,5 @@
 import React from 'react'
-import { connect, Provider } from 'react-redux'
+import { Provider } from 'react-redux'
 import { combineReducers } from 'redux-immutable'
 import 'semantic-ui-css/semantic.min.css'
 
@@ -13,7 +13,7 @@ const reducer = combineReducers({
 
 const store = makeStore(reducer)
 
-const App = props => (
+const App = () => (
   <Provider store={store}>
     <div>
       <Player />

@@ -7,6 +7,9 @@
     "browser": true,
     "node": true
   },
+  "plugins": [
+    "react"
+  ],
   "ecmaFeatures": {
     "jsx": true,
     "modules": true
@@ -20,11 +23,13 @@
     "comma-dangle": 0,
     "no-trailing-spaces": 0,
     "eol-last": 0,
-    "no-unused-vars": 0,
+    "no-unused-vars": 1,
     "no-underscore-dangle": 0,
     "no-unexpected-multiline": 1,
     "no-alert": 2,
     "no-lone-blocks": 0,
+    "react/jsx-uses-react": "error",
+    "react/jsx-uses-vars": "error",
     "jsx-quotes": 1
   },
   "parserOptions": {

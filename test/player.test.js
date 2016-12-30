@@ -1,7 +1,6 @@
 import { fromJS, Map } from 'immutable'
 import React from 'react'
-import { mount, shallow } from 'enzyme'
-import { expect } from 'chai'
+import { shallow } from 'enzyme'
 
 import * as mod from '../src/player'
 
