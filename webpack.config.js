@@ -17,7 +17,9 @@ const ENV = DEBUG ? DEVELOPMENT : PRODUCTION;
 
 const GLOBALS = {
   'process.env.NODE_ENV': JSON.stringify(ENV),
-  __DEV__: DEBUG
+  __DEV__: DEBUG,
+  // in bash: export LMS_URL=http://lms_host_ip:9000
+  LMS_URL: JSON.stringify(process.env.LMS_URL || ""),
 };
 
 

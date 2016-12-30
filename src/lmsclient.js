@@ -1,8 +1,6 @@
 // Logitech Media Server client
 import axios from 'axios'
 
-axios.defaults.baseURL = 'http://10.2.1.2:9000' // TODO remove this
-
 export function getPlayers(index=0, qty=999) {
   function transform(data) {
     data = JSON.parse(data)
