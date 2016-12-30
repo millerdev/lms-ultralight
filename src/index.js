@@ -5,18 +5,25 @@
 
 import React from 'react'
 import { render } from 'react-dom'
-import App from './app'
-
-const root = document.getElementById('app')
-const renderer = App => render(<App />, root)
+import App, { init } from './app'
 
 if (process.env.NODE_ENV === "development") {
   window.console.log('LMS_URL:', LMS_URL)
   require('axios').defaults.baseURL = LMS_URL
 }
 
+const root = document.getElementById('app')
+const renderer = App => render(<App />, root)
+
 renderer(App)
 
-if (module.hot) {
-  module.hot.accept('./app', () => renderer(require('./app').default))
-}
+init()
+
+// hot reloading currently done by BrowserSync?
+//if (module.hot) {
+//  module.hot.accept('./app', () => {
+//    app = require('./app')
+//    renderer(app.default)
+//    app.start()
+//  })
+//}

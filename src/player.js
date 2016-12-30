@@ -16,11 +16,25 @@ export const defaultState = Map({
   isPlaying: false,
 })
 
+export function init() {
+  const playerid = localStorage.currentPlayer
+  lms.getPlayers().then(response => {
+    const players = response.data
+    actions.gotPlayers(players)
+    if (playerid && _.some(players, item => item.playerid === playerid)) {
+      loadPlayer(playerid)
+    } else if (players.length) {
+      loadPlayer(players[0].playerid)
+    }
+  })
+}
+
 function playerCommand(playerid, ...command) {
   lms.playerCommand(playerid, ...command).then(() => loadPlayer(playerid))
 }
 
 function loadPlayer(playerid) {
+  localStorage.currentPlayer = playerid
   lms.getPlayerStatus(playerid).then(response => {
     actions.gotPlayer(response.data)
   }).catch(() => {
@@ -84,6 +98,7 @@ export const Player = props => (
           text: item.get("name"),
           value: item.get("playerid"),
         })).toJS()}
+        value={props.playerid || ""}
         loading={props.playersLoading}
         error={props.playersError}
         selection />

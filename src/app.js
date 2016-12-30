@@ -4,7 +4,7 @@ import { Provider } from 'react-redux'
 import 'semantic-ui-css/semantic.min.css'
 
 import DevTools from './devtools'
-import Player, { reducer } from './player'
+import Player, { reducer, init as initPlayer } from './player'
 import { makeStore } from './store'
 
 //const reducer = combineReducers({
@@ -23,3 +23,7 @@ const App = () => (
 )
 
 export default App
+
+// TODO move to Player.componentDidMount
+// also http://stackoverflow.com/a/38523610/10840
+export const init = initPlayer
