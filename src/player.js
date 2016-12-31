@@ -2,7 +2,7 @@ import { List, Map, fromJS } from 'immutable'
 import _ from 'lodash'
 import React from 'react'
 import { connect } from 'react-redux'
-import { Button, Dropdown } from 'semantic-ui-react'
+import { Button, Dropdown, Item } from 'semantic-ui-react'
 
 import makeReducer from './store'
 import * as lms from './lmsclient'
@@ -14,6 +14,7 @@ export const defaultState = Map({
   playerid: null,
   isPowerOn: false,
   isPlaying: false,
+  trackInfo: Map(),
 })
 
 export function init() {
@@ -69,21 +70,33 @@ export const reducer = makeReducer({
       playerid: obj.playerid,
       isPowerOn: obj.power === 1,
       isPlaying: obj.mode === "play",
+      trackInfo: fromJS(obj.playlist_loop[0] || {}),
     })
   },
-  togglePower: state => state.update('isPowerOn', value => !value),
-  togglePlayPause: state => state.update('isPlaying', value => !value),
 }, defaultState)
 
 const actions = reducer.actions
 
-const IconToggleButton = props => {
-  return (<Button
+const IconToggleButton = props => (
+  <Button
     onClick={props.onClick}
     icon={props.isOn() ? props.iconOff : props.iconOn}
     disabled={props.disabled}
-    />)
-}
+    />
+)
+
+const CurrentTrackInfo = props => (
+  <Item.Group>
+    <Item>
+      <Item.Image size="tiny" src={lms.getImageUrl(props.playerid)} />
+      <Item.Content>
+        <Item.Header>{props.tags.title}</Item.Header>
+        <Item.Meta>{props.tags.artist}</Item.Meta>
+        <Item.Meta>{props.tags.album}</Item.Meta>
+      </Item.Content>
+    </Item>
+  </Item.Group>
+)
 
 const onLoadPlayers = _.throttle(actions.loadPlayers, 30000, {trailing: false})
 
@@ -136,6 +149,10 @@ export const Player = props => (
           disabled={!props.playerid} />
       </Button.Group>
     </div>
+    <CurrentTrackInfo
+      playerid={props.playerid}
+      tags={props.trackInfo.toObject()}
+      disabled={!props.playerid} />
   </div>
 )
 

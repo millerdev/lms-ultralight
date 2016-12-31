@@ -15,11 +15,15 @@ export function getPlayerStatus(playerid) {
     data = JSON.parse(data)
     return _.extend(data && data.result, {playerid})
   }
-  return exec([playerid, "status", "-", 1, "tags:uB"], transform)
+  return exec([playerid, "status", "-", 1, "tags:aBlu"], transform)
 }
 
 export function playerCommand(playerid, ...command) {
   return exec([playerid].concat(command))
+}
+
+export function getImageUrl(playerid, trackid="current") {
+  return axios.defaults.baseURL + "/music/" + trackid + "/cover.jpg?player=" + playerid
 }
 
 /**
