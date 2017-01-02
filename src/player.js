@@ -3,9 +3,12 @@ import _ from 'lodash'
 import React from 'react'
 import { connect } from 'react-redux'
 import { Button, Dropdown, Item } from 'semantic-ui-react'
+import Slider from 'rc-slider'
+import 'rc-slider/assets/index.css'
 
 import makeReducer from './store'
 import * as lms from './lmsclient'
+import { formatTime } from './util'
 
 export const defaultState = Map({
   players: List(),
@@ -15,6 +18,9 @@ export const defaultState = Map({
   isPowerOn: false,
   isPlaying: false,
   trackInfo: Map(),
+  volumeLevel: 0,
+  elapsedTime: 0,
+  totalTime: 0,
 })
 
 export function init() {
@@ -71,6 +77,9 @@ export const reducer = makeReducer({
       isPowerOn: obj.power === 1,
       isPlaying: obj.mode === "play",
       trackInfo: fromJS(obj.playlist_loop[0] || {}),
+      elapsedTime: obj.time || 0,
+      totalTime: obj.duration || 0,
+      volumeLevel: obj["mixer volume"],
     })
   },
 }, defaultState)
@@ -98,7 +107,42 @@ const CurrentTrackInfo = props => (
   </Item.Group>
 )
 
+class SeekBar extends React.Component {
+  // TODO display time at mouse pointer on hover
+  constructor () {
+    super()
+    this.state = {seek: null}
+  }
+  render () {
+    const elapsed = Math.ceil(this.props.elapsed || 0)
+    const total = Math.ceil(this.props.total || 0)
+    return <div>
+      <span className="elapsed">{formatTime(elapsed)}</span>
+      {/* TODO remove inline styles */}
+      <div style={{display: "inline-block", width: "60%", margin: "0 10px"}}>
+        <Slider
+          max={_.max([total, elapsed, 1])}
+          value={this.state.seek === null ? elapsed : this.state.seek}
+          onChange={value => this.setState({seek: value})}
+          onAfterChange={value => {
+            this.props.onChange(value < total ? value : total)
+            setTimeout(() => this.setState({seek: null}), 900)
+          }}
+          tipFormatter={formatTime}
+          disabled={this.props.disabled} />
+      </div>
+      <span className="elapsed">{formatTime(total ? elapsed - total : 0)}</span>
+    </div>
+  }
+}
+
 const onLoadPlayers = _.throttle(actions.loadPlayers, 30000, {trailing: false})
+const volumeMarks = {10: "", 20: "", 30: "", 40: "", 50: "", 60: "", 70: "", 80: "", 90: ""}
+// TODO make volume adjustment UI smoother: decouple slider adjustment (and
+// state update) speed from sending events to the server
+const setVolume = _.throttle((playerid, value) => {
+  playerCommand(playerid, "mixer", "volume", value)
+}, 300)
 
 export const Player = props => (
   <div>
@@ -140,6 +184,14 @@ export const Player = props => (
         <Button icon="shuffle" disabled={!props.playerid} />
       </Button.Group>
       */}
+      {/* TODO remove styles from this group */}
+      <div style={{display: "inline-block", "width": "50%", "margin": "0 10px"}}>
+        <Slider
+          marks={volumeMarks}
+          value={props.volumeLevel}
+          onChange={value => setVolume(props.playerid, value)}
+          disabled={!props.playerid} />
+      </div>
       <Button.Group basic size="small">
         <Button basic toggle
           active={props.isPowerOn}
@@ -152,6 +204,11 @@ export const Player = props => (
     <CurrentTrackInfo
       playerid={props.playerid}
       tags={props.trackInfo.toObject()}
+      disabled={!props.playerid} />
+    <SeekBar
+      elapsed={props.elapsedTime}
+      total={props.totalTime}
+      onChange={value => playerCommand(props.playerid, "time", value)}
       disabled={!props.playerid} />
   </div>
 )

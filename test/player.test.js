@@ -44,7 +44,11 @@ describe('player', function () {
   describe('<Player />', function () {
     describe('players selector', function () {
       it('should transform players to options', function () {
-        const dom = shallow(<mod.Player players={fromJS(players)} />)
+        const dom = shallow(
+          <mod.Player
+            players={fromJS(players)}
+            trackInfo={Map()}
+            />)
         const dropdown = dom.find("Dropdown")
         assert.deepEqual(dropdown.props().options, [
           {value: "1:1:1:1", text: "One"},
@@ -55,7 +59,11 @@ describe('player', function () {
 
       it('should set error flag on players error', function () {
         const dom = shallow(
-          <mod.Player players={fromJS(players)} playersError={true} />)
+          <mod.Player
+            players={fromJS(players)}
+            playersError={true}
+            trackInfo={Map()}
+            />)
         const dropdown = dom.find("Dropdown")
         assert.equal(dropdown.props().options.length, 2)
         assert.equal(dropdown.props().error, true)
