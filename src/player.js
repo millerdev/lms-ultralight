@@ -9,6 +9,7 @@ import 'rc-slider/assets/index.css'
 import makeReducer from './store'
 import * as lms from './lmsclient'
 import { formatTime } from './util'
+import 'font-awesome/css/font-awesome.css'
 
 export const defaultState = Map({
   players: List(),
@@ -17,6 +18,8 @@ export const defaultState = Map({
   playerid: null,
   isPowerOn: false,
   isPlaying: false,
+  repeatMode: 0,
+  shuffleMode: 0,
   trackInfo: Map(),
   volumeLevel: 0,
   elapsedTime: 0,
@@ -76,6 +79,8 @@ export const reducer = makeReducer({
       playerid: obj.playerid,
       isPowerOn: obj.power === 1,
       isPlaying: obj.mode === "play",
+      repeatMode: obj["playlist repeat"],
+      shuffleMode: obj["playlist shuffle"],
       trackInfo: fromJS(obj.playlist_loop[0] || {}),
       elapsedTime: obj.time || 0,
       totalTime: obj.duration || 0,
@@ -90,9 +95,16 @@ const IconToggleButton = props => (
   <Button
     onClick={props.onClick}
     icon={props.isOn() ? props.iconOff : props.iconOn}
-    disabled={props.disabled}
-    />
+    disabled={props.disabled} />
 )
+
+const NWayButton = props => {
+  const next = props.value + 1 >= props.markup.length ? 0 : props.value + 1
+  return <Button
+      onClick={() => props.onChange(props.values ? props.values[next] : next)}
+      disabled={props.disabled}
+      >{props.markup[props.value]}</Button>
+}
 
 const CurrentTrackInfo = props => (
   <Item.Group>
@@ -178,12 +190,32 @@ export const Player = props => (
           onClick={() => playerCommand(props.playerid, "playlist", "index", "+1")}
           disabled={!props.playerid} />
       </Button.Group>
-      {/*
       <Button.Group basic size="small">
-        <Button icon="repeat" disabled={!props.playerid} />
-        <Button icon="shuffle" disabled={!props.playerid} />
+        <NWayButton
+          markup={[
+            <i className="fa fa-long-arrow-right"></i>,
+            <span className="fa-stack fa-lg icon-repeat-one">
+              <i className="fa fa-repeat fa-stack-2x"></i>
+              <i className="fa fa-stack-1x">1</i>
+            </span>,
+            <i className="fa fa-repeat"></i>,
+          ]}
+          value={props.repeatMode}
+          onChange={value => playerCommand(props.playerid, "playlist", "repeat", value)}
+          disabled={!props.playerid} />
+        <NWayButton
+          markup={[
+            <i className="fa fa-sort-amount-asc"></i>,
+            <i className="fa fa-random"></i>,
+            <span className="fa-stack fa-lg icon-shuffle-album">
+              <i className="fa fa-square-o fa-stack-2x"></i>
+              <i className="fa fa-random fa-stack-1x"></i>
+            </span>,
+          ]}
+          value={props.shuffleMode}
+          onChange={value => playerCommand(props.playerid, "playlist", "shuffle", value)}
+          disabled={!props.playerid} />
       </Button.Group>
-      */}
       {/* TODO remove styles from this group */}
       <div style={{display: "inline-block", "width": "50%", "margin": "0 10px"}}>
         <Slider
