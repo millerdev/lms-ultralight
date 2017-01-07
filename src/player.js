@@ -83,9 +83,14 @@ export const reducer = makeReducer({
       shuffleMode: obj["playlist shuffle"],
       trackInfo: fromJS(obj.playlist_loop[0] || {}),
       elapsedTime: obj.time || 0,
-      totalTime: obj.duration || 0,
+      totalTime: obj.duration || obj.time || 0,
       volumeLevel: obj["mixer volume"],
     })
+  },
+  seekToTime: (state, action) => {
+    const {playerid, value} = action.payload
+    playerCommand(playerid, "time", value)
+    return state.set("elapsedTime", value)
   },
 }, defaultState)
 
@@ -123,7 +128,7 @@ class SeekBar extends React.Component {
   // TODO display time at mouse pointer on hover
   constructor () {
     super()
-    this.state = {seek: null}
+    this.state = {seeking: false, seek: 0}
   }
   render () {
     const elapsed = Math.ceil(this.props.elapsed || 0)
@@ -134,16 +139,17 @@ class SeekBar extends React.Component {
       <div style={{display: "inline-block", width: "60%", margin: "0 10px"}}>
         <Slider
           max={_.max([total, elapsed, 1])}
-          value={this.state.seek === null ? elapsed : this.state.seek}
-          onChange={value => this.setState({seek: value})}
+          value={this.state.seeking ? this.state.seek : elapsed}
+          onBeforeChange={seek => this.setState({seeking: true, seek})}
+          onChange={seek => this.setState({seek})}
           onAfterChange={value => {
             this.props.onChange(value < total ? value : total)
-            setTimeout(() => this.setState({seek: null}), 900)
+            this.setState({seeking: false})
           }}
           tipFormatter={formatTime}
           disabled={this.props.disabled} />
       </div>
-      <span className="elapsed">{formatTime(total ? elapsed - total : 0)}</span>
+      <span className="total">{formatTime(total ? elapsed - total : 0)}</span>
     </div>
   }
 }
@@ -240,7 +246,7 @@ export const Player = props => (
     <SeekBar
       elapsed={props.elapsedTime}
       total={props.totalTime}
-      onChange={value => playerCommand(props.playerid, "time", value)}
+      onChange={value => actions.seekToTime({playerid: props.playerid, value})}
       disabled={!props.playerid} />
   </div>
 )
