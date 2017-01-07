@@ -1,7 +1,6 @@
 import { List, Map, fromJS } from 'immutable'
 import _ from 'lodash'
 import React from 'react'
-import { connect } from 'react-redux'
 import { Button, Dropdown, Item } from 'semantic-ui-react'
 import Slider from 'rc-slider'
 import 'rc-slider/assets/index.css'
@@ -250,9 +249,3 @@ export const Player = props => (
       disabled={!props.playerid} />
   </div>
 )
-
-function mapStateToProps(state) {
-  return state.toObject()
-}
-
-export default connect(mapStateToProps)(Player)
