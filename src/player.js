@@ -1,7 +1,7 @@
-import { List, Map, fromJS } from 'immutable'
+import { Map, fromJS } from 'immutable'
 import _ from 'lodash'
 import React from 'react'
-import { Button, Dropdown, Item } from 'semantic-ui-react'
+import { Button, Item } from 'semantic-ui-react'
 import Slider from 'rc-slider'
 import 'rc-slider/assets/index.css'
 
@@ -11,9 +11,6 @@ import { formatTime } from './util'
 import 'font-awesome/css/font-awesome.css'
 
 export const defaultState = Map({
-  players: List(),
-  playersLoading: false,
-  playersError: false,
   playerid: null,
   isPowerOn: false,
   isPlaying: false,
@@ -25,25 +22,11 @@ export const defaultState = Map({
   totalTime: 0,
 })
 
-export function init() {
-  const playerid = localStorage.currentPlayer
-  lms.getPlayers().then(response => {
-    const players = response.data
-    actions.gotPlayers(players)
-    if (playerid && _.some(players, item => item.playerid === playerid)) {
-      loadPlayer(playerid)
-    } else if (players.length) {
-      loadPlayer(players[0].playerid)
-    }
-  })
-}
-
 function playerCommand(playerid, ...command) {
   lms.playerCommand(playerid, ...command).then(() => loadPlayer(playerid))
 }
 
-function loadPlayer(playerid) {
-  localStorage.currentPlayer = playerid
+export function loadPlayer(playerid) {
   lms.getPlayerStatus(playerid).then(response => {
     actions.gotPlayer(response.data)
   }).catch(() => {
@@ -52,26 +35,6 @@ function loadPlayer(playerid) {
 }
 
 export const reducer = makeReducer({
-  loadPlayers: state => {
-    lms.getPlayers().then(response => {
-      actions.gotPlayers(response.data)
-    }).catch(() => {
-      actions.gotPlayers()
-    })
-    return state.set('playersLoading', true)
-  },
-  gotPlayers: (state, action) => (
-    state.withMutations(map => {
-      const players = action.payload
-      map
-        .set('playersError', !players)
-        .set('playersLoading', false)
-      if (players) {
-        const keeps = ["name", "playerid"]
-        map.set('players', fromJS(_.map(players, item => _.pick(item, keeps))))
-      }
-    })
-  ),
   gotPlayer: (state, action) => {
     const obj = action.payload
     return state.merge({
@@ -153,7 +116,6 @@ class SeekBar extends React.Component {
   }
 }
 
-const onLoadPlayers = _.throttle(actions.loadPlayers, 30000, {trailing: false})
 const volumeMarks = {10: "", 20: "", 30: "", 40: "", 50: "", 60: "", 70: "", 80: "", 90: ""}
 // TODO make volume adjustment UI smoother: decouple slider adjustment (and
 // state update) speed from sending events to the server
@@ -163,20 +125,6 @@ const setVolume = _.throttle((playerid, value) => {
 
 export const Player = props => (
   <div>
-    <div>
-      <Dropdown
-        placeholder="Select Player"
-        onClick={onLoadPlayers}
-        onChange={(e, { value }) => loadPlayer(value)}
-        options={props.players.map(item => ({
-          text: item.get("name"),
-          value: item.get("playerid"),
-        })).toJS()}
-        value={props.playerid || ""}
-        loading={props.playersLoading}
-        error={props.playersError}
-        selection />
-    </div>
     <div>
       <Button.Group basic size="small">
         <Button
