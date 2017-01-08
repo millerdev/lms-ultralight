@@ -31,15 +31,27 @@ export function getPlayerStatus(playerid, index="-", qty=1) {
     data = JSON.parse(data)
     return _.extend(data && data.result, {playerid})
   }
-  return exec([playerid, "status", index, qty, "tags:aBlu"], transform)
+  return exec([playerid, "status", index, qty, "tags:aBluJ"], transform)
 }
 
 export function command(playerid, ...command) {
   exec([playerid].concat(command)).then(() => loadPlayer(playerid))
 }
 
-export function getImageUrl(playerid, trackid="current") {
-  return axios.defaults.baseURL + "/music/" + trackid + "/cover.jpg?player=" + playerid
+export function getImageUrl(playerid, tags, current=false) {
+  const trackid = current ? "current" : tags.artwork_track_id
+  let cachebuster = ""
+  if (current && tags) {
+    if (tags.artwork_track_id) {
+      cachebuster = "&artwork_track_id=" + tags.artwork_track_id
+    } else {
+      cachebuster = "&cachebuster=" + encodeURIComponent(
+        tags.artist + "-" + tags.album + "-" + tags.title)
+    }
+  }
+  return axios.defaults.baseURL +
+    "/music/" + trackid + "/cover.jpg" +
+    "?player=" + playerid + cachebuster
 }
 
 /**
