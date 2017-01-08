@@ -4,7 +4,7 @@ import * as mod from '../src/player'
 
 describe('player', function () {
   describe('reducer', function () {
-    describe('gotPlayers', function () {
+    describe('gotPlayer', function () {
       it('should set info for current track', function () {
         const action = {
           type: "gotPlayer",

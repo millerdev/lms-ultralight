@@ -51,6 +51,9 @@ export default function makeReducer(actionsToReducers, defaultState) {
   _.each(actionsToReducers, (reduce, action) => {
     if (action.startsWith("ref:")) {
       action = {key: action.slice(4)}
+      if (!allActions.hasOwnProperty(action.key)) {
+        throw new Error("unknown action: " + action.key)
+      }
     } else {
       action = makeActor(action)
       actions[action.key] = action

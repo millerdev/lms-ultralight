@@ -2,6 +2,22 @@
 import axios from 'axios'
 import _ from 'lodash'
 
+import { makeActor } from './store'
+
+const gotPlayer = makeActor("gotPlayer")
+
+export function loadPlayer(playerid, updatePlaylist=false) {
+  const args = updatePlaylist ? [0, 100] : []
+  getPlayerStatus(playerid, ...args).then(response => {
+    if (args.length) {
+      response.data.isPlaylistUpdate = true
+    }
+    gotPlayer(response.data)
+  }).catch((err) => {
+    window.console.error(err)
+  })
+}
+
 export function getPlayers(index=0, qty=999) {
   function transform(data) {
     data = JSON.parse(data)
@@ -18,8 +34,8 @@ export function getPlayerStatus(playerid, index="-", qty=1) {
   return exec([playerid, "status", index, qty, "tags:aBlu"], transform)
 }
 
-export function playerCommand(playerid, ...command) {
-  return exec([playerid].concat(command))
+export function command(playerid, ...command) {
+  exec([playerid].concat(command)).then(() => loadPlayer(playerid))
 }
 
 export function getImageUrl(playerid, trackid="current") {

@@ -22,25 +22,9 @@ export const defaultState = Map({
   totalTime: 0,
 })
 
-function playerCommand(playerid, ...command) {
-  lms.playerCommand(playerid, ...command).then(() => loadPlayer(playerid))
-}
-
-export function loadPlayer(playerid, updatePlaylist=false) {
-  const args = updatePlaylist ? [0, 100] : []
-  lms.getPlayerStatus(playerid, ...args).then(response => {
-    if (args.length) {
-      response.data.isPlaylistUpdate = true
-    }
-    actions.gotPlayer(response.data)
-  }).catch((err) => {
-    window.console.error(err)
-    //actions.gotPlayer()
-  })
-}
 
 export const reducer = makeReducer({
-  gotPlayer: (state, { payload: obj }) => {
+  "ref:gotPlayer": (state, { payload: obj }) => {
     const data = {
       playerid: obj.playerid,
       isPowerOn: obj.power === 1,
@@ -136,12 +120,12 @@ const volumeMarks = {10: "", 20: "", 30: "", 40: "", 50: "", 60: "", 70: "", 80:
 // TODO make volume adjustment UI smoother: decouple slider adjustment (and
 // state update) speed from sending events to the server
 const setVolume = _.throttle((playerid, value) => {
-  playerCommand(playerid, "mixer", "volume", value)
+  lms.command(playerid, "mixer", "volume", value)
 }, 300)
 
 function playerSeek(playerid, value) {
   actions.preSeek({playerid, value})
-  playerCommand(playerid, "time", value)
+  lms.command(playerid, "time", value)
 }
 
 export const Player = props => (
@@ -150,18 +134,18 @@ export const Player = props => (
       <Button.Group basic size="small">
         <Button
           icon="backward"
-          onClick={() => playerCommand(props.playerid, "playlist", "index", "-1")}
+          onClick={() => lms.command(props.playerid, "playlist", "index", "-1")}
           disabled={!props.playerid} />
         <IconToggleButton
           isOn={() => props.isPlaying}
           onClick={() =>
-            playerCommand(props.playerid, props.isPlaying ? "pause" : "play")}
+            lms.command(props.playerid, props.isPlaying ? "pause" : "play")}
           iconOn="play"
           iconOff="pause"
           disabled={!props.playerid} />
         <Button
           icon="forward"
-          onClick={() => playerCommand(props.playerid, "playlist", "index", "+1")}
+          onClick={() => lms.command(props.playerid, "playlist", "index", "+1")}
           disabled={!props.playerid} />
       </Button.Group>
       <Button.Group basic size="small">
@@ -175,7 +159,7 @@ export const Player = props => (
             <i className="fa fa-repeat"></i>,
           ]}
           value={props.repeatMode}
-          onChange={value => playerCommand(props.playerid, "playlist", "repeat", value)}
+          onChange={value => lms.command(props.playerid, "playlist", "repeat", value)}
           disabled={!props.playerid} />
         <NWayButton
           markup={[
@@ -187,7 +171,7 @@ export const Player = props => (
             </span>,
           ]}
           value={props.shuffleMode}
-          onChange={value => playerCommand(props.playerid, "playlist", "shuffle", value)}
+          onChange={value => lms.command(props.playerid, "playlist", "shuffle", value)}
           disabled={!props.playerid} />
       </Button.Group>
       {/* TODO remove styles from this group */}
@@ -202,7 +186,7 @@ export const Player = props => (
         <Button basic toggle
           active={props.isPowerOn}
           onClick={() =>
-            playerCommand(props.playerid, "power", props.isPowerOn ? 0 : 1)}
+            lms.command(props.playerid, "power", props.isPowerOn ? 0 : 1)}
           icon="power"
           disabled={!props.playerid} />
       </Button.Group>

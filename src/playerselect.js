@@ -4,7 +4,6 @@ import React from 'react'
 import { Dropdown } from 'semantic-ui-react'
 
 import * as lms from './lmsclient'
-import { loadPlayer } from './player'
 
 import makeReducer from './store'
 
@@ -20,16 +19,16 @@ export function init() {
     const players = response.data
     actions.gotPlayers(players)
     if (playerid && _.some(players, item => item.playerid === playerid)) {
-      loadPlayer(playerid, true)
+      lms.loadPlayer(playerid, true)
     } else if (players.length) {
-      loadPlayer(players[0].playerid, true)
+      lms.loadPlayer(players[0].playerid, true)
     }
   })
 }
 
 function setCurrentPlayer(playerid) {
   localStorage.currentPlayer = playerid
-  loadPlayer(playerid, true)
+  lms.loadPlayer(playerid, true)
 }
 
 export const reducer = makeReducer({
