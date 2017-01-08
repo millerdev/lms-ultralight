@@ -26,33 +26,49 @@ function playerCommand(playerid, ...command) {
   lms.playerCommand(playerid, ...command).then(() => loadPlayer(playerid))
 }
 
-export function loadPlayer(playerid) {
-  lms.getPlayerStatus(playerid).then(response => {
+export function loadPlayer(playerid, updatePlaylist=false) {
+  const args = updatePlaylist ? [0, 100] : []
+  lms.getPlayerStatus(playerid, ...args).then(response => {
+    if (args.length) {
+      response.data.isPlaylistUpdate = true
+    }
     actions.gotPlayer(response.data)
-  }).catch(() => {
-    actions.gotPlayer()
+  }).catch((err) => {
+    window.console.error(err)
+    //actions.gotPlayer()
   })
 }
 
 export const reducer = makeReducer({
-  gotPlayer: (state, action) => {
-    const obj = action.payload
-    return state.merge({
+  gotPlayer: (state, { payload: obj }) => {
+    const data = {
       playerid: obj.playerid,
       isPowerOn: obj.power === 1,
       isPlaying: obj.mode === "play",
       repeatMode: obj["playlist repeat"],
       shuffleMode: obj["playlist shuffle"],
-      trackInfo: fromJS(obj.playlist_loop[0] || {}),
       elapsedTime: obj.time || 0,
       totalTime: obj.duration || obj.time || 0,
       volumeLevel: obj["mixer volume"],
-    })
+      //everything: fromJS(obj),
+    }
+    const loop = obj.playlist_loop
+    const IX = "playlist index"
+    if (obj.isPlaylistUpdate) {
+      const index = parseInt(obj.playlist_cur_index)
+      if (index >= loop[0][IX] && index <= loop[loop.length - 1][IX]) {
+        data.trackInfo = fromJS(loop[index - loop[0][IX]])
+      }
+    } else {
+      data.trackInfo = fromJS(loop[0] || {})
+    }
+    return state.merge(data)
   },
-  seekToTime: (state, action) => {
-    const {playerid, value} = action.payload
-    playerCommand(playerid, "time", value)
-    return state.set("elapsedTime", value)
+  preSeek: (state, {playerid, value}) => {
+    if (state.get("playerid") === playerid) {
+      return state.set("elapsedTime", value)
+    }
+    return state
   },
 }, defaultState)
 
@@ -122,6 +138,11 @@ const volumeMarks = {10: "", 20: "", 30: "", 40: "", 50: "", 60: "", 70: "", 80:
 const setVolume = _.throttle((playerid, value) => {
   playerCommand(playerid, "mixer", "volume", value)
 }, 300)
+
+function playerSeek(playerid, value) {
+  actions.preSeek({playerid, value})
+  playerCommand(playerid, "time", value)
+}
 
 export const Player = props => (
   <div>
@@ -193,7 +214,7 @@ export const Player = props => (
     <SeekBar
       elapsed={props.elapsedTime}
       total={props.totalTime}
-      onChange={value => actions.seekToTime({playerid: props.playerid, value})}
+      onChange={value => playerSeek(props.playerid, value)}
       disabled={!props.playerid} />
   </div>
 )

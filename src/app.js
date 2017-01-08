@@ -7,16 +7,19 @@ import 'semantic-ui-css/semantic.min.css'
 import DevTools from './devtools'
 import * as player from './player'
 import * as players from './playerselect'
+import * as playlist from './playlist'
 import { makeStore } from './store'
 
 const defaultState = Map({
   players: players.defaultState,
   player: player.defaultState,
+  playlist: playlist.defaultState,
 })
 
 const reducer = combineReducers({
   players: players.reducer,
   player: player.reducer,
+  playlist: playlist.reducer,
 })
 
 const store = makeStore(reducer, defaultState)
@@ -31,12 +34,14 @@ function stateMapper(key) {
 
 const SelectPlayer = connect(stateMapper("players"))(players.SelectPlayer)
 const Player = connect(stateMapper("player"))(player.Player)
+const Playlist = connect(stateMapper("playlist"))(playlist.Playlist)
 
 const App = () => (
   <Provider store={store}>
     <div>
       <SelectPlayer />
       <Player />
+      <Playlist />
       <DevTools />
     </div>
   </Provider>

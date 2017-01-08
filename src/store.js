@@ -47,18 +47,19 @@ export default function makeReducer(actionsToReducers, defaultState) {
   }
   reducer.defaultState = defaultState
   const actions = reducer.actions = {}
-  const reducers = _.fromPairs(_.map(actionsToReducers, (reduce, action) => {
-    if (_.isString(action)) {
+  const reducers = {}
+  _.each(actionsToReducers, (reduce, action) => {
+    if (action.startsWith("ref:")) {
+      action = {key: action.slice(4)}
+    } else {
       action = makeActor(action)
+      actions[action.key] = action
     }
-    if (!action.key || !_.isFunction(action)) {
-      throw new Error(
-        "action must be a string or action creator function, " +
-        "usually created with store.makeActor (got " + action + ")")
+    if (reducers.hasOwnProperty(action.key)) {
+      throw new Error("duplicate reducer action: " + action.key)
     }
-    actions[action.key] = action
-    return [action.key, reduce]
-  }))
+    reducers[action.key] = reduce
+  })
   return reducer
 }
 

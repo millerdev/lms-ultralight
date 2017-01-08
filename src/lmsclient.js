@@ -10,12 +10,12 @@ export function getPlayers(index=0, qty=999) {
   return exec(["", "serverstatus", index, qty], transform)
 }
 
-export function getPlayerStatus(playerid) {
+export function getPlayerStatus(playerid, index="-", qty=1) {
   function transform(data) {
     data = JSON.parse(data)
     return _.extend(data && data.result, {playerid})
   }
-  return exec([playerid, "status", "-", 1, "tags:aBlu"], transform)
+  return exec([playerid, "status", index, qty, "tags:aBlu"], transform)
 }
 
 export function playerCommand(playerid, ...command) {
