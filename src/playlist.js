@@ -3,6 +3,7 @@ import _ from 'lodash'
 import React from 'react'
 import { List } from 'semantic-ui-react'
 
+import * as lms from './lmsclient'
 import makeReducer from './store'
 import { formatTime } from './util'
 //import './playlist.scss'
@@ -30,12 +31,16 @@ export const reducer = makeReducer({
 
 export const Playlist = props => (
   <List className="playlist" selection>
-    {_.map(props.items.toJS(), item => (
-      <PlaylistItem
+    {_.map(props.items.toJS(), item => {
+      const index = item["playlist index"]
+      return <PlaylistItem
+        playerid={props.playerid}
         artist={item.artist}
         title={item.title}
-        key={item["playlist index"]} />
-    ))}
+        index={index}
+        active={props.currentIndex === index}
+        key={index} />
+    })}
   </List>
 )
 
@@ -47,7 +52,9 @@ function songTitle({artist, title}) {
 }
 
 export const PlaylistItem = props => (
-  <List.Item>
+  <List.Item
+      active={props.active}
+      onDoubleClick={() => lms.command(props.playerid, "playlist", "index", props.index)}>
     <List.Content>
       <List.Description>
         <div className="length" style={{float: "right"}}>
