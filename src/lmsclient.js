@@ -1,4 +1,5 @@
 // Logitech Media Server client
+import { Map } from 'immutable'
 import axios from 'axios'
 import _ from 'lodash'
 
@@ -14,13 +15,14 @@ export function loadPlayer(playerid, updatePlaylist=false) {
   const args = updatePlaylist ? [0, 100] : []
   getPlayerStatus(playerid, ...args).then(({data}) => {
     gotPlayer(data)
-    recurringUpdatePlayer(playerid, data.time, data.duration, data.mode)
+    recurringPlayerUpdate(playerid, data, updatePlaylist)
   }).catch((err) => {
     window.console.error(err)
   })
 }
 
 let timers = []
+let currentPlaylistID = null
 
 function addTimer(id) {
   timers.push(id)
@@ -32,25 +34,37 @@ function clearTimers() {
   _.each(temp, id => clearTimeout(id))
 }
 
-function recurringUpdatePlayer(playerid, elapsed, total, mode) {
+function recurringPlayerUpdate(playerid, data) {
   clearTimers()
-  if (!isNumeric(elapsed)) {
-    elapsed = 0
+  let elapsed = isNumeric(data.time) ? data.time : 0
+  const total = data.total
+  const isPlaying = data.mode === "play"
+  const playlistID = Map({
+    playerid,
+    timestamp: data.playlist_timestamp,
+    tracks: data.playlist_tracks,
+  })
+  const updatePlaylist = !data.isPlaylistUpdate && !playlistID.equals(currentPlaylistID)
+  if (data.isPlaylistUpdate) {
+    currentPlaylistID = playlistID
   }
 
   // load player again after STATUS_INTERVAL or end of song, whichever is first
   let nextLoad = total ? total - elapsed : STATUS_INTERVAL
-  if (nextLoad > STATUS_INTERVAL || mode !== "play") {
+  if (updatePlaylist) {
+    currentPlaylistID = playlistID
+    nextLoad = 0.1
+  } else if (nextLoad > STATUS_INTERVAL || !isPlaying) {
     nextLoad = STATUS_INTERVAL
   } else {
     // add small amount to update after end of song
     nextLoad += 1
   }
   addTimer(setTimeout(function () {
-    loadPlayer(playerid)
+    loadPlayer(playerid, updatePlaylist)
   }, nextLoad * 1000))
 
-  if (mode === "play") {
+  if (isPlaying) {
     const wait = Math.round((1 - elapsed % 1) * 1000)
     elapsed = Math.ceil(elapsed)
     // wait for a fraction of second to sync with play timer

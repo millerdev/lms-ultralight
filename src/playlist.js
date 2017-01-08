@@ -51,10 +51,14 @@ function songTitle({artist, title}) {
   return artist || title
 }
 
+function play(playerid, index) {
+  lms.command(playerid, "playlist", "index", index)
+}
+
 export const PlaylistItem = props => (
   <List.Item
-      active={props.active}
-      onDoubleClick={() => lms.command(props.playerid, "playlist", "index", props.index)}>
+      onDoubleClick={() => play(props.playerid, props.index)}
+      active={props.active}>
     <List.Content>
       <List.Description>
         <div className="length" style={{float: "right"}}>
