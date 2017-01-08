@@ -7,7 +7,7 @@ import 'rc-slider/assets/index.css'
 
 import makeReducer from './store'
 import * as lms from './lmsclient'
-import { formatTime } from './util'
+import { formatTime, isNumeric } from './util'
 import 'font-awesome/css/font-awesome.css'
 
 export const defaultState = Map({
@@ -19,20 +19,21 @@ export const defaultState = Map({
   trackInfo: Map(),
   volumeLevel: 0,
   elapsedTime: 0,
-  totalTime: 0,
+  totalTime: null,
 })
 
-
 export const reducer = makeReducer({
-  "ref:gotPlayer": (state, { payload: obj }) => {
+  "ref:gotPlayer": (state, {payload: obj}) => {
+    const elapsed = isNumeric(obj.time) ? Math.floor(obj.time) : 0
+    const total = isNumeric(obj.duration) ? Math.ceil(obj.duration) : null
     const data = {
       playerid: obj.playerid,
       isPowerOn: obj.power === 1,
       isPlaying: obj.mode === "play",
       repeatMode: obj["playlist repeat"],
       shuffleMode: obj["playlist shuffle"],
-      elapsedTime: obj.time || 0,
-      totalTime: obj.duration || obj.time || 0,
+      elapsedTime: elapsed,
+      totalTime: total,
       volumeLevel: obj["mixer volume"],
       //everything: fromJS(obj),
     }
@@ -48,7 +49,10 @@ export const reducer = makeReducer({
     }
     return state.merge(data)
   },
-  preSeek: (state, {playerid, value}) => {
+  "ref:updatePlayerTime": (state, {payload: time}) => {
+    return state.set("elapsedTime", isNumeric(time) ? Math.floor(time) : 0)
+  },
+  preSeek: (state, {payload: {playerid, value}}) => {
     if (state.get("playerid") === playerid) {
       return state.set("elapsedTime", value)
     }
@@ -93,8 +97,8 @@ class SeekBar extends React.Component {
     this.state = {seeking: false, seek: 0}
   }
   render () {
-    const elapsed = Math.ceil(this.props.elapsed || 0)
-    const total = Math.ceil(this.props.total || 0)
+    const elapsed = this.props.elapsed
+    const total = this.props.total || elapsed
     return <div>
       <span className="elapsed">{formatTime(elapsed)}</span>
       {/* TODO remove inline styles */}

@@ -146,6 +146,6 @@ const STATE = mod.defaultState.merge({
     "url": "file:///.../Vangelis%20-%20Direct/03%20Metallic%20Rain.flac",
   }),
   volumeLevel: 15,
-  elapsedTime: 232.467967245102,
-  totalTime: 371.373,
+  elapsedTime: 232,
+  totalTime: 372,
 })

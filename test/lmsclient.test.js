@@ -63,4 +63,5 @@ const PLAYER_STATUS = fromJS({
   "seq_no": 0,
   "signalstrength": 81,
   "time": 232.467967245102,
+  "isPlaylistUpdate": false,
 })

@@ -17,3 +17,7 @@ export function formatTime(seconds) {
   }
   return (neg ? '-' : '') + time
 }
+
+export function isNumeric(n) {
+  return !isNaN(parseFloat(n)) && isFinite(n)
+}
