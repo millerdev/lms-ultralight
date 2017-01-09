@@ -35,6 +35,21 @@ function clearTimers() {
 }
 
 function recurringPlayerUpdate(playerid, data) {
+  /*
+    TODO
+    - move player selector and playlist into Player
+    - move recurring play time updates into LiveSeekBar
+      - use playlist and local time to calculate current song/play time
+      - don't forget to check repeat-one when advancing to next song
+      - all live updates are local to LiveSeekBar and do not change app state
+    - make a `timer` object that can be faked for testing
+      - timer.timeout(ms, func)
+      - timer.interval(ms, func)
+      - timer.clear()
+      - pass fake timer to LiveSeekBar in tests
+    - request updates from server on periodic basis (slower in dev mode)
+      - allow force update if isPlaying and beyond end of current playlist
+   */
   clearTimers()
   let elapsed = isNumeric(data.time) ? data.time : 0
   const total = data.total
@@ -92,9 +107,16 @@ export function getPlayers(index=0, qty=999) {
 export function getPlayerStatus(playerid, index="-", qty=1) {
   function transform(data) {
     data = JSON.parse(data)
+    const after = new Date()
+    const localTime = new Date(before.getTime() + (after - before) / 2)
     const isPlaylistUpdate = index !== "-"
-    return _.extend(data && data.result, {playerid, isPlaylistUpdate})
+    return _.extend(data && data.result, {
+      playerid,
+      isPlaylistUpdate,
+      localTime,
+    })
   }
+  const before = new Date()
   return exec([playerid, "status", index, qty, "tags:aBluJ"], transform)
 }
 

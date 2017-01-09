@@ -25,10 +25,17 @@ describe('lmsclient', function () {
   it('getPlayerStatus should return player status with playerid', function (done) {
     const status = PLAYER_STATUS
     const resp = {result: status.toJS()}
+    const before = new Date()
     mock.onPost("/jsonrpc.js").reply(200, JSON.stringify(resp))
-    lms.getPlayerStatus("<id>").then(response => {
-      const result = status.set("playerid", "<id>").toJS()
-      assert.deepEqual(response.data, result)
+    lms.getPlayerStatus("<id>").then(({data}) => {
+      const result = status.merge({
+        playerid: "<id>",
+        localTime: data.localTime,
+      }).toJS()
+      assert.deepEqual(data, result)
+      assert.typeOf(data.localTime, "date")
+      assert.isAtLeast(data.localTime, before)
+      assert.isAtMost(data.localTime, new Date())
     }).then(done, done)
   })
 })
