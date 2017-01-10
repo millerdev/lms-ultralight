@@ -2,7 +2,7 @@ import React from 'react'
 import { connect, Provider } from 'react-redux'
 import 'semantic-ui-css/semantic.min.css'
 
-//import DevTools from './devtools'
+import DevTools from './devtools'
 import * as player from './player'
 import { makeStore } from './store'
 
@@ -14,7 +14,7 @@ const App = () => (
   <Provider store={store}>
     <div>
       <Player />
-      {/*<DevTools />*/}
+      <DevTools />
     </div>
   </Provider>
 )

@@ -1,3 +1,4 @@
+import _ from 'lodash'
 
 export function formatTime(seconds) {
   if (!seconds) {
@@ -20,4 +21,28 @@ export function formatTime(seconds) {
 
 export function isNumeric(n) {
   return !isNaN(parseFloat(n)) && isFinite(n)
+}
+
+export function timer() {
+  let timers = []
+  return {
+    after: (ms, func) => {
+      const id = setTimeout(func, ms)
+      timers.push(id)
+      return id
+    },
+    every: (ms, func) => {
+      const id = setInterval(func, ms)
+      timers.push(id)
+      return id
+    },
+    clear: id => {
+      if (id !== undefined) {
+        clearTimeout(id)
+      } else {
+        _.each(timers, id => clearTimeout(id))
+        timers = []
+      }
+    },
+  }
 }

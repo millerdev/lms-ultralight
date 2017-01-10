@@ -85,6 +85,7 @@ const STATUS = fromJS({
   "seq_no": 0,
   "signalstrength": 81,
   "time": 232.467967245102,
+  "localTime": new Date(),
 })
 
 const PLAYLIST_0 = fromJS([
@@ -145,6 +146,7 @@ const STATE = mod.defaultState.merge({
     "url": "file:///.../Vangelis%20-%20Direct/03%20Metallic%20Rain.flac",
   }),
   volumeLevel: 15,
-  elapsedTime: 232,
-  totalTime: 372,
+  elapsedTime: 232.467967245102,
+  totalTime: 371.373,
+  localTime: STATUS.get("localTime"),
 })

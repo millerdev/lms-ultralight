@@ -9,7 +9,7 @@ import makeReducer from './store'
 import * as lms from './lmsclient'
 import * as players from './playerselect'
 import * as playlist from './playlist'
-import { formatTime, isNumeric } from './util'
+import { formatTime, isNumeric, timer } from './util'
 import 'font-awesome/css/font-awesome.css'
 
 export const init = players.init
@@ -26,21 +26,21 @@ export const defaultState = Map({
   volumeLevel: 0,
   elapsedTime: 0,
   totalTime: null,
+  localTime: null,
 })
 
 export const playerReducer = makeReducer({
   "ref:gotPlayer": (state, {payload: obj}) => {
-    const elapsed = isNumeric(obj.time) ? Math.floor(obj.time) : 0
-    const total = isNumeric(obj.duration) ? Math.ceil(obj.duration) : null
     const data = {
       playerid: obj.playerid,
       isPowerOn: obj.power === 1,
       isPlaying: obj.mode === "play",
       repeatMode: obj["playlist repeat"],
       shuffleMode: obj["playlist shuffle"],
-      elapsedTime: elapsed,
-      totalTime: total,
       volumeLevel: obj["mixer volume"],
+      elapsedTime: isNumeric(obj.time) ? obj.time : 0,
+      totalTime: isNumeric(obj.duration) ? obj.duration : null,
+      localTime: obj.localTime,
       //everything: fromJS(obj),
     }
     const loop = obj.playlist_loop
@@ -55,12 +55,12 @@ export const playerReducer = makeReducer({
     }
     return state.merge(data)
   },
-  "ref:updatePlayerTime": (state, {payload: time}) => {
-    return state.set("elapsedTime", isNumeric(time) ? Math.floor(time) : 0)
-  },
   preSeek: (state, {payload: {playerid, value}}) => {
     if (state.get("playerid") === playerid) {
-      return state.set("elapsedTime", value)
+      return state.merge({
+        elapsedTime: value,
+        localTime: new Date(),
+      })
     }
     return state
   },
@@ -74,6 +74,42 @@ export function reducer(state=defaultState, action) {
     players: players.reducer(state.get("players"), action),
     playlist: playlist.reducer(state.get("playlist"), action),
   })
+}
+
+class LiveSeekBar extends React.Component {
+  constructor() {
+    super()
+    this.timer = timer()
+    this.state = {elapsed: 0}
+  }
+  componentWillReceiveProps(props) {
+    this.timer.clear()
+    if (props.isPlaying && props.localTime) {
+      const update = () => {
+        const now = new Date()
+        const playtime = props.elapsed + (now - props.localTime) / 1000
+        const wait = Math.round((1 - playtime % 1) * 1000)
+        const floored = Math.floor(playtime)
+        const elapsed = _.min([floored, props.total || floored])
+        if (this.state.elapsed !== elapsed) {
+          this.setState({elapsed})
+        }
+        this.timer.after(wait, update)
+      }
+      update()
+    }
+  }
+  componentWillUnmount() {
+    this.timer.clear()
+  }
+  render () {
+    const props = this.props
+    return <SeekBar
+      elapsed={this.state.elapsed}
+      total={props.total}
+      onSeek={props.onSeek}
+      disabled={props.disabled} />
+  }
 }
 
 const IconToggleButton = props => (
@@ -106,11 +142,11 @@ const CurrentTrackInfo = props => (
 
 class SeekBar extends React.Component {
   // TODO display time at mouse pointer on hover
-  constructor () {
+  constructor() {
     super()
     this.state = {seeking: false, seek: 0}
   }
-  render () {
+  render() {
     const elapsed = this.props.elapsed
     const total = this.props.total || elapsed
     return <div className="ui grid">
@@ -124,7 +160,7 @@ class SeekBar extends React.Component {
           onBeforeChange={seek => this.setState({seeking: true, seek})}
           onChange={seek => this.setState({seek})}
           onAfterChange={value => {
-            this.props.onChange(value < total ? value : total)
+            this.props.onSeek(value < total ? value : total)
             this.setState({seeking: false})
           }}
           tipFormatter={formatTime}
@@ -134,14 +170,6 @@ class SeekBar extends React.Component {
         {formatTime(total ? elapsed - total : 0)}
       </div>
     </div>
-  }
-}
-
-class LiveSeekBar extends React.Component {
-  // TODO put play timer update logic in here
-  render () {
-    const props = this.props
-    return <SeekBar {...props} />
   }
 }
 
@@ -237,9 +265,11 @@ export const Player = props => (
       tags={props.trackInfo.toObject()}
       disabled={!props.playerid} />
     <LiveSeekBar
+      isPlaying={props.isPlaying}
+      localTime={props.localTime}
       elapsed={props.elapsedTime}
       total={props.totalTime}
-      onChange={value => playerSeek(props.playerid, value)}
+      onSeek={value => playerSeek(props.playerid, value)}
       disabled={!props.playerid} />
     <playlist.Playlist
       playerid={props.playerid}

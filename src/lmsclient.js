@@ -9,7 +9,6 @@ import { isNumeric } from './util'
 const STATUS_INTERVAL = 30
 
 const gotPlayer = makeActor("gotPlayer")
-const updatePlayerTime = makeActor("updatePlayerTime")
 
 export function loadPlayer(playerid, updatePlaylist=false) {
   const args = updatePlaylist ? [0, 100] : []
@@ -37,15 +36,11 @@ function clearTimers() {
 function recurringPlayerUpdate(playerid, data) {
   /*
     TODO
-    - move player selector and playlist into Player
+    x- move player selector and playlist into Player
     - move recurring play time updates into LiveSeekBar
       - use playlist and local time to calculate current song/play time
       - don't forget to check repeat-one when advancing to next song
       - all live updates are local to LiveSeekBar and do not change app state
-    - make a `timer` object that can be faked for testing
-      - timer.timeout(ms, func)
-      - timer.interval(ms, func)
-      - timer.clear()
       - pass fake timer to LiveSeekBar in tests
     - request updates from server on periodic basis (slower in dev mode)
       - allow force update if isPlaying and beyond end of current playlist
@@ -53,7 +48,6 @@ function recurringPlayerUpdate(playerid, data) {
   clearTimers()
   let elapsed = isNumeric(data.time) ? data.time : 0
   const total = data.total
-  const isPlaying = data.mode === "play"
   const playlistID = Map({
     playerid,
     timestamp: data.playlist_timestamp,
@@ -69,7 +63,7 @@ function recurringPlayerUpdate(playerid, data) {
   if (updatePlaylist) {
     currentPlaylistID = playlistID
     nextLoad = 0.1
-  } else if (nextLoad > STATUS_INTERVAL || !isPlaying) {
+  } else if (nextLoad > STATUS_INTERVAL || data.mode !== "play") {
     nextLoad = STATUS_INTERVAL
   } else {
     // add small amount to update after end of song
@@ -78,22 +72,6 @@ function recurringPlayerUpdate(playerid, data) {
   addTimer(setTimeout(function () {
     loadPlayer(playerid, updatePlaylist)
   }, nextLoad * 1000))
-
-  if (isPlaying) {
-    const wait = Math.round((1 - elapsed % 1) * 1000)
-    elapsed = Math.ceil(elapsed)
-    // wait for a fraction of second to sync with play timer
-    addTimer(setTimeout(function () {
-      updatePlayerTime(elapsed)
-      // update play time every second
-      addTimer(setInterval(function () {
-        elapsed += 1
-        if (total === undefined || elapsed <= total) {
-          updatePlayerTime(elapsed)
-        }
-      }, 1000))
-    }, wait))
-  }
 }
 
 export function getPlayers(index=0, qty=999) {
