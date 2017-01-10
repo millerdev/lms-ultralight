@@ -1,16 +1,22 @@
 import { Map, fromJS } from 'immutable'
 import _ from 'lodash'
+import Slider from 'rc-slider'
 import React from 'react'
 import { Button, Item } from 'semantic-ui-react'
-import Slider from 'rc-slider'
 import 'rc-slider/assets/index.css'
 
 import makeReducer from './store'
 import * as lms from './lmsclient'
+import * as players from './playerselect'
+import * as playlist from './playlist'
 import { formatTime, isNumeric } from './util'
 import 'font-awesome/css/font-awesome.css'
 
+export const init = players.init
+
 export const defaultState = Map({
+  players: players.defaultState,
+  playlist: playlist.defaultState,
   playerid: null,
   isPowerOn: false,
   isPlaying: false,
@@ -22,7 +28,7 @@ export const defaultState = Map({
   totalTime: null,
 })
 
-export const reducer = makeReducer({
+export const playerReducer = makeReducer({
   "ref:gotPlayer": (state, {payload: obj}) => {
     const elapsed = isNumeric(obj.time) ? Math.floor(obj.time) : 0
     const total = isNumeric(obj.duration) ? Math.ceil(obj.duration) : null
@@ -60,7 +66,15 @@ export const reducer = makeReducer({
   },
 }, defaultState)
 
-const actions = reducer.actions
+const actions = playerReducer.actions
+
+export function reducer(state=defaultState, action) {
+  state = playerReducer(state, action)
+  return state.merge({
+    players: players.reducer(state.get("players"), action),
+    playlist: playlist.reducer(state.get("playlist"), action),
+  })
+}
 
 const IconToggleButton = props => (
   <Button
@@ -123,6 +137,14 @@ class SeekBar extends React.Component {
   }
 }
 
+class LiveSeekBar extends React.Component {
+  // TODO put play timer update logic in here
+  render () {
+    const props = this.props
+    return <SeekBar {...props} />
+  }
+}
+
 const volumeMarks = {10: "", 20: "", 30: "", 40: "", 50: "", 60: "", 70: "", 80: "", 90: ""}
 // TODO make volume adjustment UI smoother: decouple slider adjustment (and
 // state update) speed from sending events to the server
@@ -137,66 +159,13 @@ function playerSeek(playerid, value) {
 
 export const Player = props => (
   <div>
-    <div className="ui stackable grid">
-      <div className="three wide column">
-        <div className="ui grid">
-          <div className="nine wide column">
-            <Button.Group basic size="small">
-              <Button
-                icon="backward"
-                onClick={() => lms.command(props.playerid, "playlist", "index", "-1")}
-                disabled={!props.playerid} />
-              <IconToggleButton
-                isOn={() => props.isPlaying}
-                onClick={() =>
-                  lms.command(props.playerid, props.isPlaying ? "pause" : "play")}
-                iconOn="play"
-                iconOff="pause"
-                disabled={!props.playerid} />
-              <Button
-                icon="forward"
-                onClick={() => lms.command(props.playerid, "playlist", "index", "+1")}
-                disabled={!props.playerid} />
-            </Button.Group>
-          </div>
-          <div className="seven wide column">
-            <Button.Group basic size="small">
-              <NWayButton
-                markup={[
-                  <i className="fa fa-long-arrow-right"></i>,
-                  <span className="fa-stack fa-lg icon-repeat-one">
-                    <i className="fa fa-repeat fa-stack-2x"></i>
-                    <i className="fa fa-stack-1x">1</i>
-                  </span>,
-                  <i className="fa fa-repeat"></i>,
-                ]}
-                value={props.repeatMode}
-                onChange={value => lms.command(props.playerid, "playlist", "repeat", value)}
-                disabled={!props.playerid} />
-              <NWayButton
-                markup={[
-                  <i className="fa fa-sort-amount-asc"></i>,
-                  <i className="fa fa-random"></i>,
-                  <span className="fa-stack fa-lg icon-shuffle-album">
-                    <i className="fa fa-square-o fa-stack-2x"></i>
-                    <i className="fa fa-random fa-stack-1x"></i>
-                  </span>,
-                ]}
-                value={props.shuffleMode}
-                onChange={value => lms.command(props.playerid, "playlist", "shuffle", value)}
-                disabled={!props.playerid} />
-            </Button.Group>
-          </div>
-        </div>
-      </div>
+    <div className="ui grid">
       <div className="twelve wide column">
-        <Slider
-          marks={volumeMarks}
-          value={props.volumeLevel}
-          onChange={value => setVolume(props.playerid, value)}
-          disabled={!props.playerid} />
+        <players.SelectPlayer
+          playerid={props.playerid}
+          {...props.players.toObject()} />
       </div>
-      <div className="one wide column">
+      <div className="right aligned four wide column">
         <Button.Group basic size="small">
           <Button basic toggle
             active={props.isPowerOn}
@@ -207,14 +176,73 @@ export const Player = props => (
         </Button.Group>
       </div>
     </div>
+    <div className="ui stackable grid">
+      <div className="three wide column">
+        <Button.Group basic size="small">
+          <Button
+            icon="backward"
+            onClick={() => lms.command(props.playerid, "playlist", "index", "-1")}
+            disabled={!props.playerid} />
+          <IconToggleButton
+            isOn={() => props.isPlaying}
+            onClick={() =>
+              lms.command(props.playerid, props.isPlaying ? "pause" : "play")}
+            iconOn="play"
+            iconOff="pause"
+            disabled={!props.playerid} />
+          <Button
+            icon="forward"
+            onClick={() => lms.command(props.playerid, "playlist", "index", "+1")}
+            disabled={!props.playerid} />
+        </Button.Group>
+      </div>
+      <div className="ten wide column">
+        <Slider
+          marks={volumeMarks}
+          value={props.volumeLevel}
+          onChange={value => setVolume(props.playerid, value)}
+          disabled={!props.playerid} />
+      </div>
+      <div className="three wide column right aligned">
+        <Button.Group basic size="small">
+          <NWayButton
+            markup={[
+              <i className="fa fa-long-arrow-right"></i>,
+              <span className="fa-stack fa-lg icon-repeat-one">
+                <i className="fa fa-repeat fa-stack-2x"></i>
+                <i className="fa fa-stack-1x">1</i>
+              </span>,
+              <i className="fa fa-repeat"></i>,
+            ]}
+            value={props.repeatMode}
+            onChange={value => lms.command(props.playerid, "playlist", "repeat", value)}
+            disabled={!props.playerid} />
+          <NWayButton
+            markup={[
+              <i className="fa fa-sort-amount-asc"></i>,
+              <i className="fa fa-random"></i>,
+              <span className="fa-stack fa-lg icon-shuffle-album">
+                <i className="fa fa-square-o fa-stack-2x"></i>
+                <i className="fa fa-random fa-stack-1x"></i>
+              </span>,
+            ]}
+            value={props.shuffleMode}
+            onChange={value => lms.command(props.playerid, "playlist", "shuffle", value)}
+            disabled={!props.playerid} />
+        </Button.Group>
+      </div>
+    </div>
     <CurrentTrackInfo
       playerid={props.playerid}
       tags={props.trackInfo.toObject()}
       disabled={!props.playerid} />
-    <SeekBar
+    <LiveSeekBar
       elapsed={props.elapsedTime}
       total={props.totalTime}
       onChange={value => playerSeek(props.playerid, value)}
       disabled={!props.playerid} />
+    <playlist.Playlist
+      playerid={props.playerid}
+      {...props.playlist.toObject()} />
   </div>
 )

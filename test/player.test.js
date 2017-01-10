@@ -4,14 +4,15 @@ import * as mod from '../src/player'
 
 describe('player', function () {
   describe('reducer', function () {
+    const reducer = mod.playerReducer
     describe('gotPlayer', function () {
       it('should set info for current track', function () {
         const action = {
           type: "gotPlayer",
           payload: STATUS.toJS(),
         }
-        const result = mod.reducer(Map(), action)
-        assert.equal(result, STATE)
+        const result = reducer(Map(), action)
+        assert.equal(result, STATE.remove("playlist").remove("players"))
       })
 
       it('should set info for current track with playlist update', function () {
@@ -22,8 +23,8 @@ describe('player', function () {
             playlist_loop: PLAYLIST_1,
           }).toJS(),
         }
-        const result = mod.reducer(Map(), action)
-        assert.equal(result, STATE)
+        const result = reducer(Map(), action)
+        assert.equal(result, STATE.remove("playlist").remove("players"))
       })
 
       it('should not change track info with playlist before current track', function () {
@@ -34,7 +35,7 @@ describe('player', function () {
             playlist_loop: PLAYLIST_0,
           }).toJS(),
         }
-        const result = mod.reducer(STATE, action)
+        const result = reducer(STATE, action)
         assert.equal(result, STATE)
       })
 
@@ -46,7 +47,7 @@ describe('player', function () {
             playlist_loop: PLAYLIST_2,
           }).toJS(),
         }
-        const result = mod.reducer(STATE, action)
+        const result = reducer(STATE, action)
         assert.equal(result, STATE)
       })
     })
@@ -135,8 +136,6 @@ const PLAYLIST_2 = fromJS([
 
 const STATE = mod.defaultState.merge({
   playerid: "1:1:1:1",
-  isPowerOn: false,
-  isPlaying: false,
   repeatMode: 2,
   shuffleMode: 1,
   trackInfo: Map({
