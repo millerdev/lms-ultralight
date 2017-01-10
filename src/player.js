@@ -99,10 +99,11 @@ class SeekBar extends React.Component {
   render () {
     const elapsed = this.props.elapsed
     const total = this.props.total || elapsed
-    return <div>
-      <span className="elapsed">{formatTime(elapsed)}</span>
-      {/* TODO remove inline styles */}
-      <div style={{display: "inline-block", width: "60%", margin: "0 10px"}}>
+    return <div className="ui grid">
+      <div className="three wide mobile two wide tablet one wide computer column left aligned">
+        {formatTime(elapsed)}
+      </div>
+      <div className="ten wide mobile twelve wide tablet fourteen wide computer column">
         <Slider
           max={_.max([total, elapsed, 1])}
           value={this.state.seeking ? this.state.seek : elapsed}
@@ -115,7 +116,9 @@ class SeekBar extends React.Component {
           tipFormatter={formatTime}
           disabled={this.props.disabled} />
       </div>
-      <span className="total">{formatTime(total ? elapsed - total : 0)}</span>
+      <div className="three wide mobile two wide tablet one wide computer column right aligned">
+        {formatTime(total ? elapsed - total : 0)}
+      </div>
     </div>
   }
 }
@@ -134,66 +137,75 @@ function playerSeek(playerid, value) {
 
 export const Player = props => (
   <div>
-    <div>
-      <Button.Group basic size="small">
-        <Button
-          icon="backward"
-          onClick={() => lms.command(props.playerid, "playlist", "index", "-1")}
-          disabled={!props.playerid} />
-        <IconToggleButton
-          isOn={() => props.isPlaying}
-          onClick={() =>
-            lms.command(props.playerid, props.isPlaying ? "pause" : "play")}
-          iconOn="play"
-          iconOff="pause"
-          disabled={!props.playerid} />
-        <Button
-          icon="forward"
-          onClick={() => lms.command(props.playerid, "playlist", "index", "+1")}
-          disabled={!props.playerid} />
-      </Button.Group>
-      <Button.Group basic size="small">
-        <NWayButton
-          markup={[
-            <i className="fa fa-long-arrow-right"></i>,
-            <span className="fa-stack fa-lg icon-repeat-one">
-              <i className="fa fa-repeat fa-stack-2x"></i>
-              <i className="fa fa-stack-1x">1</i>
-            </span>,
-            <i className="fa fa-repeat"></i>,
-          ]}
-          value={props.repeatMode}
-          onChange={value => lms.command(props.playerid, "playlist", "repeat", value)}
-          disabled={!props.playerid} />
-        <NWayButton
-          markup={[
-            <i className="fa fa-sort-amount-asc"></i>,
-            <i className="fa fa-random"></i>,
-            <span className="fa-stack fa-lg icon-shuffle-album">
-              <i className="fa fa-square-o fa-stack-2x"></i>
-              <i className="fa fa-random fa-stack-1x"></i>
-            </span>,
-          ]}
-          value={props.shuffleMode}
-          onChange={value => lms.command(props.playerid, "playlist", "shuffle", value)}
-          disabled={!props.playerid} />
-      </Button.Group>
-      {/* TODO remove styles from this group */}
-      <div style={{display: "inline-block", "width": "50%", "margin": "0 10px"}}>
+    <div className="ui stackable grid">
+      <div className="three wide column">
+        <div className="ui grid">
+          <div className="nine wide column">
+            <Button.Group basic size="small">
+              <Button
+                icon="backward"
+                onClick={() => lms.command(props.playerid, "playlist", "index", "-1")}
+                disabled={!props.playerid} />
+              <IconToggleButton
+                isOn={() => props.isPlaying}
+                onClick={() =>
+                  lms.command(props.playerid, props.isPlaying ? "pause" : "play")}
+                iconOn="play"
+                iconOff="pause"
+                disabled={!props.playerid} />
+              <Button
+                icon="forward"
+                onClick={() => lms.command(props.playerid, "playlist", "index", "+1")}
+                disabled={!props.playerid} />
+            </Button.Group>
+          </div>
+          <div className="seven wide column">
+            <Button.Group basic size="small">
+              <NWayButton
+                markup={[
+                  <i className="fa fa-long-arrow-right"></i>,
+                  <span className="fa-stack fa-lg icon-repeat-one">
+                    <i className="fa fa-repeat fa-stack-2x"></i>
+                    <i className="fa fa-stack-1x">1</i>
+                  </span>,
+                  <i className="fa fa-repeat"></i>,
+                ]}
+                value={props.repeatMode}
+                onChange={value => lms.command(props.playerid, "playlist", "repeat", value)}
+                disabled={!props.playerid} />
+              <NWayButton
+                markup={[
+                  <i className="fa fa-sort-amount-asc"></i>,
+                  <i className="fa fa-random"></i>,
+                  <span className="fa-stack fa-lg icon-shuffle-album">
+                    <i className="fa fa-square-o fa-stack-2x"></i>
+                    <i className="fa fa-random fa-stack-1x"></i>
+                  </span>,
+                ]}
+                value={props.shuffleMode}
+                onChange={value => lms.command(props.playerid, "playlist", "shuffle", value)}
+                disabled={!props.playerid} />
+            </Button.Group>
+          </div>
+        </div>
+      </div>
+      <div className="twelve wide column">
         <Slider
           marks={volumeMarks}
           value={props.volumeLevel}
           onChange={value => setVolume(props.playerid, value)}
           disabled={!props.playerid} />
       </div>
-      <Button.Group basic size="small">
-        <Button basic toggle
-          active={props.isPowerOn}
-          onClick={() =>
-            lms.command(props.playerid, "power", props.isPowerOn ? 0 : 1)}
-          icon="power"
-          disabled={!props.playerid} />
-      </Button.Group>
+      <div className="one wide column">
+        <Button.Group basic size="small">
+          <Button basic toggle
+            active={props.isPowerOn}
+            onClick={() =>
+              lms.command(props.playerid, "power", props.isPowerOn ? 0 : 1)}
+            icon="power"
+            disabled={!props.playerid} />
+        </Button.Group>
+      </div>
     </div>
     <CurrentTrackInfo
       playerid={props.playerid}
