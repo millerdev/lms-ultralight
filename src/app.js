@@ -20,7 +20,3 @@ const App = () => (
 )
 
 export default App
-
-// TODO move to Player.componentDidMount
-// also http://stackoverflow.com/a/38523610/10840
-export const init = player.init

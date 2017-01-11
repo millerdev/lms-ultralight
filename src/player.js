@@ -12,8 +12,6 @@ import * as playlist from './playlist'
 import { formatTime, isNumeric, timer } from './util'
 import 'font-awesome/css/font-awesome.css'
 
-export const init = players.init
-
 export const defaultState = Map({
   players: players.defaultState,
   playlist: playlist.defaultState,
@@ -74,6 +72,34 @@ export function reducer(state=defaultState, action) {
     players: players.reducer(state.get("players"), action),
     playlist: playlist.reducer(state.get("playlist"), action),
   })
+}
+
+export class Player extends React.Component {
+  constructor() {
+    super()
+    this.timer = timer()
+    this.state = {}
+  }
+  componentDidMount() {
+    const playerid = localStorage.currentPlayer
+    lms.getPlayers().then(({data}) => {
+      players.gotPlayers(data)
+      if (playerid && _.some(data, item => item.playerid === playerid)) {
+        lms.loadPlayer(playerid, true)
+      } else if (data.length) {
+        lms.loadPlayer(data[0].playerid, true)
+      }
+    })
+  }
+  onPlayerSelected(playerid) {
+    localStorage.currentPlayer = playerid
+    lms.loadPlayer(playerid, true)
+  }
+  render() {
+    return <PlayerUI
+      onPlayerSelected={this.onPlayerSelected}
+      {...this.props} />
+  }
 }
 
 class LiveSeekBar extends React.Component {
@@ -185,12 +211,13 @@ function playerSeek(playerid, value) {
   lms.command(playerid, "time", value)
 }
 
-export const Player = props => (
+export const PlayerUI = props => (
   <div>
     <div className="ui grid">
       <div className="twelve wide column">
         <players.SelectPlayer
           playerid={props.playerid}
+          onPlayerSelected={props.onPlayerSelected}
           {...props.players.toObject()} />
       </div>
       <div className="right aligned four wide column">

@@ -5,7 +5,7 @@
 
 import React from 'react'
 import { render } from 'react-dom'
-import App, { init } from './app'
+import App from './app'
 
 if (process.env.NODE_ENV === "development") {
   window.console.log('LMS_URL:', LMS_URL)
@@ -16,8 +16,6 @@ const root = document.getElementById('app')
 const renderer = App => render(<App />, root)
 
 renderer(App)
-
-init()
 
 // hot reloading currently done by BrowserSync?
 //if (module.hot) {

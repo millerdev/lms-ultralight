@@ -13,28 +13,14 @@ export const defaultState = Map({
   error: false,
 })
 
-export function init() {
-  const playerid = localStorage.currentPlayer
-  lms.getPlayers().then(response => {
-    const players = response.data
-    actions.gotPlayers(players)
-    if (playerid && _.some(players, item => item.playerid === playerid)) {
-      lms.loadPlayer(playerid, true)
-    } else if (players.length) {
-      lms.loadPlayer(players[0].playerid, true)
-    }
-  })
-}
-
-function setCurrentPlayer(playerid) {
-  localStorage.currentPlayer = playerid
-  lms.loadPlayer(playerid, true)
+export function gotPlayers(players) {
+  return actions.gotPlayers(players)
 }
 
 export const reducer = makeReducer({
   loadPlayers: state => {
-    lms.getPlayers().then(response => {
-      actions.gotPlayers(response.data)
+    lms.getPlayers().then(({data}) => {
+      actions.gotPlayers(data)
     }).catch(() => {
       actions.gotPlayers()
     })
@@ -56,13 +42,13 @@ export const reducer = makeReducer({
 
 const actions = reducer.actions
 
-const onLoadPlayers = _.throttle(actions.loadPlayers, 30000, {trailing: false})
+const loadPlayers = _.throttle(actions.loadPlayers, 30000, {trailing: false})
 
 export const SelectPlayer = props => (
   <Dropdown
     placeholder="Select Player"
-    onClick={onLoadPlayers}
-    onChange={(e, { value }) => setCurrentPlayer(value)}
+    onClick={loadPlayers}
+    onChange={(e, { value }) => props.onPlayerSelected(value)}
     options={props.players.map(item => ({
       text: item.get("name"),
       value: item.get("playerid"),
