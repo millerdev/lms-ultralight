@@ -1,4 +1,4 @@
-import { Map, fromJS } from 'immutable'
+import { List, Map, fromJS } from 'immutable'
 import _ from 'lodash'
 import Slider from 'rc-slider'
 import React from 'react'
@@ -12,9 +12,10 @@ import * as playlist from './playlist'
 import { formatTime, isNumeric, timer } from './util'
 import 'font-awesome/css/font-awesome.css'
 
+const STATUS_INTERVAL = 30  // seconds
+
 export const defaultState = Map({
   players: players.defaultState,
-  playlist: playlist.defaultState,
   playerid: null,
   isPowerOn: false,
   isPlaying: false,
@@ -25,33 +26,44 @@ export const defaultState = Map({
   elapsedTime: 0,
   totalTime: null,
   localTime: null,
+  playlistTimestamp: null,
+  playlistTracks: null,
+  playlistIndex: null,
+  playlist: List(),
 })
 
+export function transformPlayerStatus(previousState, status) {
+  const data = {
+    playerid: status.playerid,
+    isPowerOn: status.power === 1,
+    isPlaying: status.mode === "play",
+    repeatMode: status["playlist repeat"],
+    shuffleMode: status["playlist shuffle"],
+    volumeLevel: status["mixer volume"],
+    elapsedTime: isNumeric(status.time) ? status.time : 0,
+    totalTime: isNumeric(status.duration) ? status.duration : null,
+    localTime: status.localTime,
+    playlistTimestamp: status.playlist_timestamp,
+    playlistTracks: status.playlist_tracks,
+    //everything: fromJS(status),
+  }
+  const loop = status.playlist_loop
+  const IX = "playlist index"
+  const index = data.playlistIndex = parseInt(status.playlist_cur_index)
+  if (status.isPlaylistUpdate) {
+    data.playlist = fromJS(status.playlist_loop)
+    if (index >= loop[0][IX] && index <= loop[loop.length - 1][IX]) {
+      data.trackInfo = fromJS(loop[index - loop[0][IX]])
+    }
+  } else {
+    data.trackInfo = fromJS(loop[0] || {})
+  }
+  return previousState.merge(data)
+}
+
 export const playerReducer = makeReducer({
-  "ref:gotPlayer": (state, {payload: obj}) => {
-    const data = {
-      playerid: obj.playerid,
-      isPowerOn: obj.power === 1,
-      isPlaying: obj.mode === "play",
-      repeatMode: obj["playlist repeat"],
-      shuffleMode: obj["playlist shuffle"],
-      volumeLevel: obj["mixer volume"],
-      elapsedTime: isNumeric(obj.time) ? obj.time : 0,
-      totalTime: isNumeric(obj.duration) ? obj.duration : null,
-      localTime: obj.localTime,
-      //everything: fromJS(obj),
-    }
-    const loop = obj.playlist_loop
-    const IX = "playlist index"
-    if (obj.isPlaylistUpdate) {
-      const index = parseInt(obj.playlist_cur_index)
-      if (index >= loop[0][IX] && index <= loop[loop.length - 1][IX]) {
-        data.trackInfo = fromJS(loop[index - loop[0][IX]])
-      }
-    } else {
-      data.trackInfo = fromJS(loop[0] || {})
-    }
-    return state.merge(data)
+  gotPlayer: (state, {payload}) => {
+    return state.merge(payload)
   },
   preSeek: (state, {payload: {playerid, value}}) => {
     if (state.get("playerid") === playerid) {
@@ -62,7 +74,7 @@ export const playerReducer = makeReducer({
     }
     return state
   },
-}, defaultState)
+}, defaultState.remove("players"))
 
 const actions = playerReducer.actions
 
@@ -70,7 +82,7 @@ export function reducer(state=defaultState, action) {
   state = playerReducer(state, action)
   return state.merge({
     players: players.reducer(state.get("players"), action),
-    playlist: playlist.reducer(state.get("playlist"), action),
+    //playlist: playlist.reducer(state.get("playlist"), action),
   })
 }
 
@@ -78,27 +90,77 @@ export class Player extends React.Component {
   constructor() {
     super()
     this.timer = timer()
-    this.state = {}
+    this._state = defaultState.remove("players")
   }
   componentDidMount() {
-    const playerid = localStorage.currentPlayer
+    let playerid = localStorage.currentPlayer
     lms.getPlayers().then(({data}) => {
       players.gotPlayers(data)
       if (playerid && _.some(data, item => item.playerid === playerid)) {
-        lms.loadPlayer(playerid, true)
+        this.loadPlayer(playerid, true)
       } else if (data.length) {
-        lms.loadPlayer(data[0].playerid, true)
+        this.loadPlayer(data[0].playerid, true)
       }
     })
   }
+  loadPlayer(playerid, fetchPlaylist=false) {
+    const args = fetchPlaylist ? [0, 100] : []
+    lms.getPlayerStatus(playerid, ...args).then(response => {
+      this.onLoadPlayer(transformPlayerStatus(this._state, response.data))
+    })
+  }
+  isPlaylistChanged(state) {
+    const playlistId = state => Map({
+      playerid: state.get("playerid"),
+      timestamp: state.get("playlistTimestamp"),
+      tracks: state.get("playlistTracks"),
+      //playlist: state.playlist,
+    })
+    return !playlistId(this._state).equals(playlistId(state))
+  }
+  advanceToNextSong(obj) {
+    // TODO advance playlist without querying server
+    // don't forget to check repeat-one when advancing to next song
+    this.loadPlayer(obj.playerid)
+  }
+  secondsToEndOfSong({elapsedTime, totalTime, localTime}) {
+    const now = new Date()
+    const elapsed = localTime ?
+      elapsedTime + (now - localTime) / 1000 : elapsedTime
+    const total = totalTime !== null ? _.max([totalTime, elapsed]) : elapsed
+    return total - elapsed
+  }
+  command(playerid, ...args) {
+    lms.command(playerid, ...args).then(() => this.loadPlayer(playerid))
+    // TODO convey command failure to view somehow
+  }
+  onLoadPlayer(state) {
+    const obj = state.toObject()
+    this.timer.clear()
+    actions.gotPlayer(obj)
+    let wait = STATUS_INTERVAL * 1000
+    const fetchPlaylist = !obj.isPlaylistUpdate && this.isPlaylistChanged(state)
+    if (fetchPlaylist) {
+      wait = 0
+    } else {
+      const end = this.secondsToEndOfSong(obj) * 1000
+      if (end && end < wait) {
+        this.timer.after(end, () => this.advanceToNextSong(obj))
+      }
+    }
+    this._state = state
+    this.timer.after(wait, () => this.loadPlayer(obj.playerid, fetchPlaylist))
+  }
   onPlayerSelected(playerid) {
     localStorage.currentPlayer = playerid
-    lms.loadPlayer(playerid, true)
+    this.loadPlayer(playerid, true)
   }
   render() {
+    const props = this.props
     return <PlayerUI
-      onPlayerSelected={this.onPlayerSelected}
-      {...this.props} />
+      command={this.command.bind(this, props.playerid)}
+      onPlayerSelected={this.onPlayerSelected.bind(this)}
+      {...props} />
   }
 }
 
@@ -202,14 +264,7 @@ class SeekBar extends React.Component {
 const volumeMarks = {10: "", 20: "", 30: "", 40: "", 50: "", 60: "", 70: "", 80: "", 90: ""}
 // TODO make volume adjustment UI smoother: decouple slider adjustment (and
 // state update) speed from sending events to the server
-const setVolume = _.throttle((playerid, value) => {
-  lms.command(playerid, "mixer", "volume", value)
-}, 300)
-
-function playerSeek(playerid, value) {
-  actions.preSeek({playerid, value})
-  lms.command(playerid, "time", value)
-}
+const setVolume = _.throttle((command, value) => command("mixer", "volume", value), 300)
 
 export const PlayerUI = props => (
   <div>
@@ -225,7 +280,7 @@ export const PlayerUI = props => (
           <Button basic toggle
             active={props.isPowerOn}
             onClick={() =>
-              lms.command(props.playerid, "power", props.isPowerOn ? 0 : 1)}
+              props.command("power", props.isPowerOn ? 0 : 1)}
             icon="power"
             disabled={!props.playerid} />
         </Button.Group>
@@ -236,18 +291,18 @@ export const PlayerUI = props => (
         <Button.Group basic size="small">
           <Button
             icon="backward"
-            onClick={() => lms.command(props.playerid, "playlist", "index", "-1")}
+            onClick={() => props.command("playlist", "index", "-1")}
             disabled={!props.playerid} />
           <IconToggleButton
             isOn={() => props.isPlaying}
             onClick={() =>
-              lms.command(props.playerid, props.isPlaying ? "pause" : "play")}
+              props.command(props.isPlaying ? "pause" : "play")}
             iconOn="play"
             iconOff="pause"
             disabled={!props.playerid} />
           <Button
             icon="forward"
-            onClick={() => lms.command(props.playerid, "playlist", "index", "+1")}
+            onClick={() => props.command("playlist", "index", "+1")}
             disabled={!props.playerid} />
         </Button.Group>
       </div>
@@ -255,7 +310,7 @@ export const PlayerUI = props => (
         <Slider
           marks={volumeMarks}
           value={props.volumeLevel}
-          onChange={value => setVolume(props.playerid, value)}
+          onChange={value => setVolume(props.command, value)}
           disabled={!props.playerid} />
       </div>
       <div className="three wide column right aligned">
@@ -270,7 +325,7 @@ export const PlayerUI = props => (
               <i className="fa fa-repeat"></i>,
             ]}
             value={props.repeatMode}
-            onChange={value => lms.command(props.playerid, "playlist", "repeat", value)}
+            onChange={value => props.command("playlist", "repeat", value)}
             disabled={!props.playerid} />
           <NWayButton
             markup={[
@@ -282,7 +337,7 @@ export const PlayerUI = props => (
               </span>,
             ]}
             value={props.shuffleMode}
-            onChange={value => lms.command(props.playerid, "playlist", "shuffle", value)}
+            onChange={value => props.command("playlist", "shuffle", value)}
             disabled={!props.playerid} />
         </Button.Group>
       </div>
@@ -296,10 +351,14 @@ export const PlayerUI = props => (
       localTime={props.localTime}
       elapsed={props.elapsedTime}
       total={props.totalTime}
-      onSeek={value => playerSeek(props.playerid, value)}
+      onSeek={value => {
+        actions.preSeek({playerid: props.playerid, value})
+        props.command("time", value)
+      }}
       disabled={!props.playerid} />
     <playlist.Playlist
-      playerid={props.playerid}
-      {...props.playlist.toObject()} />
+      command={props.command}
+      currentIndex={props.playlistIndex}
+      items={props.playlist} />
   </div>
 )

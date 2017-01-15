@@ -1,31 +1,10 @@
-import { List as IList, Map, fromJS } from 'immutable'
 import _ from 'lodash'
 import React from 'react'
 import { List } from 'semantic-ui-react'
 
-import * as lms from './lmsclient'
-import makeReducer from './store'
 import { formatTime } from './util'
 //import './playlist.scss'
 
-export const defaultState = Map({
-  currentIndex: null,
-  items: IList(),
-  error: false,
-})
-
-export const reducer = makeReducer({
-  "ref:gotPlayer": (state, {payload: obj}) => {
-    const index = parseInt(obj.playlist_cur_index)
-    if (obj && obj.isPlaylistUpdate) {
-      return state.merge({
-        currentIndex: index,
-        items: fromJS(obj.playlist_loop),
-      })
-    }
-    return state.set("currentIndex", index)
-  },
-}, defaultState)
 
 //const actions = reducer.actions
 
@@ -34,7 +13,7 @@ export const Playlist = props => (
     {_.map(props.items.toJS(), item => {
       const index = item["playlist index"]
       return <PlaylistItem
-        playerid={props.playerid}
+        command={props.command}
         artist={item.artist}
         title={item.title}
         index={index}
@@ -51,13 +30,9 @@ function songTitle({artist, title}) {
   return artist || title
 }
 
-function play(playerid, index) {
-  lms.command(playerid, "playlist", "index", index)
-}
-
 export const PlaylistItem = props => (
   <List.Item
-      onDoubleClick={() => play(props.playerid, props.index)}
+      onDoubleClick={() => props.command("playlist", "index", props.index)}
       active={props.active}>
     <List.Content>
       <List.Description>

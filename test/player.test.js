@@ -3,53 +3,34 @@ import { fromJS, Map } from 'immutable'
 import * as mod from '../src/player'
 
 describe('player', function () {
-  describe('reducer', function () {
-    const reducer = mod.playerReducer
-    describe('gotPlayer', function () {
-      it('should set info for current track', function () {
-        const action = {
-          type: "gotPlayer",
-          payload: STATUS.toJS(),
-        }
-        const result = reducer(Map(), action)
-        assert.equal(result, STATE.remove("playlist").remove("players"))
-      })
+  describe('transformPlayerStatus', function () {
+    it('should set info for current track', function () {
+      const result = mod.transformPlayerStatus(Map(), STATUS.toJS())
+      assert.equal(result, STATE)
+    })
 
-      it('should set info for current track with playlist update', function () {
-        const action = {
-          type: "gotPlayer",
-          payload: STATUS.merge({
-            isPlaylistUpdate: true,
-            playlist_loop: PLAYLIST_1,
-          }).toJS(),
-        }
-        const result = reducer(Map(), action)
-        assert.equal(result, STATE.remove("playlist").remove("players"))
-      })
+    it('should set info for current track with playlist update', function () {
+      const result = mod.transformPlayerStatus(Map(), STATUS.merge({
+        isPlaylistUpdate: true,
+        playlist_loop: PLAYLIST_1,
+      }).toJS())
+      assert.equal(result.remove("playlist"), STATE)
+    })
 
-      it('should not change track info with playlist before current track', function () {
-        const action = {
-          type: "gotPlayer",
-          payload: STATUS.merge({
-            isPlaylistUpdate: true,
-            playlist_loop: PLAYLIST_0,
-          }).toJS(),
-        }
-        const result = reducer(STATE, action)
-        assert.equal(result, STATE)
-      })
+    it('should not change track info with playlist before current track', function () {
+      const result = mod.transformPlayerStatus(STATE, STATUS.merge({
+        isPlaylistUpdate: true,
+        playlist_loop: PLAYLIST_0,
+      }).toJS())
+      assert.equal(result.remove("playlist"), STATE)
+    })
 
-      it('should not change track info with playlist after current track', function () {
-        const action = {
-          type: "gotPlayer",
-          payload: STATUS.merge({
-            isPlaylistUpdate: true,
-            playlist_loop: PLAYLIST_2,
-          }).toJS(),
-        }
-        const result = reducer(STATE, action)
-        assert.equal(result, STATE)
-      })
+    it('should not change track info with playlist after current track', function () {
+      const result = mod.transformPlayerStatus(STATE, STATUS.merge({
+        isPlaylistUpdate: true,
+        playlist_loop: PLAYLIST_2,
+      }).toJS())
+      assert.equal(result.remove("playlist"), STATE)
     })
   })
 })
@@ -135,7 +116,7 @@ const PLAYLIST_2 = fromJS([
   }
 ])
 
-const STATE = mod.defaultState.merge({
+const STATE = mod.defaultState.remove("players").remove("playlist").merge({
   playerid: "1:1:1:1",
   repeatMode: 2,
   shuffleMode: 1,
@@ -149,4 +130,7 @@ const STATE = mod.defaultState.merge({
   elapsedTime: 232.467967245102,
   totalTime: 371.373,
   localTime: STATUS.get("localTime"),
+  playlistTimestamp: 1482495558.93241,
+  playlistTracks: 7,
+  playlistIndex: 2,
 })

@@ -1,85 +1,13 @@
 // Logitech Media Server client
-import { Map } from 'immutable'
 import axios from 'axios'
 import _ from 'lodash'
-
-import { makeActor } from './store'
-import { isNumeric } from './util'
-
-const STATUS_INTERVAL = 30
-
-const gotPlayer = makeActor("gotPlayer")
-
-export function loadPlayer(playerid, updatePlaylist=false) {
-  const args = updatePlaylist ? [0, 100] : []
-  getPlayerStatus(playerid, ...args).then(({data}) => {
-    gotPlayer(data)
-    recurringPlayerUpdate(playerid, data, updatePlaylist)
-  }).catch((err) => {
-    window.console.error(err)
-  })
-}
-
-let timers = []
-let currentPlaylistID = null
-
-function addTimer(id) {
-  timers.push(id)
-}
-
-function clearTimers() {
-  let temp
-  [timers, temp] = [[], timers]
-  _.each(temp, id => clearTimeout(id))
-}
-
-function recurringPlayerUpdate(playerid, data) {
-  /*
-    TODO
-    x- move player selector and playlist into Player
-    - move recurring play time updates into LiveSeekBar
-      - use playlist and local time to calculate current song/play time
-      - don't forget to check repeat-one when advancing to next song
-      - all live updates are local to LiveSeekBar and do not change app state
-      - pass fake timer to LiveSeekBar in tests
-    - request updates from server on periodic basis (slower in dev mode)
-      - allow force update if isPlaying and beyond end of current playlist
-   */
-  clearTimers()
-  let elapsed = isNumeric(data.time) ? data.time : 0
-  const total = data.total
-  const playlistID = Map({
-    playerid,
-    timestamp: data.playlist_timestamp,
-    tracks: data.playlist_tracks,
-  })
-  const updatePlaylist = !data.isPlaylistUpdate && !playlistID.equals(currentPlaylistID)
-  if (data.isPlaylistUpdate) {
-    currentPlaylistID = playlistID
-  }
-
-  // load player again after STATUS_INTERVAL or end of song, whichever is first
-  let nextLoad = total ? total - elapsed : STATUS_INTERVAL
-  if (updatePlaylist) {
-    currentPlaylistID = playlistID
-    nextLoad = 0.1
-  } else if (nextLoad > STATUS_INTERVAL || data.mode !== "play") {
-    nextLoad = STATUS_INTERVAL
-  } else {
-    // add small amount to update after end of song
-    nextLoad += 1
-  }
-  addTimer(setTimeout(function () {
-    loadPlayer(playerid, updatePlaylist)
-  }, nextLoad * 1000))
-}
 
 export function getPlayers(index=0, qty=999) {
   function transform(data) {
     data = JSON.parse(data)
     return data && data.result ? data.result.players_loop : []
   }
-  return exec(["", "serverstatus", index, qty], transform)
+  return exec("", ["serverstatus", index, qty], transform)
 }
 
 export function getPlayerStatus(playerid, index="-", qty=1) {
@@ -95,11 +23,11 @@ export function getPlayerStatus(playerid, index="-", qty=1) {
     })
   }
   const before = new Date()
-  return exec([playerid, "status", index, qty, "tags:aBluJ"], transform)
+  return exec(playerid, ["status", index, qty, "tags:aBluJ"], transform)
 }
 
 export function command(playerid, ...command) {
-  exec([playerid].concat(command)).then(() => loadPlayer(playerid))
+  return exec(playerid, command)
 }
 
 export function getImageUrl(playerid, tags, current=false) {
@@ -145,7 +73,7 @@ export function getImageUrl(playerid, tags, current=false) {
  *     }
  *
  */
-function exec(command, transformResponse) {
+function exec(playerid, command, transformResponse) {
   const req = {
     method: "post",
     url: "/jsonrpc.js",
@@ -153,7 +81,7 @@ function exec(command, transformResponse) {
     data: {
       id: 1,
       method: "slim.request",
-      params: [command[0], command.slice(1)]
+      params: [playerid, command]
     }
   }
   if (transformResponse) {
