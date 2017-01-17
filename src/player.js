@@ -7,7 +7,7 @@ import * as lms from './lmsclient'
 import { PlayerUI, SeekBar } from './playerui'
 import * as players from './playerselect'
 import * as playlist from './playlist'
-import { isNumeric, timer } from './util'
+import { backoff, isNumeric, timer } from './util'
 
 const STATUS_INTERVAL = 30  // seconds
 
@@ -87,7 +87,8 @@ export class Player extends React.Component {
   constructor() {
     super()
     this.timer = timer()
-    this._state = defaultState.remove("players")
+    this.fetchBackoff = backoff(30000)
+    this.state = defaultState.toObject()
   }
   componentDidMount() {
     let playerid = localStorage.currentPlayer
@@ -103,17 +104,37 @@ export class Player extends React.Component {
   loadPlayer(playerid, fetchPlaylist=false) {
     const args = fetchPlaylist ? [0, 100] : []
     lms.getPlayerStatus(playerid, ...args).then(response => {
-      this.onLoadPlayer(transformPlayerStatus(this._state, response.data))
+      this.onLoadPlayer(this, transformPlayerStatus(Map(this.state), response.data))
     })
   }
-  isPlaylistChanged(state) {
-    const playlistId = state => Map({
-      playerid: state.get("playerid"),
-      timestamp: state.get("playlistTimestamp"),
-      tracks: state.get("playlistTracks"),
+  onPlayerSelected(playerid) {
+    localStorage.currentPlayer = playerid
+    this.loadPlayer(playerid, true)
+  }
+  onLoadPlayer(self, state) {
+    const obj = state.toObject()
+    self.timer.clear()
+    let wait = STATUS_INTERVAL * 1000
+    const fetchPlaylist = !obj.isPlaylistUpdate && self.isPlaylistChanged(obj)
+    if (fetchPlaylist) {
+      wait = self.fetchBackoff()
+    } else {
+      const end = self.secondsToEndOfSong(obj) * 1000
+      if (end && end < wait) {
+        self.timer.after(end, () => self.advanceToNextSong(obj))
+      }
+    }
+    self.timer.after(wait, () => self.loadPlayer(obj.playerid, fetchPlaylist))
+    self.setState(obj)
+  }
+  isPlaylistChanged(obj) {
+    const playlistId = obj => Map({
+      playerid: obj.playerid,
+      timestamp: obj.playlistTimestamp,
+      tracks: obj.playlistTracks,
       //playlist: state.playlist,
     })
-    return !playlistId(this._state).equals(playlistId(state))
+    return !playlistId(this.state).equals(playlistId(obj))
   }
   advanceToNextSong(obj) {
     // TODO advance playlist without querying server
@@ -131,29 +152,8 @@ export class Player extends React.Component {
     lms.command(playerid, ...args).then(() => this.loadPlayer(playerid))
     // TODO convey command failure to view somehow
   }
-  onLoadPlayer(state) {
-    const obj = state.toObject()
-    this.timer.clear()
-    actions.gotPlayer(obj)
-    let wait = STATUS_INTERVAL * 1000
-    const fetchPlaylist = !obj.isPlaylistUpdate && this.isPlaylistChanged(state)
-    if (fetchPlaylist) {
-      wait = 0
-    } else {
-      const end = this.secondsToEndOfSong(obj) * 1000
-      if (end && end < wait) {
-        this.timer.after(end, () => this.advanceToNextSong(obj))
-      }
-    }
-    this._state = state
-    this.timer.after(wait, () => this.loadPlayer(obj.playerid, fetchPlaylist))
-  }
-  onPlayerSelected(playerid) {
-    localStorage.currentPlayer = playerid
-    this.loadPlayer(playerid, true)
-  }
   render() {
-    const props = this.props
+    const props = this.state
     const command = this.command.bind(this, props.playerid)
     return <div>
       <PlayerUI

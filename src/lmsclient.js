@@ -49,8 +49,9 @@ export function getImageUrl(playerid, tags, current=false) {
 /**
  * Execute LMS command
  *
+ * @param playerid - player id
  * @param command - array of player id and command/parameters. Example:
- *    ["<pl:ay:er:id:...>", "<command>", params...]
+ *    ["<command>", params...]
  * @param tranformResponse - (optional) see axios parameter with same name.
  * @returns a promise object.
  *
@@ -69,7 +70,7 @@ export function getImageUrl(playerid, tags, current=false) {
  *     {
  *       id: 1,
  *       method: "slim.request",
- *       params: ["<pl:ay:er:id:...>", ["<command>", params...]]
+ *       params: [playerid, ["<command>", params...]]
  *     }
  *
  */
