@@ -3,27 +3,21 @@ import axios from 'axios'
 import _ from 'lodash'
 
 export function getPlayers(index=0, qty=999) {
-  function transform(data) {
-    data = JSON.parse(data)
+  return exec("", ["serverstatus", index, qty]).then(({data}) => {
     return data && data.result ? data.result.players_loop : []
-  }
-  return exec("", ["serverstatus", index, qty], transform)
+  })
 }
 
 export function getPlayerStatus(playerid, index="-", qty=1) {
-  function transform(data) {
-    data = JSON.parse(data)
-    const after = new Date()
-    const localTime = new Date(before.getTime() + (after - before) / 2)
-    const isPlaylistUpdate = index !== "-"
-    return _.extend(data && data.result, {
+  const before = Date.now()
+  return exec(playerid, ["status", index, qty, "tags:aBluJ"]).then(({data}) => {
+    const after = Date.now()
+    return _.extend(data.result, {
       playerid,
-      isPlaylistUpdate,
-      localTime,
+      isPlaylistUpdate: index !== "-",
+      localTime: before + (after - before) / 2,
     })
-  }
-  const before = new Date()
-  return exec(playerid, ["status", index, qty, "tags:aBluJ"], transform)
+  })
 }
 
 export function command(playerid, ...command) {
@@ -74,8 +68,8 @@ export function getImageUrl(playerid, tags, current=false) {
  *     }
  *
  */
-function exec(playerid, command, transformResponse) {
-  const req = {
+function exec(playerid, command) {
+  return axios({
     method: "post",
     url: "/jsonrpc.js",
     headers: {'Content-Type': 'text/plain'},
@@ -84,9 +78,8 @@ function exec(playerid, command, transformResponse) {
       method: "slim.request",
       params: [playerid, command]
     }
-  }
-  if (transformResponse) {
-    req.transformResponse = [transformResponse]
-  }
-  return axios(req).catch(err => { window.console.error(err) })
+  }).catch(err => {
+    window.console.error(err)
+    throw err
+  })
 }

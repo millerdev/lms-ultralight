@@ -1,11 +1,12 @@
 import { Map } from 'immutable'
 import _ from 'lodash'
-import { createStore, applyMiddleware, compose } from 'redux'
+import { createStore, compose } from 'redux'
+import { install as installReduxLoop } from 'redux-loop'
+
 import DevTools from './devtools'
 
 const enhancer = compose(
-  // Middleware you want to use in development:
-  applyMiddleware(),
+  installReduxLoop(),
   // TODO exclude from production build
   // Required! Enable Redux DevTools with the monitors you chose
   DevTools.instrument()
@@ -23,16 +24,10 @@ export function makeActor(name) {
   if (allActions.hasOwnProperty(name)) {
     throw new Error("cannot create duplicate action: " + name)
   }
-  function actor(payload) {
-    if (actor.dispatch === null) {
-      throw new Error("action '" + name + "' dispatch not connected")
-    }
-    actor.dispatch({
-      type: name,
-      payload,
-    })
-  }
-  actor.dispatch = null
+  const actor = payload => ({
+    type: name,
+    payload,
+  })
   actor.key = name
   allActions[name] = actor
   return actor
@@ -68,9 +63,6 @@ export default function makeReducer(actionsToReducers, defaultState) {
 
 export function makeStore(reducer, initialState=reducer.defaultState || Map()) {
   const store = createStore(reducer, initialState, enhancer)
-  _.each(allActions, action => {
-    action.dispatch = store.dispatch
-  })
   // disable adding more actions
   allActions = null
   return store

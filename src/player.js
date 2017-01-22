@@ -1,6 +1,7 @@
 import { List, Map, fromJS } from 'immutable'
 import _ from 'lodash'
 import React from 'react'
+import { Effects, getModel, getEffect, loop } from 'redux-loop'
 
 import makeReducer from './store'
 import * as lms from './lmsclient'
@@ -9,7 +10,7 @@ import * as players from './playerselect'
 import * as playlist from './playlist'
 import { backoff, isNumeric, timer } from './util'
 
-const STATUS_INTERVAL = 30  // seconds
+export const STATUS_INTERVAL = 30  // seconds
 
 export const defaultState = Map({
   players: players.defaultState,
@@ -29,140 +30,149 @@ export const defaultState = Map({
   playlist: List(),
 })
 
-export function transformPlayerStatus(previousState, status) {
-  const data = {
-    playerid: status.playerid,
-    isPowerOn: status.power === 1,
-    isPlaying: status.mode === "play",
-    repeatMode: status["playlist repeat"],
-    shuffleMode: status["playlist shuffle"],
-    volumeLevel: status["mixer volume"],
-    elapsedTime: isNumeric(status.time) ? status.time : 0,
-    totalTime: isNumeric(status.duration) ? status.duration : null,
-    localTime: status.localTime,
-    playlistTimestamp: status.playlist_timestamp,
-    playlistTracks: status.playlist_tracks,
-    //everything: fromJS(status),
-  }
-  const loop = status.playlist_loop
-  const IX = "playlist index"
-  const index = data.playlistIndex = parseInt(status.playlist_cur_index)
-  if (status.isPlaylistUpdate) {
-    data.playlist = fromJS(status.playlist_loop)
-    if (index >= loop[0][IX] && index <= loop[loop.length - 1][IX]) {
-      data.trackInfo = fromJS(loop[index - loop[0][IX]])
-    }
-  } else {
-    data.trackInfo = fromJS(loop[0] || {})
-  }
-  return previousState.merge(data)
-}
-
 export const playerReducer = makeReducer({
-  gotPlayer: (state, {payload}) => {
-    return state.merge(payload)
+  gotPlayer: (state, {payload: status}) => {
+    const data = {
+      playerid: status.playerid,
+      isPowerOn: status.power === 1,
+      isPlaying: status.mode === "play",
+      repeatMode: status["playlist repeat"],
+      shuffleMode: status["playlist shuffle"],
+      volumeLevel: status["mixer volume"],
+      elapsedTime: isNumeric(status.time) ? status.time : 0,
+      totalTime: isNumeric(status.duration) ? status.duration : null,
+      localTime: status.localTime,
+      playlistTimestamp: status.playlist_timestamp,
+      playlistTracks: status.playlist_tracks,
+      //everything: fromJS(status),
+    }
+    const list = status.playlist_loop
+    const IX = "playlist index"
+    const index = data.playlistIndex = parseInt(status.playlist_cur_index)
+    if (status.isPlaylistUpdate) {
+      data.playlist = fromJS(status.playlist_loop)
+      if (index >= list[0][IX] && index <= list[list.length - 1][IX]) {
+        data.trackInfo = fromJS(list[index - list[0][IX]])
+      }
+    } else {
+      data.trackInfo = fromJS(list[0] || {})
+    }
+
+    const effects = []
+    const wait = STATUS_INTERVAL * 1000
+    const end = secondsToEndOfSong(data) * 1000
+    if (end < wait) {
+      effects.push(Effects.promise(advanceToNextSong, end, data))
+    }
+    effects.push(
+      Effects.promise(loadPlayerAfter, wait, data.playerid))
+
+    return loop(state.merge(data), Effects.batch(effects))
   },
-  preSeek: (state, {payload: {playerid, value}}) => {
+  seek: (state, {payload: {playerid, value}}) => {
     if (state.get("playerid") === playerid) {
       return state.merge({
         elapsedTime: value,
-        localTime: new Date(),
+        localTime: null,
       })
     }
-    return state
+    return loop(state, Effects.promise(seek, playerid, value))
   },
 }, defaultState.remove("players"))
+
+export function loadPlayer(playerid, fetchPlaylist=false) {
+  const args = fetchPlaylist ? [0, 100] : []
+  return lms.getPlayerStatus(playerid, ...args)
+            .then(data => actions.gotPlayer(data))
+}
+
+export function secondsToEndOfSong({elapsedTime, totalTime, localTime}, now=Date.now()) {
+  const elapsed = localTime ?
+    elapsedTime + (now - localTime) / 1000 : elapsedTime
+  const total = totalTime !== null ? _.max([totalTime, elapsed]) : elapsed
+  return total - elapsed
+}
+
+export const advanceToNextSong = (() => {
+  const time = timer()
+  return (end, data) => {
+    // TODO advance playlist without querying server (loadPlayer)
+    // don't forget to check repeat-one when advancing to next song
+    time.clear()
+    return time.after(end, () => loadPlayer(data.playerid))
+  }
+})()
+
+export const loadPlayerAfter = (() => {
+  const fetchBackoff =  backoff(30000)
+  const time = timer()
+  return (wait, ...args) => {
+    if (!wait) {
+      wait = fetchBackoff()
+    }
+    time.clear()
+    return time.after(wait, () => loadPlayer(...args))
+  }
+})()
+
+function seek(playerid, value) {
+  return lms.command(playerid, "time", value).then(() => loadPlayer(playerid))
+}
 
 const actions = playerReducer.actions
 
 export function reducer(state=defaultState, action) {
-  state = playerReducer(state, action)
-  return state.merge({
-    players: players.reducer(state.get("players"), action),
-    //playlist: playlist.reducer(state.get("playlist"), action),
-  })
+  const result = playerReducer(state, action)
+  state = getModel(result)
+  return loop(
+    state.merge({
+      players: players.reducer(state.get("players"), action),
+      //playlist: playlist.reducer(state.get("playlist"), action),
+    }),
+    getEffect(result) || Effects.none()
+  )
 }
 
 export class Player extends React.Component {
   constructor() {
     super()
-    this.timer = timer()
-    this.fetchBackoff = backoff(30000)
     this.state = defaultState.toObject()
   }
   componentDidMount() {
-    let playerid = localStorage.currentPlayer
-    lms.getPlayers().then(({data}) => {
-      players.gotPlayers(data)
-      if (playerid && _.some(data, item => item.playerid === playerid)) {
-        this.loadPlayer(playerid, true)
-      } else if (data.length) {
-        this.loadPlayer(data[0].playerid, true)
+    lms.getPlayers().then(data => {
+      this.props.dispatch(players.gotPlayers(data))
+      // HACK currently all Players will use the same localStorage key
+      let playerid = localStorage.currentPlayer
+      if (!playerid || !_.some(data, item => item.playerid === playerid)) {
+        if (!data.length) {
+          return
+        }
+        playerid = data[0].playerid
       }
+      this.loadPlayer(playerid, true)
     })
-  }
-  loadPlayer(playerid, fetchPlaylist=false) {
-    const args = fetchPlaylist ? [0, 100] : []
-    lms.getPlayerStatus(playerid, ...args).then(response => {
-      this.onLoadPlayer(this, transformPlayerStatus(Map(this.state), response.data))
-    })
+    // TODO convey failure to view somehow
   }
   onPlayerSelected(playerid) {
     localStorage.currentPlayer = playerid
     this.loadPlayer(playerid, true)
   }
-  onLoadPlayer(self, state) {
-    const obj = state.toObject()
-    self.timer.clear()
-    let wait = STATUS_INTERVAL * 1000
-    const fetchPlaylist = !obj.isPlaylistUpdate && self.isPlaylistChanged(obj)
-    if (fetchPlaylist) {
-      wait = self.fetchBackoff()
-    } else {
-      const end = self.secondsToEndOfSong(obj) * 1000
-      if (end && end < wait) {
-        self.timer.after(end, () => self.advanceToNextSong(obj))
-      }
-    }
-    self.timer.after(wait, () => self.loadPlayer(obj.playerid, fetchPlaylist))
-    self.setState(obj)
-  }
-  isPlaylistChanged(obj) {
-    const playlistId = obj => Map({
-      playerid: obj.playerid,
-      timestamp: obj.playlistTimestamp,
-      tracks: obj.playlistTracks,
-      //playlist: state.playlist,
-    })
-    return !playlistId(this.state).equals(playlistId(obj))
-  }
-  advanceToNextSong(obj) {
-    // TODO advance playlist without querying server
-    // don't forget to check repeat-one when advancing to next song
-    this.loadPlayer(obj.playerid)
-  }
-  secondsToEndOfSong({elapsedTime, totalTime, localTime}) {
-    const now = new Date()
-    const elapsed = localTime ?
-      elapsedTime + (now - localTime) / 1000 : elapsedTime
-    const total = totalTime !== null ? _.max([totalTime, elapsed]) : elapsed
-    return total - elapsed
+  loadPlayer(...args) {
+    loadPlayer(...args).then(action => this.props.dispatch(action))
+    // TODO convey failure to view somehow
   }
   command(playerid, ...args) {
-    lms.command(playerid, ...args).then(() => this.loadPlayer(playerid))
-    // TODO convey command failure to view somehow
+    lms.command(playerid, ...args).then(this.loadPlayer(playerid))
+    // TODO convey failure to view somehow
   }
   render() {
-    const props = this.state
+    const props = this.props
     const command = this.command.bind(this, props.playerid)
     return <div>
       <PlayerUI
         command={command}
         onPlayerSelected={this.onPlayerSelected.bind(this)}
-        onSeek={value => {
-          actions.preSeek({playerid: props.playerid, value})
-          command("time", value)
-        }}
+        onSeek={value => actions.seek({playerid: props.playerid, value})}
         {...props}>
         <LiveSeekBar
           isPlaying={props.isPlaying}

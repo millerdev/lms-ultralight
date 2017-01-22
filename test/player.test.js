@@ -1,146 +1,134 @@
 import { fromJS, Map } from 'immutable'
 import _ from 'lodash'
+import { Effects, getModel, getEffect } from 'redux-loop'
 
 import * as mod from '../src/player'
 
 describe('player', function () {
-  describe('transformPlayerStatus', function () {
-    it('should set info for current track', function () {
-      const result = mod.transformPlayerStatus(Map(), STATUS.toJS())
-      assert.equal(result, STATE)
-    })
+  describe('playerReducer', function () {
+    const reduce = mod.playerReducer
+    const defaultState = mod.defaultState.remove("players").remove("playlist")
 
-    it('should set info for current track with playlist update', function () {
-      const result = mod.transformPlayerStatus(Map(), STATUS.merge({
-        isPlaylistUpdate: true,
-        playlist_loop: PLAYLIST_1,
-      }).toJS())
-      assert.equal(result.remove("playlist"), STATE)
-    })
+    describe('gotPlayer', function () {
+      const gotPlayer = reduce.actions.gotPlayer
 
-    it('should not change track info with playlist before current track', function () {
-      const result = mod.transformPlayerStatus(STATE, STATUS.merge({
-        isPlaylistUpdate: true,
-        playlist_loop: PLAYLIST_0,
-      }).toJS())
-      assert.equal(result.remove("playlist"), STATE)
-    })
+      describe('state', function () {
+        it('should set info for current track', function () {
+          const state = getModel(reduce(Map(), gotPlayer(STATUS.toJS())))
+          assert.equal(state, STATE)
+        })
 
-    it('should not change track info with playlist after current track', function () {
-      const result = mod.transformPlayerStatus(STATE, STATUS.merge({
-        isPlaylistUpdate: true,
-        playlist_loop: PLAYLIST_2,
-      }).toJS())
-      assert.equal(result.remove("playlist"), STATE)
+        it('should set info for current track with playlist update', function () {
+          const state = getModel(reduce(Map(), gotPlayer(STATUS.merge({
+            isPlaylistUpdate: true,
+            playlist_loop: PLAYLIST_1,
+          }).toJS())))
+          assert.equal(state.remove("playlist"), STATE)
+        })
+
+        it('should not change track info with playlist before current track', function () {
+          const state = getModel(reduce(STATE, gotPlayer(STATUS.merge({
+            isPlaylistUpdate: true,
+            playlist_loop: PLAYLIST_0,
+          }).toJS())))
+          assert.equal(state.remove("playlist"), STATE)
+        })
+
+        it('should not change track info with playlist after current track', function () {
+          const state = getModel(reduce(STATE, gotPlayer(STATUS.merge({
+            isPlaylistUpdate: true,
+            playlist_loop: PLAYLIST_2,
+          }).toJS())))
+          assert.equal(state.remove("playlist"), STATE)
+        })
+      })
+
+      describe('effects', function () {
+        it('should promise to fetch player status after delay', function () {
+          const effect = getEffect(reduce(defaultState, gotPlayer(STATUS.toJS())))
+          assert.deepEqual(effect, Effects.batch([
+            Effects.promise(
+              mod.loadPlayerAfter,
+              mod.STATUS_INTERVAL * 1000,
+              PLAYERID
+            )
+          ]))
+        })
+
+        it('should promise to advance to next song', function () {
+          const data = STATUS.merge({
+            "duration": 371,
+            "time": 350,
+            "localTime": null,
+          }).toJS()
+          const [state, effect] = reduce(defaultState, gotPlayer(data))
+          assert.deepEqual(effect, Effects.batch([
+            Effects.promise(
+              mod.advanceToNextSong,
+              21000,
+              state.toObject()
+            ),
+            Effects.promise(
+              mod.loadPlayerAfter,
+              30000,
+              PLAYERID
+            )
+          ]))
+        })
+      })
     })
   })
 
-  describe('Player', function () {
-    function fakeTimer() {
-      const afters = []
-      return {
-        afters: afters,
-        clear: () => {},
-        after: (wait, func) => afters.push({wait, func}),
-        next: () => {
-          const next = afters.shift()
-          next.func()
-          return next.wait
-        },
-      }
-    }
-    function fakePlayer(obj) {
-      const self = _.extend({
-        timer: fakeTimer(),
-        fetchBackoff: () => 0,
-        isPlaylistChanged: () => false,
-        setState: value => { self.state = value },
-        loadPlayer: () => {},
-      }, obj)
-      return self
-    }
-    const Player = mod.Player
-
-    describe('onLoadPlayer', function () {
-      const player = new Player()
-
-      it('should set state', function () {
-        const self = fakePlayer({isPlaylistChanged: () => true})
-        const state = mod.transformPlayerStatus(mod.defaultState, STATUS.toJS())
-        assert.equal(self.state, undefined)
-        player.onLoadPlayer(self, state)
-        assert.deepEqual(self.state, state.toObject())
+  describe('secondsToEndOfSong', function () {
+    it('should return positive value for not-ended-yet song', function () {
+      const result = mod.secondsToEndOfSong({
+        elapsedTime: 10.2,
+        totalTime: 21.5,
+        localTime: null,
       })
+      assert.equal(result, 11.3)
+    })
 
-      it('should set timer to fetch playlist on playlist changed', function () {
-        const loaded = []
-        const self = fakePlayer({
-          isPlaylistChanged: () => true,
-          loadPlayer: (playerid, fetch) => loaded.push({playerid, fetch}),
-        })
-        const state = mod.transformPlayerStatus(mod.defaultState, STATUS.toJS())
-        player.onLoadPlayer(self, state)
-        assert.equal(self.timer.afters.length, 1, "wrong number of timers")
-        assert.equal(self.timer.afters[0].wait, 0, "wrong wait length")
-        assert.deepEqual(loaded, [])
-        self.timer.next()
-        assert.deepEqual(loaded, [{
-          playerid: state.get("playerid"),
-          fetch: true,
-        }])
+    it('should compensate for latency', function () {
+      const now = Date.now()
+      const result = mod.secondsToEndOfSong({
+        elapsedTime: 10,
+        totalTime: 20,
+        localTime: now - 100,
+      }, now)
+      assert.equal(result, 9.9)
+    })
+
+    it('should return zero for already-ended song', function () {
+      const now = Date.now()
+      const result = mod.secondsToEndOfSong({
+        elapsedTime: 10.2,
+        totalTime: 21.5,
+        localTime: new Date(now - 120000),
+      }, now)
+      assert.equal(result, 0)
+    })
+  })
+
+  describe('loadPlayerAfter', function () {
+    it('should increase delay on frequent zero-wait calls', function () {
+      const promises = _.map([0, 0, 0, 0, 0, 0, 0, 0], wait => {
+        const promise = mod.loadPlayerAfter(wait, PLAYERID)
+        return _.extend(promise.catch(err => {
+          assert.match(err.message, /^cleared: /)
+          return promise.wait
+        }), {clear: promise.clear})
       })
-
-      it('should increase fetch delay on frequent playlist change', function () {
-        const loads = []
-        const self = fakePlayer({
-          fetchBackoff: player.fetchBackoff,
-          isPlaylistChanged: () => true,
-        })
-        const state = mod.transformPlayerStatus(mod.defaultState, STATUS.toJS())
-        player.onLoadPlayer(self, state)
-        loads.push(self.timer.next())  // 0
-        player.onLoadPlayer(self, state)
-        loads.push(self.timer.next())  // 1000
-        player.onLoadPlayer(self, state)
-        loads.push(self.timer.next())  // 2000
-        player.onLoadPlayer(self, state)
-        loads.push(self.timer.next())  // 4000
-        player.onLoadPlayer(self, state)
-        loads.push(self.timer.next())  // 8000
-        player.onLoadPlayer(self, state)
-        loads.push(self.timer.next())  // 16000
-        player.onLoadPlayer(self, state)
-        loads.push(self.timer.next())  // 30000
-        assert.deepEqual(loads, [0, 1000, 2000, 4000, 8000, 16000, 30000])
-      })
-
-      it('should set timer to advance playlist and also to load player status', function () {
-        const advances = []
-        const loaded = []
-        const self = fakePlayer({
-          secondsToEndOfSong: () => 15,
-          advanceToNextSong: obj => advances.push(obj),
-          loadPlayer: (playerid, fetch) => loaded.push({playerid, fetch}),
-        })
-        const state = mod.transformPlayerStatus(mod.defaultState, STATUS.toJS())
-        player.onLoadPlayer(self, state)
-        assert.equal(self.timer.afters.length, 2, "wrong number of timers")
-        assert.deepEqual(_.map(self.timer.afters, a => a.wait), [15000, 30000])
-        // verify advance
-        assert.deepEqual(advances, [])
-        self.timer.next()
-        assert.deepEqual(advances, [state.toObject()])
-        // verify next load
-        assert.deepEqual(loaded, [])
-        self.timer.next()
-        assert.deepEqual(loaded, [{
-          playerid: state.get("playerid"),
-          fetch: false,
-        }])
+      // clear the last timer
+      promises[promises.length - 1].clear()
+      return Promise.all(promises).then(waits => {
+        assert.deepEqual(waits, [0, 1000, 2000, 4000, 8000, 16000, 30000, 30000])
       })
     })
   })
 })
+
+const PLAYERID = "1:1:1:1"
 
 const STATUS = fromJS({
   "can_seek": 1,
@@ -151,7 +139,7 @@ const STATUS = fromJS({
   "mixer volume": 15,
   "mode": "stop",
   "player_connected": 1,
-  "playerid": "1:1:1:1",
+  "playerid": PLAYERID,
   "player_ip": "10.2.1.109:29333",
   "player_name": "Squeezebox",
   "playlist mode": "off",
@@ -225,7 +213,7 @@ const PLAYLIST_2 = fromJS([
 ])
 
 const STATE = mod.defaultState.remove("players").remove("playlist").merge({
-  playerid: "1:1:1:1",
+  playerid: PLAYERID,
   repeatMode: 2,
   shuffleMode: 1,
   trackInfo: Map({

@@ -17,25 +17,25 @@ describe('lmsclient', function () {
     ]
     const resp = {result: {players_loop: players}}
     mock.onPost("/jsonrpc.js").reply(200, JSON.stringify(resp))
-    lms.getPlayers().then(response => {
-      assert.deepEqual(response.data, players)
+    lms.getPlayers().then(data => {
+      assert.deepEqual(data, players)
     }).then(done, done)
   })
 
   it('getPlayerStatus should return player status with playerid', function (done) {
     const status = PLAYER_STATUS
     const resp = {result: status.toJS()}
-    const before = new Date()
+    const before = Date.now()
     mock.onPost("/jsonrpc.js").reply(200, JSON.stringify(resp))
-    lms.getPlayerStatus("<id>").then(({data}) => {
+    lms.getPlayerStatus("<id>").then(data => {
       const result = status.merge({
         playerid: "<id>",
         localTime: data.localTime,
       }).toJS()
       assert.deepEqual(data, result)
-      assert.typeOf(data.localTime, "date")
+      assert.typeOf(data.localTime, "Number")
       assert.isAtLeast(data.localTime, before)
-      assert.isAtMost(data.localTime, new Date())
+      assert.isAtMost(data.localTime, Date.now())
     }).then(done, done)
   })
 })

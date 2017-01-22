@@ -27,22 +27,23 @@ export function timer() {
   let timers = []
   return {
     after: (ms, func) => {
-      const id = setTimeout(func, ms)
-      timers.push(id)
-      return id
+      let clear = null
+      const promise = new Promise((resolve, reject) => {
+        const id = setTimeout(() => resolve(func()), ms)
+        clear = () => {
+          clearTimeout(id)
+          reject(new Error("cleared: " + id))
+        }
+        timers.push(clear)
+      })
+      promise.wait = ms
+      promise.func = func
+      promise.clear = clear
+      return promise
     },
-    every: (ms, func) => {
-      const id = setInterval(func, ms)
-      timers.push(id)
-      return id
-    },
-    clear: id => {
-      if (id !== undefined) {
-        clearTimeout(id)
-      } else {
-        _.each(timers, id => clearTimeout(id))
-        timers = []
-      }
+    clear: () => {
+      _.each(timers, clear => clear())
+      timers = []
     },
   }
 }
