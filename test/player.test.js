@@ -1,5 +1,7 @@
+import { shallow } from 'enzyme'
 import { fromJS, Map } from 'immutable'
 import _ from 'lodash'
+import React from 'react'
 import { Effects, getModel, getEffect } from 'redux-loop'
 
 import * as mod from '../src/player'
@@ -124,6 +126,14 @@ describe('player', function () {
       return Promise.all(promises).then(waits => {
         assert.deepEqual(waits, [0, 1000, 2000, 4000, 8000, 16000, 30000, 30000])
       })
+    })
+  })
+
+  describe('LiveSeekBar', function () {
+    it('should load with elapsed time', function () {
+      const dom = shallow(<mod.LiveSeekBar elapsed={100} total={400} />)
+      const seeker = dom.find("SeekBar")
+      assert.deepEqual(seeker.props().elapsed, 100)
     })
   })
 })

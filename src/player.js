@@ -190,15 +190,18 @@ export class Player extends React.Component {
   }
 }
 
-class LiveSeekBar extends React.Component {
+export class LiveSeekBar extends React.Component {
   constructor() {
     super()
     this.timer = timer()
     this.state = {elapsed: 0}
   }
+  hasUpdate(props) {
+    return props.isPlaying && props.localTime
+  }
   componentWillReceiveProps(props) {
     this.timer.clear()
-    if (props.isPlaying && props.localTime) {
+    if (this.hasUpdate(props)) {
       const update = () => {
         const now = new Date()
         const playtime = props.elapsed + (now - props.localTime) / 1000
@@ -219,7 +222,7 @@ class LiveSeekBar extends React.Component {
   render () {
     const props = this.props
     return <SeekBar
-      elapsed={this.state.elapsed}
+      elapsed={this.hasUpdate(props) ? this.state.elapsed : props.elapsed}
       total={props.total}
       onSeek={props.onSeek}
       disabled={props.disabled} />
