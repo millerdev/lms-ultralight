@@ -2,8 +2,8 @@ import { shallow } from 'enzyme'
 import { fromJS, Map } from 'immutable'
 import _ from 'lodash'
 import React from 'react'
-import { Effects, getModel, getEffect } from 'redux-loop'
 
+import { effect, getEffects, getState, split, IGNORE_ACTION } from '../src/effects'
 import * as mod from '../src/player'
 
 describe('player', function () {
@@ -16,12 +16,12 @@ describe('player', function () {
 
       describe('state', function () {
         it('should set info for current track', function () {
-          const state = getModel(reduce(Map(), gotPlayer(STATUS.toJS())))
+          const state = getState(reduce(Map(), gotPlayer(STATUS.toJS())))
           assert.equal(state, STATE)
         })
 
         it('should set info for current track with playlist update', function () {
-          const state = getModel(reduce(Map(), gotPlayer(STATUS.merge({
+          const state = getState(reduce(Map(), gotPlayer(STATUS.merge({
             isPlaylistUpdate: true,
             playlist_loop: PLAYLIST_1,
           }).toJS())))
@@ -29,7 +29,7 @@ describe('player', function () {
         })
 
         it('should not change track info with playlist before current track', function () {
-          const state = getModel(reduce(STATE, gotPlayer(STATUS.merge({
+          const state = getState(reduce(STATE, gotPlayer(STATUS.merge({
             isPlaylistUpdate: true,
             playlist_loop: PLAYLIST_0,
           }).toJS())))
@@ -37,7 +37,7 @@ describe('player', function () {
         })
 
         it('should not change track info with playlist after current track', function () {
-          const state = getModel(reduce(STATE, gotPlayer(STATUS.merge({
+          const state = getState(reduce(STATE, gotPlayer(STATUS.merge({
             isPlaylistUpdate: true,
             playlist_loop: PLAYLIST_2,
           }).toJS())))
@@ -47,14 +47,14 @@ describe('player', function () {
 
       describe('effects', function () {
         it('should promise to fetch player status after delay', function () {
-          const effect = getEffect(reduce(defaultState, gotPlayer(STATUS.toJS())))
-          assert.deepEqual(effect, Effects.batch([
-            Effects.promise(
+          const effects = getEffects(reduce(defaultState, gotPlayer(STATUS.toJS())))
+          assert.deepEqual(effects, [
+            effect(
               mod.loadPlayerAfter,
               mod.STATUS_INTERVAL * 1000,
               PLAYERID
             )
-          ]))
+          ])
         })
 
         it('should promise to advance to next song', function () {
@@ -63,20 +63,52 @@ describe('player', function () {
             "time": 350,
             "localTime": null,
           }).toJS()
-          const [state, effect] = reduce(defaultState, gotPlayer(data))
-          assert.deepEqual(effect, Effects.batch([
-            Effects.promise(
+          const [state, effects] = split(reduce(defaultState, gotPlayer(data)))
+          assert.deepEqual(effects, [
+            effect(
               mod.advanceToNextSong,
               21000,
               state.toObject()
             ),
-            Effects.promise(
+            effect(
               mod.loadPlayerAfter,
               30000,
               PLAYERID
             )
-          ]))
+          ])
         })
+      })
+    })
+
+    describe('seek', function () {
+      const seek = reduce.actions.seek
+
+      it('should update state and cause seek effect', function () {
+        const before = Map({
+          playerid: PLAYERID,
+          elapsedTime: 200,
+          localTime: Date.now(),
+        })
+        const args = {playerid: PLAYERID, value: 140}
+        const [state, effects] = split(reduce(before, seek(args)))
+        assert.equal(state, Map({
+          playerid: PLAYERID,
+          elapsedTime: 140,
+          localTime: null,
+        }))
+        assert.deepEqual(effects, [effect(mod.seek, PLAYERID, 140)], 'effects')
+      })
+
+      it('should not change state of other player', function () {
+        const before = Map({
+          playerid: PLAYERID + "2",
+          elapsedTime: 200,
+          localTime: Date.now(),
+        })
+        const args = {playerid: PLAYERID, value: 140}
+        const [state, effects] = split(reduce(before, seek(args)))
+        assert.equal(state, before)
+        assert.deepEqual(effects, [])
       })
     })
   })
@@ -116,13 +148,13 @@ describe('player', function () {
     it('should increase delay on frequent zero-wait calls', function () {
       const promises = _.map([0, 0, 0, 0, 0, 0, 0, 0], wait => {
         const promise = mod.loadPlayerAfter(wait, PLAYERID)
-        return _.extend(promise.catch(err => {
-          assert.match(err.message, /^cleared: /)
+        return _.extend(promise.then(action => {
+          assert.deepEqual(action, IGNORE_ACTION)
           return promise.wait
         }), {clear: promise.clear})
       })
       // clear the last timer
-      promises[promises.length - 1].clear()
+      promises[promises.length - 1].clear(IGNORE_ACTION)
       return Promise.all(promises).then(waits => {
         assert.deepEqual(waits, [0, 1000, 2000, 4000, 8000, 16000, 30000, 30000])
       })

@@ -1,8 +1,8 @@
 import { List, Map, fromJS } from 'immutable'
 import _ from 'lodash'
 import React from 'react'
-import { Effects, getModel, getEffect, loop } from 'redux-loop'
 
+import { effect, combine, split, IGNORE_ACTION } from './effects'
 import makeReducer from './store'
 import * as lms from './lmsclient'
 import { PlayerUI, SeekBar } from './playerui'
@@ -62,21 +62,19 @@ export const playerReducer = makeReducer({
     const wait = STATUS_INTERVAL * 1000
     const end = secondsToEndOfSong(data) * 1000
     if (end < wait) {
-      effects.push(Effects.promise(advanceToNextSong, end, data))
+      effects.push(effect(advanceToNextSong, end, data))
     }
-    effects.push(
-      Effects.promise(loadPlayerAfter, wait, data.playerid))
-
-    return loop(state.merge(data), Effects.batch(effects))
+    effects.push(effect(loadPlayerAfter, wait, data.playerid))
+    return combine(state.merge(data), effects)
   },
   seek: (state, {payload: {playerid, value}}) => {
     if (state.get("playerid") === playerid) {
-      return state.merge({
-        elapsedTime: value,
-        localTime: null,
-      })
+      return combine(
+        state.merge({elapsedTime: value, localTime: null}),
+        [effect(seek, playerid, value)]
+      )
     }
-    return loop(state, Effects.promise(seek, playerid, value))
+    return state
   },
 }, defaultState.remove("players"))
 
@@ -98,7 +96,7 @@ export const advanceToNextSong = (() => {
   return (end, data) => {
     // TODO advance playlist without querying server (loadPlayer)
     // don't forget to check repeat-one when advancing to next song
-    time.clear()
+    time.clear(IGNORE_ACTION)
     return time.after(end, () => loadPlayer(data.playerid))
   }
 })()
@@ -110,34 +108,29 @@ export const loadPlayerAfter = (() => {
     if (!wait) {
       wait = fetchBackoff()
     }
-    time.clear()
+    time.clear(IGNORE_ACTION)
     return time.after(wait, () => loadPlayer(...args))
   }
 })()
 
-function seek(playerid, value) {
+export function seek(playerid, value) {
   return lms.command(playerid, "time", value).then(() => loadPlayer(playerid))
 }
 
 const actions = playerReducer.actions
 
-export function reducer(state=defaultState, action) {
-  const result = playerReducer(state, action)
-  state = getModel(result)
-  return loop(
+export function reducer(state_=defaultState, action) {
+  const [state, effects] = split(playerReducer(state_, action))
+  return combine(
     state.merge({
       players: players.reducer(state.get("players"), action),
       //playlist: playlist.reducer(state.get("playlist"), action),
     }),
-    getEffect(result) || Effects.none()
+    effects
   )
 }
 
 export class Player extends React.Component {
-  constructor() {
-    super()
-    this.state = defaultState.toObject()
-  }
   componentDidMount() {
     lms.getPlayers().then(data => {
       this.props.dispatch(players.gotPlayers(data))
@@ -172,14 +165,13 @@ export class Player extends React.Component {
       <PlayerUI
         command={command}
         onPlayerSelected={this.onPlayerSelected.bind(this)}
-        onSeek={value => actions.seek({playerid: props.playerid, value})}
         {...props}>
         <LiveSeekBar
           isPlaying={props.isPlaying}
           localTime={props.localTime}
           elapsed={props.elapsedTime}
           total={props.totalTime}
-          onSeek={props.onSeek}
+          onSeek={value => actions.seek({playerid: props.playerid, value})}
           disabled={!props.playerid} />
       </PlayerUI>
       <playlist.Playlist
@@ -211,7 +203,7 @@ export class LiveSeekBar extends React.Component {
         if (this.state.elapsed !== elapsed) {
           this.setState({elapsed})
         }
-        this.timer.after(wait, update)
+        this.timer.after(wait, update).catch(() => {})
       }
       update()
     }

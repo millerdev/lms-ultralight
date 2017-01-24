@@ -30,9 +30,13 @@ export function timer() {
       let clear = null
       const promise = new Promise((resolve, reject) => {
         const id = setTimeout(() => resolve(func()), ms)
-        clear = () => {
+        clear = resolution => {
           clearTimeout(id)
-          reject(new Error("cleared: " + id))
+          if (resolution !== undefined) {
+            resolve(resolution)
+          } else {
+            reject(new Error("cleared: " + id))
+          }
         }
         timers.push(clear)
       })
@@ -41,8 +45,8 @@ export function timer() {
       promise.clear = clear
       return promise
     },
-    clear: () => {
-      _.each(timers, clear => clear())
+    clear: resolution => {
+      _.each(timers, clear => clear(resolution))
       timers = []
     },
   }

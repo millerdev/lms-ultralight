@@ -19,7 +19,6 @@
     "react-dom": "^15.4.1",
     "react-redux": "^5.0.1",
     "redux": "^3.6.0",
-    "redux-loop": "^2.2.2",
     "sanitize.css": "latest",
     "semantic-ui-css": "^2.2.4",
     "semantic-ui-react": "^0.63.1"

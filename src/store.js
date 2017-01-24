@@ -1,12 +1,12 @@
 import { Map } from 'immutable'
 import _ from 'lodash'
 import { createStore, compose } from 'redux'
-import { install as installReduxLoop } from 'redux-loop'
+import { installEffects } from './effects'
 
 import DevTools from './devtools'
 
 const enhancer = compose(
-  installReduxLoop(),
+  installEffects(),
   // TODO exclude from production build
   // Required! Enable Redux DevTools with the monitors you chose
   DevTools.instrument()
