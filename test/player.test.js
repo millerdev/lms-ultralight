@@ -175,7 +175,7 @@ const PLAYERID = "1:1:1:1"
 const STATUS = fromJS({
   "can_seek": 1,
   "digital_volume_control": 1,
-  "duration": 371.373,
+  "duration": "371.373",
   "mixer bass": "0",
   "mixer treble": "0",
   "mixer volume": 15,
@@ -202,7 +202,7 @@ const STATUS = fromJS({
   "rate": 1,
   "seq_no": 0,
   "signalstrength": 81,
-  "time": 232.467967245102,
+  "time": "232.467967245102",
   "localTime": new Date(),
   "isPlaylistUpdate": false,
 })

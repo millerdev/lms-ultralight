@@ -39,8 +39,8 @@ export const playerReducer = makeReducer({
       repeatMode: status["playlist repeat"],
       shuffleMode: status["playlist shuffle"],
       volumeLevel: status["mixer volume"],
-      elapsedTime: isNumeric(status.time) ? status.time : 0,
-      totalTime: isNumeric(status.duration) ? status.duration : null,
+      elapsedTime: isNumeric(status.time) ? parseFloat(status.time) : 0,
+      totalTime: isNumeric(status.duration) ? parseFloat(status.duration) : null,
       localTime: status.localTime,
       playlistTimestamp: status.playlist_timestamp,
       playlistTracks: status.playlist_tracks,
@@ -158,6 +158,10 @@ export class Player extends React.Component {
     lms.command(playerid, ...args).then(this.loadPlayer(playerid))
     // TODO convey failure to view somehow
   }
+  onSeek(playerid, value) {
+    this.props.dispatch(actions.seek({playerid, value}))
+    // TODO convey failure to view somehow
+  }
   render() {
     const props = this.props
     const command = this.command.bind(this, props.playerid)
@@ -171,7 +175,7 @@ export class Player extends React.Component {
           localTime={props.localTime}
           elapsed={props.elapsedTime}
           total={props.totalTime}
-          onSeek={value => actions.seek({playerid: props.playerid, value})}
+          onSeek={this.onSeek.bind(this, props.playerid)}
           disabled={!props.playerid} />
       </PlayerUI>
       <playlist.Playlist
