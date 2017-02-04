@@ -10,13 +10,12 @@ const players = [
 ]
 
 describe('playerselect', function () {
+  const actions = mod.reducer.actions
+
   describe('reducer', function () {
     describe('gotPlayers', function () {
       it('should add players to state', function () {
-        const action = {
-          type: "gotPlayers",
-          payload: players,
-        }
+        const action = actions.gotPlayers(players)
         const result = mod.reducer(Map(), action)
         assert.equal(result, fromJS({
           players,
@@ -31,10 +30,7 @@ describe('playerselect', function () {
           loading: false,
           error: false,
         })
-        const action = {
-          type: "gotPlayers",
-          payload: undefined,
-        }
+        const action = actions.gotPlayers()
         const result = mod.reducer(state, action)
         assert.equal(result, state.set('error', true))
       })

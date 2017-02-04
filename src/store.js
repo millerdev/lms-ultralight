@@ -24,9 +24,10 @@ export function makeActor(name) {
   if (allActions.hasOwnProperty(name)) {
     throw new Error("cannot create duplicate action: " + name)
   }
-  const actor = payload => ({
+  const actor = (...args) => ({
     type: name,
-    payload,
+    payload: args,
+    args: args,
   })
   actor.key = name
   allActions[name] = actor
@@ -36,7 +37,8 @@ export function makeActor(name) {
 export default function makeReducer(actionsToReducers, defaultState) {
   function reducer(state=defaultState, action) {
     if (reducers.hasOwnProperty(action.type)) {
-      return reducers[action.type](state, action)
+      const args = action.hasOwnProperty("args") ? action.args : []
+      return reducers[action.type](state, action, ...args)
     }
     return state
   }

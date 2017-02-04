@@ -31,7 +31,7 @@ export const defaultState = Map({
 })
 
 export const playerReducer = makeReducer({
-  gotPlayer: (state, {payload: status}) => {
+  gotPlayer: (state, action, status) => {
     const data = {
       playerid: status.playerid,
       isPowerOn: status.power === 1,
@@ -67,7 +67,7 @@ export const playerReducer = makeReducer({
     effects.push(effect(loadPlayerAfter, wait, data.playerid))
     return combine(state.merge(data), effects)
   },
-  seek: (state, {payload: {playerid, value}}) => {
+  seek: (state, action, {playerid, value}) => {
     if (state.get("playerid") === playerid) {
       return combine(
         state.merge({elapsedTime: value, localTime: null}),

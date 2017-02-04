@@ -26,9 +26,8 @@ export const reducer = makeReducer({
     })
     return state.set('loading', true)
   },
-  gotPlayers: (state, action) => (
+  gotPlayers: (state, action, players) => (
     state.withMutations(map => {
-      const players = action.payload
       map
         .set('error', !players)
         .set('loading', false)
