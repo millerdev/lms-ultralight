@@ -11,6 +11,8 @@ import * as playlist from './playlist'
 import { backoff, isNumeric, timer } from './util'
 
 export const STATUS_INTERVAL = 30  // seconds
+export const REPEAT_ONE = 1
+export const REPEAT_ALL = 2
 
 export const defaultState = Map({
   players: players.defaultState,
@@ -44,11 +46,13 @@ export const playerReducer = makeReducer({
       localTime: status.localTime,
       playlistTimestamp: status.playlist_timestamp,
       playlistTracks: status.playlist_tracks,
+      playlistIndex: parseInt(status.playlist_cur_index),
+      //playlist: playlist.reducer(state.get("playlist"), action),
       //everything: fromJS(status),
     }
     const list = status.playlist_loop
     const IX = "playlist index"
-    const index = data.playlistIndex = parseInt(status.playlist_cur_index)
+    const index = data.playlistIndex
     if (status.isPlaylistUpdate) {
       data.playlist = fromJS(status.playlist_loop)
       if (index >= list[0][IX] && index <= list[list.length - 1][IX]) {
@@ -57,22 +61,47 @@ export const playerReducer = makeReducer({
     } else {
       data.trackInfo = fromJS(list[0] || {})
     }
+    let nextTrack = data.trackInfo
+    if (data.repeatMode !== REPEAT_ONE) {
+      const index = data.playlistIndex + 1
+      const playlist = data.playlist || state.get("playlist", List())
+      nextTrack = playlist.find(item => item.get(IX) === index)
+    }
 
     const effects = []
-    const wait = STATUS_INTERVAL * 1000
+    let wait = STATUS_INTERVAL * 1000
+    let fetchPlaylist = false
     const end = secondsToEndOfSong(data) * 1000
+    // TODO handle end === 0 (due to song length unknown)
     if (end < wait) {
-      effects.push(effect(advanceToNextSong, end, data))
+      if (nextTrack) {
+        effects.push(effect(
+          advanceToNextSongAfter, end, data.playerid, nextTrack))
+      } else {
+        wait = end
+        fetchPlaylist = true
+      }
     }
-    effects.push(effect(loadPlayerAfter, wait, data.playerid))
+    effects.push(effect(loadPlayerAfter, wait, data.playerid, fetchPlaylist))
     return combine(state.merge(data), effects)
   },
-  seek: (state, action, {playerid, value}) => {
+  seek: (state, action, {playerid, value}, now=Date.now()) => {
     if (state.get("playerid") === playerid) {
       return combine(
-        state.merge({elapsedTime: value, localTime: null}),
+        state.merge({elapsedTime: value, localTime: now}),
         [effect(seek, playerid, value)]
       )
+    }
+    return state
+  },
+  startSong: (state, action, playerid, trackInfo, now=Date.now()) => {
+    if (state.get("playerid") === playerid) {
+      return state.merge({
+        elapsedTime: 0,
+        localTime: now,
+        trackInfo: trackInfo,
+        playlistIndex: trackInfo.get("playlist index"),
+      })
     }
     return state
   },
@@ -91,13 +120,11 @@ export function secondsToEndOfSong({elapsedTime, totalTime, localTime}, now=Date
   return total - elapsed
 }
 
-export const advanceToNextSong = (() => {
+export const advanceToNextSongAfter = (() => {
   const time = timer()
-  return (end, data) => {
-    // TODO advance playlist without querying server (loadPlayer)
-    // don't forget to check repeat-one when advancing to next song
+  return (end, playerid, trackInfo) => {
     time.clear(IGNORE_ACTION)
-    return time.after(end, () => loadPlayer(data.playerid))
+    return time.after(end, () => actions.startSong(playerid, trackInfo))
   }
 })()
 
@@ -124,7 +151,6 @@ export function reducer(state_=defaultState, action) {
   return combine(
     state.merge({
       players: players.reducer(state.get("players"), action),
-      //playlist: playlist.reducer(state.get("playlist"), action),
     }),
     effects
   )

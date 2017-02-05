@@ -52,7 +52,32 @@ describe('player', function () {
             effect(
               mod.loadPlayerAfter,
               mod.STATUS_INTERVAL * 1000,
-              PLAYERID
+              PLAYERID,
+              false
+            )
+          ])
+        })
+
+        it('should promise to restart current song on repeat one', function () {
+          const data = STATUS.merge({
+            "playlist repeat": mod.REPEAT_ONE,
+            "duration": 371,
+            "time": 350,
+            "localTime": null,
+          }).toJS()
+          const [state, effects] = split(reduce(defaultState, gotPlayer(data)))
+          assert.deepEqual(effects, [
+            effect(
+              mod.advanceToNextSongAfter,
+              21000,
+              PLAYERID,
+              state.get("trackInfo"),
+            ),
+            effect(
+              mod.loadPlayerAfter,
+              30000,
+              PLAYERID,
+              false
             )
           ])
         })
@@ -63,17 +88,71 @@ describe('player', function () {
             "time": 350,
             "localTime": null,
           }).toJS()
-          const [state, effects] = split(reduce(defaultState, gotPlayer(data)))
+          const state = defaultState.merge({
+            playlist: PLAYLIST_1,
+            playlistIndex: 2,
+          })
+          const effects = split(reduce(state, gotPlayer(data)))[1]
           assert.deepEqual(effects, [
             effect(
-              mod.advanceToNextSong,
+              mod.advanceToNextSongAfter,
               21000,
-              state.toObject()
+              PLAYERID,
+              PLAYLIST_1.get(2),
             ),
             effect(
               mod.loadPlayerAfter,
               30000,
-              PLAYERID
+              PLAYERID,
+              false
+            )
+          ])
+        })
+
+        it('should promise to advance to next song on playlist update', function () {
+          const data = STATUS.merge({
+            "duration": 371,
+            "time": 350,
+            "localTime": null,
+            "playlist_loop": PLAYLIST_1,
+            "playlist_cur_index": 2,
+            isPlaylistUpdate: true,
+          }).toJS()
+          const effects = split(reduce(defaultState, gotPlayer(data)))[1]
+          assert.deepEqual(effects, [
+            effect(
+              mod.advanceToNextSongAfter,
+              21000,
+              PLAYERID,
+              PLAYLIST_1.get(2),
+            ),
+            effect(
+              mod.loadPlayerAfter,
+              30000,
+              PLAYERID,
+              false
+            )
+          ])
+        })
+
+        it('should load player status at end of song when next is unknown', function () {
+          const data = STATUS.merge({
+            "duration": 371,
+            "time": 350,
+            "localTime": null,
+            "playlist_cur_index": "3",
+            "playlist_loop": [PLAYLIST_1.get(2)],
+          }).toJS()
+          const state = defaultState.merge({
+            playlist: PLAYLIST_1,
+          })
+          const effects = split(reduce(state, gotPlayer(data)))[1]
+          assert.deepEqual(effects, [
+            effect(
+              mod.loadPlayerAfter,
+              21000,
+              PLAYERID,
+              true,
             )
           ])
         })
@@ -87,30 +166,59 @@ describe('player', function () {
         const before = Map({
           playerid: PLAYERID,
           elapsedTime: 200,
-          localTime: Date.now(),
+          localTime: Date.now() - 100,
         })
+        const now = Date.now()
         const args = {playerid: PLAYERID, value: 140}
-        const [state, effects] = split(reduce(before, seek(args)))
+        const [state, effects] = split(reduce(before, seek(args, now)))
         assert.equal(state, Map({
           playerid: PLAYERID,
           elapsedTime: 140,
-          localTime: null,
+          localTime: now,
         }))
         assert.deepEqual(effects, [effect(mod.seek, PLAYERID, 140)], 'effects')
       })
 
+      noOtherPlayerStateChange(seek)
+    })
+
+    describe('startSong', function () {
+      const startSong = reduce.actions.startSong
+
+      it('should set track info and zero play time', function () {
+        const before = Map({
+          playerid: PLAYERID,
+          elapsedTime: 200,
+          localTime: Date.now() - 100,
+        })
+        const info = Map({"playlist index": 1})
+        const now = Date.now()
+        const [state, effects] = split(reduce(before, startSong(PLAYERID, info, now)))
+        assert.equal(state, Map({
+          playerid: PLAYERID,
+          trackInfo: info,
+          playlistIndex: 1,
+          elapsedTime: 0,
+          localTime: now,
+        }))
+        assert.deepEqual(effects, [])
+      })
+
+      noOtherPlayerStateChange(startSong)
+    })
+
+    function noOtherPlayerStateChange(action) {
       it('should not change state of other player', function () {
         const before = Map({
           playerid: PLAYERID + "2",
           elapsedTime: 200,
           localTime: Date.now(),
         })
-        const args = {playerid: PLAYERID, value: 140}
-        const [state, effects] = split(reduce(before, seek(args)))
+        const [state, effects] = split(reduce(before, action(PLAYERID)))
         assert.equal(state, before)
         assert.deepEqual(effects, [])
       })
-    })
+    }
   })
 
   describe('secondsToEndOfSong', function () {
@@ -141,6 +249,14 @@ describe('player', function () {
         localTime: new Date(now - 120000),
       }, now)
       assert.equal(result, 0)
+    })
+  })
+
+  describe('advanceToNextSongAfter', function () {
+    it('should set timer to advance at end of song', function () {
+      const promise = mod.advanceToNextSongAfter(21.48, {})
+      promise.clear(IGNORE_ACTION)
+      assert.equal(promise.wait, 21.48)
     })
   })
 
