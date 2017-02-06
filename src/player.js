@@ -69,16 +69,15 @@ export const playerReducer = makeReducer({
     }
 
     const effects = []
+    const end = secondsToEndOfSong(data)
     let wait = STATUS_INTERVAL * 1000
     let fetchPlaylist = false
-    const end = secondsToEndOfSong(data) * 1000
-    // TODO handle end === 0 (due to song length unknown)
-    if (end < wait) {
+    if (end !== null && end * 1000 < wait) {
       if (nextTrack) {
         effects.push(effect(
-          advanceToNextSongAfter, end, data.playerid, nextTrack))
+          advanceToNextSongAfter, end * 1000, data.playerid, nextTrack))
       } else {
-        wait = end
+        wait = end * 1000
         fetchPlaylist = true
       }
     }
@@ -113,11 +112,16 @@ export function loadPlayer(playerid, fetchPlaylist=false) {
             .then(data => actions.gotPlayer(data))
 }
 
+/**
+ * Return number of seconds to end of song (floating point); null if unknown
+ */
 export function secondsToEndOfSong({elapsedTime, totalTime, localTime}, now=Date.now()) {
+  if (totalTime === null) {
+    return null
+  }
   const elapsed = localTime ?
     elapsedTime + (now - localTime) / 1000 : elapsedTime
-  const total = totalTime !== null ? _.max([totalTime, elapsed]) : elapsed
-  return total - elapsed
+  return _.max([totalTime, elapsed]) - elapsed
 }
 
 export const advanceToNextSongAfter = (() => {

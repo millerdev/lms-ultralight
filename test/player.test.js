@@ -135,6 +135,26 @@ describe('player', function () {
           ])
         })
 
+        it('should not promise to advance to next song on unknown song length', function () {
+          const data = STATUS.merge({
+            "duration": null,
+            "time": 350,
+            "localTime": null,
+            "playlist_loop": PLAYLIST_1,
+            "playlist_cur_index": 2,
+            isPlaylistUpdate: true,
+          }).toJS()
+          const effects = split(reduce(defaultState, gotPlayer(data)))[1]
+          assert.deepEqual(effects, [
+            effect(
+              mod.loadPlayerAfter,
+              30000,
+              PLAYERID,
+              false
+            )
+          ])
+        })
+
         it('should load player status at end of song when next is unknown', function () {
           const data = STATUS.merge({
             "duration": 371,
@@ -249,6 +269,16 @@ describe('player', function () {
         localTime: new Date(now - 120000),
       }, now)
       assert.equal(result, 0)
+    })
+
+    it('should return null for unknown song length', function () {
+      const now = Date.now()
+      const result = mod.secondsToEndOfSong({
+        elapsedTime: 10,
+        totalTime: null,
+        localTime: now - 100,
+      }, now)
+      assert.equal(result, null)
     })
   })
 
