@@ -1,3 +1,4 @@
+import { List as IList, Map, fromJS } from 'immutable'
 import _ from 'lodash'
 import React from 'react'
 import { List } from 'semantic-ui-react'
@@ -5,12 +6,42 @@ import { List } from 'semantic-ui-react'
 import { formatTime } from './util'
 //import './playlist.scss'
 
+export const defaultState = Map({
+  items: IList(),
+  timestamp: null,
+  numTracks: null,
+  currentIndex: null,
+  currentTrack: Map(),
+  nextTrack: null,
+})
 
+export function gotPlayer(state=defaultState, status) {
+  const index = parseInt(status.playlist_cur_index)
+  const list = status.playlist_loop
+  const IX = "playlist index"
+  const data = {
+    timestamp: status.playlist_timestamp,
+    numTracks: status.playlist_tracks,
+    currentIndex: index,
+  }
+  if (status.isPlaylistUpdate) {
+    data.items = fromJS(status.playlist_loop)
+    if (index >= list[0][IX] && index <= list[list.length - 1][IX]) {
+      data.currentTrack = fromJS(list[index - list[0][IX]])
+    }
+  } else {
+    data.currentTrack = fromJS(list[0] || {})
+  }
+  const nextIndex = index + 1
+  const items = data.items || state.get("items", IList())
+  data.nextTrack = items.find(item => item.get(IX) === nextIndex) || null
+  return state.merge(data)
+}
 //const actions = reducer.actions
 
 export const Playlist = props => (
   <List className="playlist" selection>
-    {_.map(props.items.toJS(), item => {
+    {_.map(props.items, item => {
       const index = item["playlist index"]
       return <PlaylistItem
         command={props.command}

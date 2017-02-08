@@ -9,7 +9,7 @@ import * as mod from '../src/player'
 describe('player', function () {
   describe('playerReducer', function () {
     const reduce = mod.playerReducer
-    const defaultState = mod.defaultState.remove("players").remove("playlist")
+    const defaultState = mod.defaultState.remove("players")
 
     describe('gotPlayer', function () {
       const gotPlayer = reduce.actions.gotPlayer
@@ -17,7 +17,7 @@ describe('player', function () {
       describe('state', function () {
         it('should set info for current track', function () {
           const state = getState(reduce(Map(), gotPlayer(STATUS.toJS())))
-          assert.equal(state, STATE)
+          assert.equal(state.get("trackInfo"), STATE.get("trackInfo"))
         })
 
         it('should set info for current track with playlist update', function () {
@@ -25,7 +25,7 @@ describe('player', function () {
             isPlaylistUpdate: true,
             playlist_loop: PLAYLIST_1,
           }).toJS())))
-          assert.equal(state.remove("playlist"), STATE)
+          assert.equal(state.remove("playlist"), STATE.remove("playlist"))
         })
 
         it('should not change track info with playlist before current track', function () {
@@ -33,7 +33,7 @@ describe('player', function () {
             isPlaylistUpdate: true,
             playlist_loop: PLAYLIST_0,
           }).toJS())))
-          assert.equal(state.remove("playlist"), STATE)
+          assert.equal(state.remove("playlist"), STATE.remove("playlist"))
         })
 
         it('should not change track info with playlist after current track', function () {
@@ -41,7 +41,7 @@ describe('player', function () {
             isPlaylistUpdate: true,
             playlist_loop: PLAYLIST_2,
           }).toJS())))
-          assert.equal(state.remove("playlist"), STATE)
+          assert.equal(state.remove("playlist"), STATE.remove("playlist"))
         })
       })
 
@@ -89,8 +89,7 @@ describe('player', function () {
             "localTime": null,
           }).toJS()
           const state = defaultState.merge({
-            playlist: PLAYLIST_1,
-            playlistIndex: 2,
+            playlist: STATE.get("playlist").set("items", PLAYLIST_1),
           })
           const effects = split(reduce(state, gotPlayer(data)))[1]
           assert.deepEqual(effects, [
@@ -164,7 +163,7 @@ describe('player', function () {
             "playlist_loop": [PLAYLIST_1.get(2)],
           }).toJS()
           const state = defaultState.merge({
-            playlist: PLAYLIST_1,
+            playlist: STATE.get("playlist").set("items", PLAYLIST_1),
           })
           const effects = split(reduce(state, gotPlayer(data)))[1]
           assert.deepEqual(effects, [
@@ -400,7 +399,7 @@ const PLAYLIST_2 = fromJS([
   }
 ])
 
-const STATE = mod.defaultState.remove("players").remove("playlist").merge({
+const STATE = mod.defaultState.remove("players").merge({
   playerid: PLAYERID,
   repeatMode: 2,
   shuffleMode: 1,
@@ -414,7 +413,15 @@ const STATE = mod.defaultState.remove("players").remove("playlist").merge({
   elapsedTime: 232.467967245102,
   totalTime: 371.373,
   localTime: STATUS.get("localTime"),
-  playlistTimestamp: 1482495558.93241,
-  playlistTracks: 7,
-  playlistIndex: 2,
+  playlist: mod.defaultState.get("playlist").merge({
+    timestamp: 1482495558.93241,
+    numTracks: 7,
+    currentIndex: 2,
+    currentTrack: Map({
+      "id": 30349,
+      "title": "Metallic Rain",
+      "playlist index": 2,
+      "url": "file:///.../Vangelis%20-%20Direct/03%20Metallic%20Rain.flac",
+    }),
+  })
 })

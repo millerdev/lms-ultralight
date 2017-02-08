@@ -1,4 +1,4 @@
-import { List, Map, fromJS } from 'immutable'
+import { Map } from 'immutable'
 import _ from 'lodash'
 import React from 'react'
 
@@ -16,6 +16,7 @@ export const REPEAT_ALL = 2
 
 export const defaultState = Map({
   players: players.defaultState,
+  playlist: playlist.defaultState,
   playerid: null,
   isPowerOn: false,
   isPlaying: false,
@@ -26,10 +27,6 @@ export const defaultState = Map({
   elapsedTime: 0,
   totalTime: null,
   localTime: null,
-  playlistTimestamp: null,
-  playlistTracks: null,
-  playlistIndex: null,
-  playlist: List(),
 })
 
 export const playerReducer = makeReducer({
@@ -44,35 +41,18 @@ export const playerReducer = makeReducer({
       elapsedTime: isNumeric(status.time) ? parseFloat(status.time) : 0,
       totalTime: isNumeric(status.duration) ? parseFloat(status.duration) : null,
       localTime: status.localTime,
-      playlistTimestamp: status.playlist_timestamp,
-      playlistTracks: status.playlist_tracks,
-      playlistIndex: parseInt(status.playlist_cur_index),
-      //playlist: playlist.reducer(state.get("playlist"), action),
+      playlist: playlist.gotPlayer(state.get("playlist"), status),
       //everything: fromJS(status),
     }
-    const list = status.playlist_loop
-    const IX = "playlist index"
-    const index = data.playlistIndex
-    if (status.isPlaylistUpdate) {
-      data.playlist = fromJS(status.playlist_loop)
-      if (index >= list[0][IX] && index <= list[list.length - 1][IX]) {
-        data.trackInfo = fromJS(list[index - list[0][IX]])
-      }
-    } else {
-      data.trackInfo = fromJS(list[0] || {})
-    }
-    let nextTrack = data.trackInfo
-    if (data.repeatMode !== REPEAT_ONE) {
-      const index = data.playlistIndex + 1
-      const playlist = data.playlist || state.get("playlist", List())
-      nextTrack = playlist.find(item => item.get(IX) === index)
-    }
+    data.trackInfo = data.playlist.get("currentTrack")
 
     const effects = []
     const end = secondsToEndOfSong(data)
     let wait = STATUS_INTERVAL * 1000
     let fetchPlaylist = false
     if (end !== null && end * 1000 < wait) {
+      const nextTrack = data.playlist.get(
+        data.repeatMode === REPEAT_ONE ? "currentTrack" : "nextTrack")
       if (nextTrack) {
         effects.push(effect(
           advanceToNextSongAfter, end * 1000, data.playerid, nextTrack))
@@ -210,8 +190,7 @@ export class Player extends React.Component {
       </PlayerUI>
       <playlist.Playlist
         command={command}
-        currentIndex={props.playlistIndex}
-        items={props.playlist} />
+        {...props.playlist.toJS()} />
     </div>
   }
 }
