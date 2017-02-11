@@ -45,14 +45,15 @@ export default function makeReducer(actionsToReducers, defaultState) {
   const reducers = {}
   _.each(actionsToReducers, (reduce, action) => {
     if (action.startsWith("ref:")) {
-      action = {key: action.slice(4)}
-      if (!allActions.hasOwnProperty(action.key)) {
+      const key = action.slice(4)
+      if (!allActions.hasOwnProperty(key)) {
         throw new Error("unknown action: " + action.key)
       }
+      action = allActions[key]
     } else {
       action = makeActor(action)
-      actions[action.key] = action
     }
+    actions[action.key] = action
     if (reducers.hasOwnProperty(action.key)) {
       throw new Error("duplicate reducer action: " + action.key)
     }

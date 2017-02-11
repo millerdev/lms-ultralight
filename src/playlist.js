@@ -3,6 +3,7 @@ import _ from 'lodash'
 import React from 'react'
 import { List } from 'semantic-ui-react'
 
+import makeReducer from './store'
 import { formatTime } from './util'
 //import './playlist.scss'
 
@@ -16,23 +17,25 @@ export const defaultState = Map({
   currentTrack: Map(),
 })
 
-export function gotPlayer(state=defaultState, status) {
-  const index = parseInt(status.playlist_cur_index)
-  const list = status.playlist_loop
-  const data = {
-    timestamp: status.playlist_timestamp,
-    numTracks: status.playlist_tracks,
-    currentIndex: index,
-  }
-  if (status.isPlaylistUpdate) {
-    data.items = fromJS(status.playlist_loop)
-    if (index >= list[0][IX] && index <= list[list.length - 1][IX]) {
-      data.currentTrack = fromJS(list[index - list[0][IX]])
+export const reducer = makeReducer({
+  gotPlayer: (state=defaultState, action, status) => {
+    const index = parseInt(status.playlist_cur_index)
+    const list = status.playlist_loop
+    const data = {
+      timestamp: status.playlist_timestamp,
+      numTracks: status.playlist_tracks,
+      currentIndex: index,
     }
-  } else {
-    data.currentTrack = fromJS(list[0] || {})
-  }
-  return state.merge(data)
+    if (status.isPlaylistUpdate) {
+      data.items = fromJS(status.playlist_loop)
+      if (index >= list[0][IX] && index <= list[list.length - 1][IX]) {
+        data.currentTrack = fromJS(list[index - list[0][IX]])
+      }
+    } else {
+      data.currentTrack = fromJS(list[0] || {})
+    }
+    return state.merge(data)
+}, defaultState)
 
 export function advanceToNextTrack(state) {
   const items = state.get("items")
@@ -44,7 +47,6 @@ export function advanceToNextTrack(state) {
     currentIndex: nextIndex,
   })
 }
-//const actions = reducer.actions
 
 export const Playlist = props => (
   <List className="playlist" selection>

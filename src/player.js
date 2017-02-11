@@ -29,7 +29,7 @@ export const defaultState = Map({
 })
 
 export const playerReducer = makeReducer({
-  gotPlayer: (state, action, status) => {
+  "ref:gotPlayer": (state, action, status) => {
     const data = {
       playerid: status.playerid,
       isPowerOn: status.power === 1,
@@ -40,7 +40,6 @@ export const playerReducer = makeReducer({
       elapsedTime: isNumeric(status.time) ? parseFloat(status.time) : 0,
       totalTime: isNumeric(status.duration) ? parseFloat(status.duration) : null,
       localTime: status.localTime,
-      playlist: playlist.gotPlayer(state.get("playlist"), status),
     }
 
     const effects = []
@@ -126,6 +125,7 @@ export function reducer(state_=defaultState, action) {
   return combine(
     state.merge({
       players: players.reducer(state.get("players"), action),
+      playlist: playlist.reducer(state.get("playlist"), action),
     }),
     effects
   )
