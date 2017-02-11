@@ -3,13 +3,11 @@ import _ from 'lodash'
 import { createStore, compose } from 'redux'
 import { installEffects } from './effects'
 
-import DevTools from './devtools'
-
 const enhancer = compose(
   installEffects(),
   // TODO exclude from production build
   // Required! Enable Redux DevTools with the monitors you chose
-  DevTools.instrument()
+  //require('./devtools').instrument()
 )
 
 let allActions = {}
@@ -26,7 +24,7 @@ export function makeActor(name) {
   }
   const actor = (...args) => ({
     type: name,
-    payload: args,
+    payload: args[0],
     args: args,
   })
   actor.key = name

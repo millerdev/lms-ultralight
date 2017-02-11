@@ -9,6 +9,12 @@
  */
 import _ from 'lodash'
 
+let debug = true
+export function setDebugMode(enabled) {
+  debug = enabled
+}
+
+
 export function installEffects() {
   return next => (reducer, initialStateAndEffects, enhancer) => {
     const [initialState, initialEffects] = split(initialStateAndEffects)
@@ -27,6 +33,9 @@ export function installEffects() {
     function runEffect(parentActionType, effect) {
       Promise.resolve(effect.factory(...effect.args))
         .then(action => {
+          if (debug) {
+            window.console.log(action)
+          }
           if (action !== IGNORE_ACTION) {
             dispatch(action)
           }
