@@ -63,7 +63,7 @@ describe('player', function () {
           const effects = split(reduce(defaultState, gotPlayer(data)))[1]
           assert.deepEqual(effects, [
             effect(
-              mod.advanceToNextSongAfter,
+              mod.advanceToNextTrackAfter,
               21000,
               PLAYERID,
             ),
@@ -88,7 +88,7 @@ describe('player', function () {
           const effects = split(reduce(state, gotPlayer(data)))[1]
           assert.deepEqual(effects, [
             effect(
-              mod.advanceToNextSongAfter,
+              mod.advanceToNextTrackAfter,
               21000,
               PLAYERID,
             ),
@@ -113,7 +113,7 @@ describe('player', function () {
           const effects = split(reduce(defaultState, gotPlayer(data)))[1]
           assert.deepEqual(effects, [
             effect(
-              mod.advanceToNextSongAfter,
+              mod.advanceToNextTrackAfter,
               21000,
               PLAYERID,
             ),
@@ -171,8 +171,8 @@ describe('player', function () {
       noOtherPlayerStateChange(seek)
     })
 
-    describe('startSong', function () {
-      const startSong = reduce.actions.startSong
+    describe('advanceToNextTrack', function () {
+      const advanceToNextTrack = reduce.actions.advanceToNextTrack
 
       it('should zero play time', function () {
         const before = Map({
@@ -182,7 +182,8 @@ describe('player', function () {
           playlist: mod.defaultState.get("playlist"),
         })
         const now = Date.now()
-        const [state, effects] = split(reduce(before, startSong(PLAYERID, now)))
+        const [state, effects] = split(
+          reduce(before, advanceToNextTrack(PLAYERID, now)))
         assert.equal(state, Map({
           playerid: PLAYERID,
           elapsedTime: 0,
@@ -192,7 +193,7 @@ describe('player', function () {
         assert.deepEqual(effects, [])
       })
 
-      noOtherPlayerStateChange(startSong)
+      noOtherPlayerStateChange(advanceToNextTrack)
     })
 
     function noOtherPlayerStateChange(action) {
@@ -209,9 +210,9 @@ describe('player', function () {
     }
   })
 
-  describe('secondsToEndOfSong', function () {
+  describe('secondsToEndOfTrack', function () {
     it('should return positive value for not-ended-yet song', function () {
-      const result = mod.secondsToEndOfSong({
+      const result = mod.secondsToEndOfTrack({
         elapsedTime: 10.2,
         totalTime: 21.5,
         localTime: null,
@@ -221,7 +222,7 @@ describe('player', function () {
 
     it('should compensate for latency', function () {
       const now = Date.now()
-      const result = mod.secondsToEndOfSong({
+      const result = mod.secondsToEndOfTrack({
         elapsedTime: 10,
         totalTime: 20,
         localTime: now - 100,
@@ -231,7 +232,7 @@ describe('player', function () {
 
     it('should return zero for already-ended song', function () {
       const now = Date.now()
-      const result = mod.secondsToEndOfSong({
+      const result = mod.secondsToEndOfTrack({
         elapsedTime: 10.2,
         totalTime: 21.5,
         localTime: new Date(now - 120000),
@@ -241,7 +242,7 @@ describe('player', function () {
 
     it('should return null for unknown song length', function () {
       const now = Date.now()
-      const result = mod.secondsToEndOfSong({
+      const result = mod.secondsToEndOfTrack({
         elapsedTime: 10,
         totalTime: null,
         localTime: now - 100,
@@ -250,9 +251,9 @@ describe('player', function () {
     })
   })
 
-  describe('advanceToNextSongAfter', function () {
+  describe('advanceToNextTrackAfter', function () {
     it('should set timer to advance at end of song', function () {
-      const promise = mod.advanceToNextSongAfter(21.48, {})
+      const promise = mod.advanceToNextTrackAfter(21.48, {})
       promise.clear(IGNORE_ACTION)
       assert.equal(promise.wait, 21.48)
     })

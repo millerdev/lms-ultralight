@@ -34,7 +34,7 @@ export function gotPlayer(state=defaultState, status) {
   }
   return state.merge(data)
 
-export function advanceToNextSong(state) {
+export function advanceToNextTrack(state) {
   const items = state.get("items")
   const index = state.get("currentIndex")
   const nextIndex = index === null ? null : (index + 1)

@@ -45,11 +45,11 @@ export const playerReducer = makeReducer({
     }
 
     const effects = []
-    const end = secondsToEndOfSong(data)
+    const end = secondsToEndOfTrack(data)
     let wait = STATUS_INTERVAL * 1000
     let fetchPlaylist = false
     if (end !== null && end * 1000 < wait) {
-      effects.push(effect(advanceToNextSongAfter, end * 1000, data.playerid))
+      effects.push(effect(advanceToNextTrackAfter, end * 1000, data.playerid))
     }
     effects.push(effect(loadPlayerAfter, wait, data.playerid, fetchPlaylist))
     return combine(state.merge(data), effects)
@@ -63,14 +63,14 @@ export const playerReducer = makeReducer({
     }
     return state
   },
-  startSong: (state, action, playerid, now=Date.now()) => {
+  advanceToNextTrack: (state, action, playerid, now=Date.now()) => {
     if (state.get("playerid") === playerid) {
       const data = {
         elapsedTime: 0,
         localTime: now,
       }
       if (state.get("repeatMode") !== REPEAT_ONE) {
-        data.playlist = playlist.advanceToNextSong(state.get("playlist"))
+        data.playlist = playlist.advanceToNextTrack(state.get("playlist"))
       }
       return state.merge(data)
     }
@@ -87,7 +87,7 @@ export function loadPlayer(playerid, fetchPlaylist=false) {
 /**
  * Return number of seconds to end of song (floating point); null if unknown
  */
-export function secondsToEndOfSong({elapsedTime, totalTime, localTime}, now=Date.now()) {
+export function secondsToEndOfTrack({elapsedTime, totalTime, localTime}, now=Date.now()) {
   if (totalTime === null) {
     return null
   }
@@ -96,11 +96,11 @@ export function secondsToEndOfSong({elapsedTime, totalTime, localTime}, now=Date
   return _.max([totalTime, elapsed]) - elapsed
 }
 
-export const advanceToNextSongAfter = (() => {
+export const advanceToNextTrackAfter = (() => {
   const time = timer()
   return (end, ...args) => {
     time.clear(IGNORE_ACTION)
-    return time.after(end, () => actions.startSong(...args))
+    return time.after(end, () => actions.advanceToNextTrack(...args))
   }
 })()
 
