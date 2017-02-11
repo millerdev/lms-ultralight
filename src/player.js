@@ -41,7 +41,6 @@ export const playerReducer = makeReducer({
       totalTime: isNumeric(status.duration) ? parseFloat(status.duration) : null,
       localTime: status.localTime,
       playlist: playlist.gotPlayer(state.get("playlist"), status),
-      //everything: fromJS(status),
     }
 
     const effects = []

@@ -51,9 +51,8 @@ export const Playlist = props => (
     {_.map(props.items, item => {
       const index = item["playlist index"]
       return <PlaylistItem
+        {...item}
         command={props.command}
-        artist={item.artist}
-        title={item.title}
         index={index}
         active={props.currentIndex === index}
         key={index} />
@@ -74,8 +73,8 @@ export const PlaylistItem = props => (
       active={props.active}>
     <List.Content>
       <List.Description>
-        <div className="length" style={{float: "right"}}>
-          {formatTime(props.length || 0)}
+        <div className="duration" style={{float: "right"}}>
+          {formatTime(props.duration || 0)}
         </div>
         {songTitle(props)}
       </List.Description>

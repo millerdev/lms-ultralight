@@ -307,7 +307,10 @@ const STATUS = fromJS({
     {
       "url": "file:///.../Vangelis%20-%20Direct/03%20Metallic%20Rain.flac",
       "playlist index": 2,
+      "artist": "Vangelis",
+      "album": "Direct",
       "title": "Metallic Rain",
+      "duration": "371.373",
       "id": 30349
     }
   ],
@@ -340,7 +343,10 @@ const PLAYLIST_1 = fromJS([
   }, {
     "url": "file:///.../Vangelis%20-%20Direct/03%20Metallic%20Rain.flac",
     "playlist index": 2,
+    "artist": "Vangelis",
+    "album": "Direct",
     "title": "Metallic Rain",
+    "duration": "371.373",
     "id": 30349
   }, {
     "url": "file:///...",
@@ -383,7 +389,10 @@ const STATE = mod.defaultState.remove("players").merge({
     currentIndex: 2,
     currentTrack: Map({
       "id": 30349,
+      "artist": "Vangelis",
+      "album": "Direct",
       "title": "Metallic Rain",
+      "duration": "371.373",
       "playlist index": 2,
       "url": "file:///.../Vangelis%20-%20Direct/03%20Metallic%20Rain.flac",
     }),

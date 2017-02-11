@@ -10,7 +10,7 @@ export function getPlayers(index=0, qty=999) {
 
 export function getPlayerStatus(playerid, index="-", qty=1) {
   const before = Date.now()
-  return exec(playerid, ["status", index, qty, "tags:aBluJ"]).then(({data}) => {
+  return exec(playerid, ["status", index, qty, "tags:aludJ"]).then(({data}) => {
     const after = Date.now()
     return _.extend(data.result, {
       playerid,
