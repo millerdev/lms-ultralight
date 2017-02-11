@@ -22,7 +22,6 @@ export const defaultState = Map({
   isPlaying: false,
   repeatMode: 0,
   shuffleMode: 0,
-  trackInfo: Map(),
   volumeLevel: 0,
   elapsedTime: 0,
   totalTime: null,
@@ -44,22 +43,13 @@ export const playerReducer = makeReducer({
       playlist: playlist.gotPlayer(state.get("playlist"), status),
       //everything: fromJS(status),
     }
-    data.trackInfo = data.playlist.get("currentTrack")
 
     const effects = []
     const end = secondsToEndOfSong(data)
     let wait = STATUS_INTERVAL * 1000
     let fetchPlaylist = false
     if (end !== null && end * 1000 < wait) {
-      const nextTrack = data.playlist.get(
-        data.repeatMode === REPEAT_ONE ? "currentTrack" : "nextTrack")
-      if (nextTrack) {
-        effects.push(effect(
-          advanceToNextSongAfter, end * 1000, data.playerid, nextTrack))
-      } else {
-        wait = end * 1000
-        fetchPlaylist = true
-      }
+      effects.push(effect(advanceToNextSongAfter, end * 1000, data.playerid))
     }
     effects.push(effect(loadPlayerAfter, wait, data.playerid, fetchPlaylist))
     return combine(state.merge(data), effects)
@@ -73,14 +63,16 @@ export const playerReducer = makeReducer({
     }
     return state
   },
-  startSong: (state, action, playerid, trackInfo, now=Date.now()) => {
+  startSong: (state, action, playerid, now=Date.now()) => {
     if (state.get("playerid") === playerid) {
-      return state.merge({
+      const data = {
         elapsedTime: 0,
         localTime: now,
-        trackInfo: trackInfo,
-        playlistIndex: trackInfo.get("playlist index"),
-      })
+      }
+      if (state.get("repeatMode") !== REPEAT_ONE) {
+        data.playlist = playlist.advanceToNextSong(state.get("playlist"))
+      }
+      return state.merge(data)
     }
     return state
   },
@@ -106,9 +98,9 @@ export function secondsToEndOfSong({elapsedTime, totalTime, localTime}, now=Date
 
 export const advanceToNextSongAfter = (() => {
   const time = timer()
-  return (end, playerid, trackInfo) => {
+  return (end, ...args) => {
     time.clear(IGNORE_ACTION)
-    return time.after(end, () => actions.startSong(playerid, trackInfo))
+    return time.after(end, () => actions.startSong(...args))
   }
 })()
 

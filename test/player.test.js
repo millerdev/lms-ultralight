@@ -15,17 +15,12 @@ describe('player', function () {
       const gotPlayer = reduce.actions.gotPlayer
 
       describe('state', function () {
-        it('should set info for current track', function () {
-          const state = getState(reduce(Map(), gotPlayer(STATUS.toJS())))
-          assert.equal(state.get("trackInfo"), STATE.get("trackInfo"))
-        })
-
-        it('should set info for current track with playlist update', function () {
+        it('should update playlist', function () {
           const state = getState(reduce(Map(), gotPlayer(STATUS.merge({
             isPlaylistUpdate: true,
             playlist_loop: PLAYLIST_1,
           }).toJS())))
-          assert.equal(state.remove("playlist"), STATE.remove("playlist"))
+          assert.equal(state, STATE.setIn(["playlist", "items"], PLAYLIST_1))
         })
 
         it('should not change track info with playlist before current track', function () {
@@ -65,13 +60,12 @@ describe('player', function () {
             "time": 350,
             "localTime": null,
           }).toJS()
-          const [state, effects] = split(reduce(defaultState, gotPlayer(data)))
+          const effects = split(reduce(defaultState, gotPlayer(data)))[1]
           assert.deepEqual(effects, [
             effect(
               mod.advanceToNextSongAfter,
               21000,
               PLAYERID,
-              state.get("trackInfo"),
             ),
             effect(
               mod.loadPlayerAfter,
@@ -97,7 +91,6 @@ describe('player', function () {
               mod.advanceToNextSongAfter,
               21000,
               PLAYERID,
-              PLAYLIST_1.get(2),
             ),
             effect(
               mod.loadPlayerAfter,
@@ -123,7 +116,6 @@ describe('player', function () {
               mod.advanceToNextSongAfter,
               21000,
               PLAYERID,
-              PLAYLIST_1.get(2),
             ),
             effect(
               mod.loadPlayerAfter,
@@ -150,28 +142,6 @@ describe('player', function () {
               30000,
               PLAYERID,
               false
-            )
-          ])
-        })
-
-        it('should load player status at end of song when next is unknown', function () {
-          const data = STATUS.merge({
-            "duration": 371,
-            "time": 350,
-            "localTime": null,
-            "playlist_cur_index": "3",
-            "playlist_loop": [PLAYLIST_1.get(2)],
-          }).toJS()
-          const state = defaultState.merge({
-            playlist: STATE.get("playlist").set("items", PLAYLIST_1),
-          })
-          const effects = split(reduce(state, gotPlayer(data)))[1]
-          assert.deepEqual(effects, [
-            effect(
-              mod.loadPlayerAfter,
-              21000,
-              PLAYERID,
-              true,
             )
           ])
         })
@@ -204,21 +174,20 @@ describe('player', function () {
     describe('startSong', function () {
       const startSong = reduce.actions.startSong
 
-      it('should set track info and zero play time', function () {
+      it('should zero play time', function () {
         const before = Map({
           playerid: PLAYERID,
           elapsedTime: 200,
           localTime: Date.now() - 100,
+          playlist: mod.defaultState.get("playlist"),
         })
-        const info = Map({"playlist index": 1})
         const now = Date.now()
-        const [state, effects] = split(reduce(before, startSong(PLAYERID, info, now)))
+        const [state, effects] = split(reduce(before, startSong(PLAYERID, now)))
         assert.equal(state, Map({
           playerid: PLAYERID,
-          trackInfo: info,
-          playlistIndex: 1,
           elapsedTime: 0,
           localTime: now,
+          playlist: mod.defaultState.get("playlist"),
         }))
         assert.deepEqual(effects, [])
       })
@@ -403,12 +372,6 @@ const STATE = mod.defaultState.remove("players").merge({
   playerid: PLAYERID,
   repeatMode: 2,
   shuffleMode: 1,
-  trackInfo: Map({
-    "id": 30349,
-    "title": "Metallic Rain",
-    "playlist index": 2,
-    "url": "file:///.../Vangelis%20-%20Direct/03%20Metallic%20Rain.flac",
-  }),
   volumeLevel: 15,
   elapsedTime: 232.467967245102,
   totalTime: 371.373,

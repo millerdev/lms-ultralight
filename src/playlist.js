@@ -6,19 +6,19 @@ import { List } from 'semantic-ui-react'
 import { formatTime } from './util'
 //import './playlist.scss'
 
+const IX = "playlist index"
+
 export const defaultState = Map({
   items: IList(),
   timestamp: null,
   numTracks: null,
   currentIndex: null,
   currentTrack: Map(),
-  nextTrack: null,
 })
 
 export function gotPlayer(state=defaultState, status) {
   const index = parseInt(status.playlist_cur_index)
   const list = status.playlist_loop
-  const IX = "playlist index"
   const data = {
     timestamp: status.playlist_timestamp,
     numTracks: status.playlist_tracks,
@@ -32,10 +32,17 @@ export function gotPlayer(state=defaultState, status) {
   } else {
     data.currentTrack = fromJS(list[0] || {})
   }
-  const nextIndex = index + 1
-  const items = data.items || state.get("items", IList())
-  data.nextTrack = items.find(item => item.get(IX) === nextIndex) || null
   return state.merge(data)
+
+export function advanceToNextSong(state) {
+  const items = state.get("items")
+  const index = state.get("currentIndex")
+  const nextIndex = index === null ? null : (index + 1)
+  const nextTrack = items.find(item => item.get(IX) === nextIndex) || Map()
+  return state.merge({
+    currentTrack: nextTrack,
+    currentIndex: nextIndex,
+  })
 }
 //const actions = reducer.actions
 
