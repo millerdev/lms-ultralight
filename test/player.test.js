@@ -20,18 +20,23 @@ describe('player', function () {
       })
 
       it('should promise to fetch player status after delay', function () {
-        const effects = getEffects(reduce(defaultState, gotPlayer(STATUS.toJS())))
+        const data = STATUS.set("localTime", null).toJS()
+        const effects = getEffects(reduce(defaultState, gotPlayer(data)))
         assert.deepEqual(effects, [
+          effect(
+            mod.advanceToNextTrackAfter,
+            138.905032754898,
+            PLAYERID,
+          ),
           effect(
             mod.loadPlayerAfter,
             mod.STATUS_INTERVAL * 1000,
             PLAYERID,
-            false
           )
         ])
       })
 
-      it('should promise to restart current song on repeat one', function () {
+      it('should promise to restart current track on repeat one', function () {
         const data = STATUS.merge({
           "playlist repeat": mod.REPEAT_ONE,
           "duration": 371,
@@ -42,19 +47,18 @@ describe('player', function () {
         assert.deepEqual(effects, [
           effect(
             mod.advanceToNextTrackAfter,
-            21000,
+            21,
             PLAYERID,
           ),
           effect(
             mod.loadPlayerAfter,
             30000,
             PLAYERID,
-            false
           )
         ])
       })
 
-      it('should promise to advance to next song', function () {
+      it('should promise to advance to next track', function () {
         const data = STATUS.merge({
           "duration": 371,
           "time": 350,
@@ -67,19 +71,18 @@ describe('player', function () {
         assert.deepEqual(effects, [
           effect(
             mod.advanceToNextTrackAfter,
-            21000,
+            21,
             PLAYERID,
           ),
           effect(
             mod.loadPlayerAfter,
             30000,
             PLAYERID,
-            false
           )
         ])
       })
 
-      it('should promise to advance to next song on playlist update', function () {
+      it('should promise to advance to next track on playlist update', function () {
         const data = STATUS.merge({
           "duration": 371,
           "time": 350,
@@ -92,19 +95,18 @@ describe('player', function () {
         assert.deepEqual(effects, [
           effect(
             mod.advanceToNextTrackAfter,
-            21000,
+            21,
             PLAYERID,
           ),
           effect(
             mod.loadPlayerAfter,
             30000,
             PLAYERID,
-            false
           )
         ])
       })
 
-      it('should not promise to advance to next song on unknown song length', function () {
+      it('should clear advance to next track on unknown track length', function () {
         const data = STATUS.merge({
           "duration": null,
           "time": 350,
@@ -116,10 +118,14 @@ describe('player', function () {
         const effects = getEffects(reduce(defaultState, gotPlayer(data)))
         assert.deepEqual(effects, [
           effect(
+            mod.advanceToNextTrackAfter,
+            null,
+            PLAYERID,
+          ),
+          effect(
             mod.loadPlayerAfter,
             30000,
             PLAYERID,
-            false
           )
         ])
       })
@@ -188,7 +194,7 @@ describe('player', function () {
   })
 
   describe('secondsToEndOfTrack', function () {
-    it('should return positive value for not-ended-yet song', function () {
+    it('should return positive value for not-ended-yet track', function () {
       const result = mod.secondsToEndOfTrack({
         elapsedTime: 10.2,
         totalTime: 21.5,
@@ -207,7 +213,7 @@ describe('player', function () {
       assert.equal(result, 9.9)
     })
 
-    it('should return zero for already-ended song', function () {
+    it('should return zero for already-ended track', function () {
       const now = Date.now()
       const result = mod.secondsToEndOfTrack({
         elapsedTime: 10.2,
@@ -217,7 +223,7 @@ describe('player', function () {
       assert.equal(result, 0)
     })
 
-    it('should return null for unknown song length', function () {
+    it('should return null for unknown track length', function () {
       const now = Date.now()
       const result = mod.secondsToEndOfTrack({
         elapsedTime: 10,
@@ -229,10 +235,15 @@ describe('player', function () {
   })
 
   describe('advanceToNextTrackAfter', function () {
-    it('should set timer to advance at end of song', function () {
+    it('should set timer to advance to next track', function () {
       const promise = mod.advanceToNextTrackAfter(21.48, {})
       promise.clear(IGNORE_ACTION)
-      assert.equal(promise.wait, 21.48)
+      assert.equal(promise.wait, 21480)
+    })
+
+    it('should not set timer if time is null', function () {
+      const promise = mod.advanceToNextTrackAfter(null, {})
+      assert.equal(promise, IGNORE_ACTION)
     })
   })
 

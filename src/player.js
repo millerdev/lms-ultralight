@@ -41,16 +41,10 @@ export const playerReducer = makeReducer({
       totalTime: isNumeric(status.duration) ? parseFloat(status.duration) : null,
       localTime: status.localTime,
     }
-
-    const effects = []
-    const end = secondsToEndOfTrack(data)
-    let wait = STATUS_INTERVAL * 1000
-    let fetchPlaylist = false
-    if (end !== null && end * 1000 < wait) {
-      effects.push(effect(advanceToNextTrackAfter, end * 1000, data.playerid))
-    }
-    effects.push(effect(loadPlayerAfter, wait, data.playerid, fetchPlaylist))
-    return combine(state.merge(data), effects)
+    return combine(state.merge(data), [
+      effect(advanceToNextTrackAfter, secondsToEndOfTrack(data), data.playerid),
+      effect(loadPlayerAfter, STATUS_INTERVAL * 1000, data.playerid),
+    ])
   },
   seek: (state, action, {playerid, value}, now=Date.now()) => {
     if (state.get("playerid") === playerid) {
@@ -98,7 +92,10 @@ export const advanceToNextTrackAfter = (() => {
   const time = timer()
   return (end, ...args) => {
     time.clear(IGNORE_ACTION)
-    return time.after(end, () => actions.advanceToNextTrack(...args))
+    if (end !== null) {
+      return time.after(end * 1000, () => actions.advanceToNextTrack(...args))
+    }
+    return IGNORE_ACTION
   }
 })()
 
