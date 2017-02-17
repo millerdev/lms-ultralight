@@ -241,6 +241,12 @@ describe('player', function () {
       assert.equal(promise.wait, 21480)
     })
 
+    it('should not set timer if time is > STATUS_INTERVAL', function () {
+      const end = mod.STATUS_INTERVAL + 1
+      const promise = mod.advanceToNextTrackAfter(end, {})
+      assert.equal(promise, IGNORE_ACTION)
+    })
+
     it('should not set timer if time is null', function () {
       const promise = mod.advanceToNextTrackAfter(null, {})
       assert.equal(promise, IGNORE_ACTION)

@@ -92,7 +92,7 @@ export const advanceToNextTrackAfter = (() => {
   const time = timer()
   return (end, ...args) => {
     time.clear(IGNORE_ACTION)
-    if (end !== null) {
+    if (end !== null && end <= STATUS_INTERVAL) {
       return time.after(end * 1000, () => actions.advanceToNextTrack(...args))
     }
     return IGNORE_ACTION
