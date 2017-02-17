@@ -80,6 +80,30 @@ describe('playlist', function () {
           true,
         )])
       })
+
+      it('should add items to end of playlist', function () {
+        const state = STATE.set("items", PLAYLIST_1)
+        const result = getState(reduce(state, gotPlayer(STATUS.merge({
+          isPlaylistUpdate: true,
+          playlist_loop: PLAYLIST_2,
+        }).toJS())))
+        assert.equal(result, STATE.merge({
+          currentIndex: 2,
+          items: PLAYLIST_1.concat(PLAYLIST_2),
+        }))
+      })
+
+      it('should merge items with same index into playlist', function () {
+        const state = STATE.set("items", PLAYLIST_1)
+        const result = getState(reduce(state, gotPlayer(STATUS.merge({
+          isPlaylistUpdate: true,
+          playlist_loop: PLAYLIST_OVERLAP,
+        }).toJS())))
+        assert.equal(result, STATE.merge({
+          currentIndex: 2,
+          items: PLAYLIST_1.pop().concat(PLAYLIST_OVERLAP),
+        }))
+      })
     })
   })
 })
@@ -142,6 +166,26 @@ const PLAYLIST_1 = fromJS([
     "playlist index": 3,
     "title": "song 3",
     "id": 1003
+  }
+])
+
+
+const PLAYLIST_OVERLAP = fromJS([
+  {
+    "url": "file:///...",
+    "playlist index": 3,
+    "title": "song 4",
+    "id": 1004
+  }, {
+    "url": "file:///...",
+    "playlist index": 4,
+    "title": "song 5",
+    "id": 1005
+  }, {
+    "url": "file:///...",
+    "playlist index": 5,
+    "title": "song 6",
+    "id": 1006
   }
 ])
 

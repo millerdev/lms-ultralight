@@ -32,7 +32,9 @@ export const reducer = makeReducer({
     const effects = []
     const gotCurrent = index >= list[0][IX] && index <= list[list.length - 1][IX]
     if (status.isPlaylistUpdate || changed) {
-      data.items = fromJS(status.playlist_loop)
+      // TODO merge will return wrong result if all items in playlist have
+      // changed but only a subset is loaded in this update
+      data.items = mergePlaylist(state.get("items"), list)
       if (gotCurrent) {
         data.currentTrack = fromJS(list[index - list[0][IX]])
       }
@@ -64,6 +66,46 @@ function isPlaylistChanged(prev, next) {
     numTracks: obj.numTracks,
   })
   return !playlistSig(prev).equals(playlistSig(next))
+}
+
+/**
+ * Merge items with list
+ *
+ * @param list - List of Maps.
+ * @param array - Array of objects.
+ * @returns Merged List of Maps.
+ */
+function mergePlaylist(list, array) {
+  function next() {
+    if (i < len) {
+      const obj = array[i]
+      i += 1
+      return Map(obj)
+    }
+    return null
+  }
+  const len = array.length
+  if (!len) {
+    return list
+  }
+  const merged = []
+  let i = 0
+  let newItem = next()
+  list.forEach(item => {
+    const index = item.get(IX)
+    while (newItem && newItem.get(IX) < index) {
+      merged.push(newItem)
+      newItem = next()
+    }
+    if (newItem && newItem.get(IX) !== index) {
+      merged.push(item)
+    }
+  })
+  while (newItem) {
+    merged.push(newItem)
+    newItem = next()
+  }
+  return IList(merged)
 }
 
 export const Playlist = props => (
