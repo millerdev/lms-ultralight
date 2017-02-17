@@ -1,9 +1,10 @@
 import { List as IList, Map, fromJS } from 'immutable'
 import _ from 'lodash'
 import React from 'react'
-import { List } from 'semantic-ui-react'
+import { List, Item } from 'semantic-ui-react'
 
 import { effect, combine } from './effects'
+import * as lms from './lmsclient'
 import makeReducer from './store'
 import { formatTime } from './util'
 //import './playlist.scss'
@@ -144,11 +145,19 @@ export const PlaylistItem = props => (
   <List.Item
       onDoubleClick={() => props.command("playlist", "index", props.index)}
       active={props.active}>
+    <List.Content floated="right">
+      <List.Description>
+        {formatTime(props.duration || 0)}
+      </List.Description>
+    </List.Content>
+    <Item.Image
+      size="micro"
+      shape="rounded"
+      height="18px"
+      width="18px"
+      src={lms.getImageUrl(props.playerid, props)} />
     <List.Content>
       <List.Description>
-        <div className="duration" style={{float: "right"}}>
-          {formatTime(props.duration || 0)}
-        </div>
         {songTitle(props)}
       </List.Description>
     </List.Content>
