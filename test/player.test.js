@@ -162,7 +162,7 @@ describe('player', function () {
           playerid: PLAYERID,
           elapsedTime: 200,
           localTime: Date.now() - 100,
-          playlist: mod.defaultState.get("playlist"),
+          playlist: mod.defaultState.get("playlist").set("playerid", PLAYERID),
         })
         const now = Date.now()
         const [state, effects] = split(
@@ -171,7 +171,30 @@ describe('player', function () {
           playerid: PLAYERID,
           elapsedTime: 0,
           localTime: now,
-          playlist: mod.defaultState.get("playlist"),
+          playlist: mod.defaultState.get("playlist").set("playerid", PLAYERID),
+        }))
+        assert.deepEqual(effects, [effect(
+          mod.loadPlayer,
+          PLAYERID,
+          true,
+        )])
+      })
+
+      it('should not advance on repeat one', function () {
+        const before = Map({
+          playerid: PLAYERID,
+          elapsedTime: 200,
+          localTime: Date.now() - 100,
+          repeatMode: mod.REPEAT_ONE,
+        })
+        const now = Date.now()
+        const [state, effects] = split(
+          reduce(before, advanceToNextTrack(PLAYERID, now)))
+        assert.equal(state, Map({
+          playerid: PLAYERID,
+          elapsedTime: 0,
+          localTime: now,
+          repeatMode: mod.REPEAT_ONE,
         }))
         assert.deepEqual(effects, [])
       })

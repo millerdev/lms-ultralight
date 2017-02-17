@@ -56,17 +56,19 @@ export const playerReducer = makeReducer({
     return state
   },
   advanceToNextTrack: (state, action, playerid, now=Date.now()) => {
+    let effects = []
     if (state.get("playerid") === playerid) {
       const data = {
         elapsedTime: 0,
         localTime: now,
       }
       if (state.get("repeatMode") !== REPEAT_ONE) {
-        data.playlist = playlist.advanceToNextTrack(state.get("playlist"))
+        [data.playlist, effects] =
+          playlist.advanceToNextTrack(state.get("playlist"))
       }
-      return state.merge(data)
+      state = state.merge(data)
     }
-    return state
+    return combine(state, effects)
   },
 }, defaultState.remove("players"))
 

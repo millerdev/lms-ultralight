@@ -1,6 +1,6 @@
 import { fromJS, Map } from 'immutable'
 
-import { effect, getEffects, getState } from '../src/effects'
+import { effect, getEffects, getState, split } from '../src/effects'
 import * as mod from '../src/playlist'
 
 describe('playlist', function () {
@@ -63,7 +63,7 @@ describe('playlist', function () {
         }).toJS())))
         assert.deepEqual(effects, [effect(
           require("../src/player").loadPlayer,
-          "1:1:1:1",
+          PLAYERID,
           true,
         )])
       })
@@ -76,7 +76,7 @@ describe('playlist', function () {
         }).toJS())))
         assert.deepEqual(effects, [effect(
           require("../src/player").loadPlayer,
-          "1:1:1:1",
+          PLAYERID,
           true,
         )])
       })
@@ -106,7 +106,27 @@ describe('playlist', function () {
       })
     })
   })
+
+  describe('advanceToNextTrack', function () {
+    it('should load player status when next is unknown', function () {
+      const state1 = STATE.merge({
+        currentIndex: 3,
+        items: PLAYLIST_1.slice(2),
+      })
+      const [state2, effects] = split(mod.advanceToNextTrack(state1))
+      assert.equal(state1, state2)
+      assert.deepEqual(effects, [
+        effect(
+          require("../src/player").loadPlayer,
+          PLAYERID,
+          true,
+        )
+      ])
+    })
+  })
 })
+
+const PLAYERID = "1:1:1:1"
 
 const STATUS = fromJS({
   "can_seek": 1,
@@ -117,7 +137,7 @@ const STATUS = fromJS({
   "mixer volume": 15,
   "mode": "stop",
   "player_connected": 1,
-  "playerid": "1:1:1:1",
+  "playerid": PLAYERID,
   "player_ip": "10.2.1.109:29333",
   "player_name": "Squeezebox",
   "playlist mode": "off",
@@ -209,7 +229,7 @@ const PLAYLIST_2 = fromJS([
 ])
 
 const STATE = mod.defaultState.merge({
-  playerid: "1:1:1:1",
+  playerid: PLAYERID,
   timestamp: 1482495558.93241,
   numTracks: 7,
   currentIndex: 2,

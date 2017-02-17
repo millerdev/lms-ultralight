@@ -52,11 +52,22 @@ export function advanceToNextTrack(state) {
   const items = state.get("items")
   const index = state.get("currentIndex")
   const nextIndex = index === null ? null : (index + 1)
-  const nextTrack = items.find(item => item.get(IX) === nextIndex) || Map()
-  return state.merge({
-    currentTrack: nextTrack,
-    currentIndex: nextIndex,
-  })
+  const nextTrack = nextIndex === null ? null :
+    items.find(item => item.get(IX) === nextIndex)
+  const effects = []
+  if (nextIndex !== null && nextTrack) {
+    state = state.merge({
+      currentTrack: nextTrack,
+      currentIndex: nextIndex,
+    })
+  } else {
+    effects.push(effect(
+      require("./player").loadPlayer,
+      state.get("playerid"),
+      true,
+    ))
+  }
+  return combine(state, effects)
 }
 
 function isPlaylistChanged(prev, next) {
