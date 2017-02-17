@@ -7,7 +7,7 @@ import { effect, combine } from './effects'
 import * as lms from './lmsclient'
 import makeReducer from './store'
 import { formatTime } from './util'
-//import './playlist.scss'
+import './playlist.styl'
 
 const IX = "playlist index"
 

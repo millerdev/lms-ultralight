@@ -49,12 +49,12 @@ if (!DEBUG) {
 
 /*############## LOADERS ##############*/
 
-let scssLoader;
+let stylLoader;
 if (DEBUG) {
-  scssLoader = 'style!css?localIdentName=[local]-[hash:base64:4]&sourceMap!stylus?sourceMap';
+  stylLoader = 'style!css?localIdentName=[local]-[hash:base64:4]&sourceMap!stylus?sourceMap';
 }
 else {
-  scssLoader = ExtractTextPlugin.extract([
+  stylLoader = ExtractTextPlugin.extract([
     "css?sourceMap&minimize&localIdentName=[hash:base64:4]",
     "stylus?sourceMap&outputStyle=compressed",
     "postcss"
@@ -67,8 +67,8 @@ const loaders = [
     loader: 'style!css'
   },
   {
-    test: /\.(scss|styl)$/,
-    loader: scssLoader
+    test: /\.styl$/,
+    loader: stylLoader
   },
   {
     test: /\.font\.js$/,
