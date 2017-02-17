@@ -119,12 +119,14 @@ const actions = playerReducer.actions
 
 export function reducer(state_=defaultState, action) {
   const [state, effects] = split(playerReducer(state_, action))
+  const [playlistState, playlistEffects] =
+    split(playlist.reducer(state.get("playlist"), action))
   return combine(
     state.merge({
       players: players.reducer(state.get("players"), action),
-      playlist: playlist.reducer(state.get("playlist"), action),
+      playlist: playlistState,
     }),
-    effects
+    effects.concat(playlistEffects)
   )
 }
 

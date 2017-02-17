@@ -34,7 +34,7 @@ export function installEffects() {
       Promise.resolve(effect.factory(...effect.args))
         .then(action => {
           if (debug) {
-            window.console.log(action)
+            window.console.log(parentActionType, action)
           }
           if (action !== IGNORE_ACTION) {
             dispatch(action)

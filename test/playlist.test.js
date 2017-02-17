@@ -1,5 +1,6 @@
 import { fromJS, Map } from 'immutable'
 
+import { effect, getEffects, getState } from '../src/effects'
 import * as mod from '../src/playlist'
 
 describe('playlist', function () {
@@ -9,42 +10,75 @@ describe('playlist', function () {
       const gotPlayer = reduce.actions.gotPlayer
 
       it('should set current track and playlist metadata', function () {
-        const state = reduce(mod.defaultState, gotPlayer(STATUS.toJS()))
-        assert.equal(state, STATE)
+        const state = getState(reduce(mod.defaultState, gotPlayer(STATUS.toJS())))
+        assert.equal(state, STATE.set("items", STATUS.get("playlist_loop")))
       })
 
       it('should update playlist with playlist query', function () {
-        const state = reduce(mod.defaultState, gotPlayer(STATUS.merge({
+        const state = getState(reduce(mod.defaultState, gotPlayer(STATUS.merge({
           isPlaylistUpdate: true,
           playlist_loop: PLAYLIST_1,
-        }).toJS()))
+        }).toJS())))
         assert.equal(state, STATE.merge({
           items: PLAYLIST_1,
         }))
       })
 
       it('should update playlist', function () {
-        const state = reduce(mod.defaultState, gotPlayer(STATUS.merge({
+        const state = getState(reduce(mod.defaultState, gotPlayer(STATUS.merge({
           isPlaylistUpdate: true,
           playlist_loop: PLAYLIST_1,
-        }).toJS()))
+        }).toJS())))
         assert.equal(state, STATE.set("items", PLAYLIST_1))
       })
 
       it('should not change track info with playlist before current track', function () {
-        const state = reduce(STATE, gotPlayer(STATUS.merge({
+        const state = getState(reduce(STATE, gotPlayer(STATUS.merge({
           isPlaylistUpdate: true,
           playlist_loop: PLAYLIST_0,
-        }).toJS()))
+        }).toJS())))
         assert.equal(state, STATE.set("items", PLAYLIST_0))
       })
 
       it('should not change track info with playlist after current track', function () {
-        const state = reduce(STATE, gotPlayer(STATUS.merge({
+        const state = getState(reduce(STATE, gotPlayer(STATUS.merge({
           isPlaylistUpdate: true,
           playlist_loop: PLAYLIST_2,
-        }).toJS()))
+        }).toJS())))
         assert.equal(state, STATE.set("items", PLAYLIST_2))
+      })
+
+      it('should not fetch playlist on playlist update and playlist not changed', function () {
+        const effects = getEffects(reduce(STATE, gotPlayer(STATUS.merge({
+          isPlaylistUpdate: true,
+          playlist_loop: PLAYLIST_2,
+        }).toJS())))
+        assert.deepEqual(effects, [])
+      })
+
+      it('should fetch playlist on playlist changed and not playlist update', function () {
+        const effects = getEffects(reduce(STATE, gotPlayer(STATUS.merge({
+          isPlaylistUpdate: false,
+          playlist_tracks: 300,
+        }).toJS())))
+        assert.deepEqual(effects, [effect(
+          require("../src/player").loadPlayer,
+          "1:1:1:1",
+          true,
+        )])
+      })
+
+      it('should fetch playlist on playlist changed and update after current track', function () {
+        const effects = getEffects(reduce(STATE, gotPlayer(STATUS.merge({
+          isPlaylistUpdate: true,
+          playlist_loop: PLAYLIST_2,
+          playlist_tracks: 300,
+        }).toJS())))
+        assert.deepEqual(effects, [effect(
+          require("../src/player").loadPlayer,
+          "1:1:1:1",
+          true,
+        )])
       })
     })
   })
@@ -131,6 +165,7 @@ const PLAYLIST_2 = fromJS([
 ])
 
 const STATE = mod.defaultState.merge({
+  playerid: "1:1:1:1",
   timestamp: 1482495558.93241,
   numTracks: 7,
   currentIndex: 2,
