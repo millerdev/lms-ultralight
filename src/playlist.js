@@ -1,7 +1,7 @@
 import { List as IList, Map, fromJS } from 'immutable'
 import _ from 'lodash'
 import React from 'react'
-import { List, Item } from 'semantic-ui-react'
+import { List, Image } from 'semantic-ui-react'
 
 import { effect, combine } from './effects'
 import * as lms from './lmsclient'
@@ -155,9 +155,8 @@ export function deleteSelection(store, lms) {
     const playerid = state.get("playerid")
     const selection = state.getIn(["playlist", "selection"])
     const reversed = selection
-      .delete("last")
       .toSeq()
-      .filter(v => v)
+      .filter((selected, key) => selected && key !== "last")
       .keySeq()
       .sortBy(index => -parseInt(index))
       .toArray()
@@ -246,7 +245,7 @@ export const Playlist = props => {
     props.command("playlist", "index", index)
   }
   return <List className="playlist" selection>
-    {props.items.filter(item => item !== undefined).map(item => {
+    {props.items.toSeq().filter(item => item).map(item => {
       item = item.toJS()
       const index = item[IX]
       return <PlaylistItem
@@ -269,23 +268,26 @@ function songTitle({artist, title}) {
   return artist || title
 }
 
+function preventTextSelection (event) {
+  // Prevent text selection on shift+click
+  // http://stackoverflow.com/a/1529206/10840
+  if (event.shiftKey) {
+    // For non-IE browsers
+    event.preventDefault()
+    // For IE (untested)
+    if (MSIE) {
+      const target = event.target
+      target.onselectstart = () => false
+      window.setTimeout(() => target.onselectstart = null, 0)
+    }
+  }
+}
+
 export const PlaylistItem = props => (
   <List.Item
       onClick={(event) => props.itemSelected(props.index, event)}
       onDoubleClick={() => props.playTrackAtIndex(props.index)}
-      onMouseDown={e => {
-        // Prevent text selection on shift+click
-        // http://stackoverflow.com/a/1529206/10840
-        if (e.shiftKey) {
-          // For non-IE browsers
-          e.preventDefault()
-          // For IE
-          if (MSIE) {
-            this.onselectstart = () => false
-            window.setTimeout(() => this.onselectstart = null, 0)
-          }
-        }
-      }}
+      onMouseDown={preventTextSelection}
       className={props.selected ? "selected" : undefined}
       active={props.active}>
     <List.Content floated="right">
@@ -293,8 +295,8 @@ export const PlaylistItem = props => (
         {formatTime(props.duration || 0)}
       </List.Description>
     </List.Content>
-    <Item.Image
-      ui className="image"
+    <Image
+      ui
       shape="rounded"
       height="18px"
       width="18px"
