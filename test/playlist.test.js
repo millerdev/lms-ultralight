@@ -349,6 +349,24 @@ describe('playlist', function () {
         ])
       })
     })
+
+    it('should abort deletion on lms failure', function () {
+      const lms = {command: (...args) => {
+        assert.deepEqual([PLAYERID, "playlist", "delete"], args.slice(0, 3),
+          "lms.command args")
+        return args[3] === 3 ? Promise.resolve() : Promise.reject()
+      }}
+      const store = fakeStore(STATE.merge({
+        items: PLAYLIST_1,
+        selection: Set([3, 1]),
+        lastSelected: List([1, 3]),
+      }))
+      return mod.deleteSelection(store, lms).then(() => {
+        assert.deepEqual(store.dispatched, [
+          actions.playlistItemDeleted(3),
+        ])
+      })
+    })
   })
 })
 

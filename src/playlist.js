@@ -143,11 +143,18 @@ export function deleteSelection(store, lms) {
         return resolve()
       }
       const index = reversed.shift()
-      lms.command(playerid, "playlist", "delete", index).then(() => {
-        // TODO abort if selection changed
-        store.dispatch(actions.playlistItemDeleted(index))
-        deleteLastSelectedItem()
-      })
+      lms.command(playerid, "playlist", "delete", index)
+        .then(() => {
+          // TODO abort if selection changed
+          store.dispatch(actions.playlistItemDeleted(index))
+          deleteLastSelectedItem()
+        })
+        .catch(err => {
+          if (err) {
+            window.console.log(err)
+          }
+          resolve()
+        })
     }
     const state = store.getState()
     const playerid = state.get("playerid")
