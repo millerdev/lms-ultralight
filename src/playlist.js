@@ -1,5 +1,4 @@
-import { List as IList, Map, fromJS } from 'immutable'
-import _ from 'lodash'
+import { List as IList, Map, Range, Set, fromJS } from 'immutable'
 import React from 'react'
 import { List, Image } from 'semantic-ui-react'
 
@@ -20,7 +19,8 @@ export const defaultState = Map({
   numTracks: 0,
   currentIndex: null,
   currentTrack: Map(),
-  selection: Map(),
+  selection: Set(),
+  lastSelected: IList(),
 })
 
 export const reducer = makeReducer({
@@ -31,9 +31,6 @@ export const reducer = makeReducer({
       playerid: status.playerid,
       numTracks: status.playlist_tracks,
       timestamp: status.playlist_timestamp || null,
-    }
-    if (state.get("playerid") !== data.playerid) {
-      data.selection = Map()
     }
     if (list) {
       const index = parseInt(status.playlist_cur_index)
@@ -57,56 +54,57 @@ export const reducer = makeReducer({
       data.items = IList()
       data.currentIndex = null
       data.currentTrack = Map()
-      data.selection = Map()
+    }
+    if (!list || state.get("playerid") !== data.playerid) {
+      data.selection = Set()
+      data.lastSelected = IList()
     }
     return combine(state.merge(data), effects)
   },
   playlistItemSelected: (state, action, index, modifier) => {
-    index = String(index)
-    const selection = {[index]: true, last: index}
     if (!modifier) {
-      return state.set("selection", Map(selection))
+      return state.merge({
+        selection: Set([index]),
+        lastSelected: IList([index]),
+      })
     }
-    const old = state.get("selection")
+    let selection = state.get("selection")
+    let last = state.get("lastSelected")
     if (modifier === SINGLE) {
-      if (old.get(index)) {
-        selection[index] = false
-        if (old.get("last") === index) {
-          selection.last = undefined
+      if (!selection.has(index)) {
+        selection = selection.add(index)
+        last = last.push(index)
+      } else {
+        selection = selection.remove(index)
+        if (last.last() === index) {
+          last = last.pop()
         }
       }
     } else if (modifier === TO_LAST) {
-      const last = parseInt(old.get("last") || 0)
-      const next = parseInt(index)
-      const step = last < next ? 1 : -1
-      _.each(_.range(last, next + step, step), i => { selection[i] = true })
+      const from = last.last() || 0
+      const step = from <= index ? 1 : -1
+      selection = selection.union(Range(from, index + step, step))
+      last = last.push(index)
     }
-    return state.mergeIn(["selection"], selection)
+    return state.merge({selection: selection, lastSelected: last})
   },
   clearPlaylistSelection: state => {
-    return state.set("selection", Map())
+    return state.merge({selection: Set(), lastSelected: IList()})
   },
   playlistItemDeleted: (state, action, index) => {
-    index = String(index)
-    const selection = state.get("selection")
-    const sel = {}
-    const data = {}
     const oldItems = state.get("items")
     const items = deleteItem(oldItems, index)
     if (items.equals(oldItems)) {
       return state
     }
-    if (selection.has(index)) {
-      sel[index] = false
-      if (selection.get("last") === index) {
-        sel.last = undefined
-      }
+    const data = {
+      items,
+      numTracks: state.get("numTracks") - 1,
+      selection: state.get("selection").remove(index),
+      lastSelected: state.get("lastSelected").filter(x => x != index),
     }
-    data.items = deleteItem(state.get("items"), index)
-    data.selection = selection.merge(sel)
-    data.numTracks = state.get("numTracks") - 1
     const currentIndex = state.get("currentIndex")
-    if (parseInt(index) <= currentIndex) {
+    if (index <= currentIndex) {
       data.currentIndex = currentIndex - 1
       data.currentTrack = state.get("currentTrack").set(IX, currentIndex - 1)
     }
@@ -156,9 +154,7 @@ export function deleteSelection(store, lms) {
     const selection = state.getIn(["playlist", "selection"])
     const reversed = selection
       .toSeq()
-      .filter((selected, key) => selected && key !== "last")
-      .keySeq()
-      .sortBy(index => -parseInt(index))
+      .sortBy(index => -index)
       .toArray()
     deleteLastSelectedItem()
   })
@@ -221,7 +217,6 @@ function mergePlaylist(list, array) {
  * @returns List of Maps.
  */
 export function deleteItem(list, index) {
-  index = parseInt(index)
   return list.toSeq()
     .filter(item => item.get(IX) !== index)
     .map(item => {
@@ -254,7 +249,7 @@ export const Playlist = props => {
         itemSelected={itemSelected}
         playTrackAtIndex={playTrackAtIndex}
         index={index}
-        selected={props.selection.get(String(index))}
+        selected={props.selection.has(index)}
         active={props.currentIndex === index}
         key={index} />
     }).toArray()}

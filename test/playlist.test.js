@@ -1,4 +1,4 @@
-import { fromJS, Map } from 'immutable'
+import { fromJS, List, Map, Set } from 'immutable'
 
 import { effect, getEffects, getState, split } from '../src/effects'
 import * as mod from '../src/playlist'
@@ -41,11 +41,15 @@ describe('playlist', function () {
 
       it('should clear selection on playerid change', function () {
         const data = STATUS.set("playerid", PLAYERID + "1").toJS()
-        const state = STATE.set("selection",  Map({1: true, last: "1"}))
+        const state = STATE.merge({
+          selection:  Set([1]),
+          lastSelected: List([1])
+        })
         const result = getState(reduce(state, gotPlayer(data)))
         assert.equal(result, state.merge({
           playerid: PLAYERID + "1",
-          selection: Map(),
+          selection: Set(),
+          lastSelected: List(),
         }))
       })
 
@@ -146,62 +150,72 @@ describe('playlist', function () {
 
       it('should select item in playlist', function () {
         const state = STATE.set("items", PLAYLIST_1)
-        const result = getState(reduce(state, playlistItemSelected("1")))
-        assert.equal(result, state.set("selection", Map({1: true, last: "1"})))
+        const result = getState(reduce(state, playlistItemSelected(1)))
+        assert.equal(result, state.merge({
+          selection: Set([1]),
+          lastSelected: List([1]),
+        }))
       })
 
       it('should select item that is not first in playlist', function () {
         const state = STATE.set("items", PLAYLIST_1)
-        const result = getState(reduce(state, playlistItemSelected("3")))
-        assert.equal(result, state.set("selection", Map({3: true, last: "3"})))
+        const result = getState(reduce(state, playlistItemSelected(3)))
+        assert.equal(result, state.merge({
+          selection: Set([3]),
+          lastSelected: List([3]),
+        }))
       })
 
       it('should deselect item on select other item', function () {
         const state = STATE.merge({
           items: PLAYLIST_1,
-          selection: Map({1: true, last: "1"}),
+          selection: Set([1]),
+          lastSelected: List([1]),
         })
-        const result = getState(reduce(state, playlistItemSelected("3")))
-        assert.equal(result, state.set("selection", Map({3: true, last: "3"})))
+        const result = getState(reduce(state, playlistItemSelected(3)))
+        assert.equal(result, state.merge({
+          selection: Set([3]),
+          lastSelected: List([3]),
+        }))
       })
 
       it('should select multiple with SINGLE modifier', function () {
         const state = STATE.merge({
           items: PLAYLIST_1,
-          selection: Map({1: true, last: "1"}),
+          selection: Set([1]),
+          lastSelected: List([1]),
         })
-        const result = getState(reduce(state, playlistItemSelected("3", mod.SINGLE)))
-        assert.equal(result, state.set("selection", Map({
-          1: true,
-          3: true,
-          last: "3",
-        })))
+        const result = getState(reduce(state, playlistItemSelected(3, mod.SINGLE)))
+        assert.equal(result, state.merge({
+          selection: Set([1, 3]),
+          lastSelected: List([1, 3]),
+        }))
       })
 
       it('should deselect item with SINGLE modifier', function () {
         const state = STATE.merge({
           items: PLAYLIST_1,
-          selection: Map({1: true, last: "1"}),
+          selection: Set([1]),
+          lastSelected: List([1]),
         })
-        const result = getState(reduce(state, playlistItemSelected("1", mod.SINGLE)))
-        assert.equal(result, state.set("selection", Map({
-          1: false,
-          last: undefined,
-        })))
+        const result = getState(reduce(state, playlistItemSelected(1, mod.SINGLE)))
+        assert.equal(result, state.merge({
+          selection: Set(),
+          lastSelected: List(),
+        }))
       })
 
       it('should select contiguous items with TO_LAST modifier', function () {
         const state = STATE.merge({
           items: PLAYLIST_1,
-          selection: Map({1: true, last: "1"}),
+          selection: Set([1]),
+          lastSelected: List([1]),
         })
-        const result = getState(reduce(state, playlistItemSelected("3", mod.TO_LAST)))
-        assert.equal(result, state.set("selection", Map({
-          1: true,
-          2: true,
-          3: true,
-          last: "3",
-        })))
+        const result = getState(reduce(state, playlistItemSelected(3, mod.TO_LAST)))
+        assert.equal(result, state.merge({
+          selection: Set([1, 2, 3]),
+          lastSelected: List([1, 3]),
+        }))
       })
     })
 
@@ -209,9 +223,15 @@ describe('playlist', function () {
       const clear = reduce.actions.clearPlaylistSelection
 
       it('should clear selection', function () {
-        const state = STATE.set("selection", Map({2: true, last: "2"}))
+        const state = STATE.merge({
+          selection: Set([2]),
+          lastSelected: List([2]),
+        })
         const result = getState(reduce(state, clear()))
-        assert.equal(result, state.set("selection", Map()))
+        assert.equal(result, state.merge({
+          selection: Set(),
+          lastSelected: List(),
+        }))
       })
     })
 
@@ -221,39 +241,30 @@ describe('playlist', function () {
       before(() => {
         state = STATE.merge({
           items: PLAYLIST_1,
-          selection: Map({
-            1: true,
-            3: true,
-            last: "1",
-          })
+          selection: Set([1, 3]),
+          lastSelected: List([1, 3]),
         })
       })
 
       it('should remove item from playlist', function () {
-        const ix = "3"
+        const ix = 3
         const [result, effects] = split(getState(reduce(state, del(ix))))
         assert.equal(result, state.merge({
           items: mod.deleteItem(PLAYLIST_1, ix),
-          selection: Map({
-            1: true,
-            3: false,
-            last: "1",
-          }),
+          selection: Set([1]),
+          lastSelected: List([1]),
           numTracks: 6,
         }))
         assert.deepEqual(effects, [])
       })
 
       it('should remove item from playlist and update other state', function () {
-        const ix = "1"
+        const ix = 1
         const [result, effects] = split(getState(reduce(state, del(ix))))
         assert.equal(result, state.merge({
           items: mod.deleteItem(PLAYLIST_1, ix),
-          selection: Map({
-            1: false,
-            3: true, // TODO should -> false
-            last: undefined,
-          }),
+          selection: Set([3]),
+          lastSelected: List([3]),
           numTracks: 6,
           currentIndex: 1,
           currentTrack: state.get("currentTrack").set("playlist index", 1),
@@ -313,24 +324,28 @@ describe('playlist', function () {
     })
 
     it('should delete selected item', function () {
-      const store = fakeStore(STATE.set("items", PLAYLIST_1).merge({
-        selection: Map({1: true, last: "1"}),
+      const store = fakeStore(STATE.merge({
+        items: PLAYLIST_1,
+        selection: Set([1]),
+        lastSelected: List([1]),
       }))
       return mod.deleteSelection(store, lms).then(() => {
         assert.deepEqual(store.dispatched, [
-          actions.playlistItemDeleted("1")
+          actions.playlistItemDeleted(1)
         ])
       })
     })
 
     it('should delete multiple selected items', function () {
-      const store = fakeStore(STATE.set("items", PLAYLIST_1).merge({
-        selection: Map({1: true, 2: false, 3: true, last: "1"}),
+      const store = fakeStore(STATE.merge({
+        items: PLAYLIST_1,
+        selection: Set([3, 1]),
+        lastSelected: List([1, 3]),
       }))
       return mod.deleteSelection(store, lms).then(() => {
         assert.deepEqual(store.dispatched, [
-          actions.playlistItemDeleted("3"),
-          actions.playlistItemDeleted("1"),
+          actions.playlistItemDeleted(3),
+          actions.playlistItemDeleted(1),
         ])
       })
     })
