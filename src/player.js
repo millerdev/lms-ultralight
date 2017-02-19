@@ -132,6 +132,18 @@ export function reducer(state_=defaultState, action) {
   )
 }
 
+function onDeleteKey(store) {
+  playlist.deleteSelection(store, lms).then(() => {
+    const playerid = store.getState().get("playerid")
+    loadPlayer(playerid, true).then(action => store.dispatch(action))
+  })
+}
+
+const KEY_HANDLERS = {
+  /* backspace */ 8: onDeleteKey,
+  /* delete */ 46: onDeleteKey,
+}
+
 export class Player extends React.Component {
   componentDidMount() {
     lms.getPlayers().then(data => {
@@ -147,6 +159,12 @@ export class Player extends React.Component {
       this.loadPlayer(playerid, true)
     })
     // TODO convey failure to view somehow
+    document.addEventListener("keydown", event => this.onKeyDown(event))
+  }
+  onKeyDown(event) {
+    if (KEY_HANDLERS.hasOwnProperty(event.keyCode)) {
+      KEY_HANDLERS[event.keyCode](this.props.store)
+    }
   }
   onPlayerSelected(playerid) {
     localStorage.currentPlayer = playerid

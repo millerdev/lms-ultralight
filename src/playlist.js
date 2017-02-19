@@ -73,6 +73,32 @@ export const reducer = makeReducer({
     }
     return state.mergeIn(["selection"], selection)
   },
+  playlistItemDeleted: (state, action, index) => {
+    index = String(index)
+    const selection = state.get("selection")
+    const sel = {}
+    const data = {}
+    const oldItems = state.get("items")
+    const items = deleteItem(oldItems, index)
+    if (items.equals(oldItems)) {
+      return state
+    }
+    if (selection.has(index)) {
+      sel[index] = false
+      if (selection.get("last") === index) {
+        sel.last = undefined
+      }
+    }
+    data.items = deleteItem(state.get("items"), index)
+    data.selection = selection.merge(sel)
+    data.numTracks = state.get("numTracks") - 1
+    const currentIndex = state.get("currentIndex")
+    if (parseInt(index) <= currentIndex) {
+      data.currentIndex = currentIndex - 1
+      data.currentTrack = state.get("currentTrack").set(IX, currentIndex - 1)
+    }
+    return state.merge(data)
+  }
 }, defaultState)
 
 const actions = reducer.actions
@@ -97,6 +123,33 @@ export function advanceToNextTrack(state) {
     ))
   }
   return combine(state, effects)
+}
+
+export function deleteSelection(store, lms) {
+  return new Promise(resolve => {
+    function deleteLastSelectedItem() {
+      if (!reversed.length) {
+        return resolve()
+      }
+      const index = reversed.shift()
+      lms.command(playerid, "playlist", "delete", index).then(() => {
+        // TODO abort if selection changed
+        store.dispatch(actions.playlistItemDeleted(index))
+        deleteLastSelectedItem()
+      })
+    }
+    const state = store.getState()
+    const playerid = state.get("playerid")
+    const selection = state.getIn(["playlist", "selection"])
+    const reversed = selection
+      .delete("last")
+      .toSeq()
+      .filter(v => v)
+      .keySeq()
+      .sortBy(index => -parseInt(index))
+      .toArray()
+    deleteLastSelectedItem()
+  })
 }
 
 function isPlaylistChanged(prev, next) {
@@ -148,6 +201,27 @@ function mergePlaylist(list, array) {
   return IList(merged)
 }
 
+/**
+ * Delete item from playlist and re-index other items
+ *
+ * @param list - List of Maps.
+ * @param index - Index of item to delete.
+ * @returns List of Maps.
+ */
+export function deleteItem(list, index) {
+  index = parseInt(index)
+  return list.toSeq()
+    .filter(item => item.get(IX) !== index)
+    .map(item => {
+      const ix = item.get(IX)
+      if (ix > index) {
+        item = item.set(IX, ix - 1)
+      }
+      return item
+    })
+    .toList()
+}
+
 export const Playlist = props => {
   function itemSelected(index, event) {
     const modifier = event.metaKey || event.ctrlKey ? SINGLE :
@@ -183,6 +257,8 @@ export const PlaylistItem = props => (
       onClick={(event) => props.itemSelected(props.index, event)}
       onDoubleClick={() => props.command("playlist", "index", props.index)}
       onMouseDown={e => {
+        // Prevent text selection on shift+click
+        // http://stackoverflow.com/a/1529206/10840
         if (e.shiftKey) {
           // For non-IE browsers
           e.preventDefault()

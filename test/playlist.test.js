@@ -165,6 +165,59 @@ describe('playlist', function () {
         })))
       })
     })
+
+    describe("playlistItemDeleted", function () {
+      const del = reduce.actions.playlistItemDeleted
+      let state
+      before(() => {
+        state = STATE.merge({
+          items: PLAYLIST_1,
+          selection: Map({
+            1: true,
+            3: true,
+            last: "1",
+          })
+        })
+      })
+
+      it('should remove item from playlist', function () {
+        const ix = "3"
+        const [result, effects] = split(getState(reduce(state, del(ix))))
+        assert.equal(result, state.merge({
+          items: mod.deleteItem(PLAYLIST_1, ix),
+          selection: Map({
+            1: true,
+            3: false,
+            last: "1",
+          }),
+          numTracks: 6,
+        }))
+        assert.deepEqual(effects, [])
+      })
+
+      it('should remove item from playlist and update other state', function () {
+        const ix = "1"
+        const [result, effects] = split(getState(reduce(state, del(ix))))
+        assert.equal(result, state.merge({
+          items: mod.deleteItem(PLAYLIST_1, ix),
+          selection: Map({
+            1: false,
+            3: true, // TODO should -> false
+            last: undefined,
+          }),
+          numTracks: 6,
+          currentIndex: 1,
+          currentTrack: state.get("currentTrack").set("playlist index", 1),
+        }))
+        assert.deepEqual(effects, [])
+      })
+
+      it('should do nothing if index out of bounds', function () {
+        const [result, effects] = split(getState(reduce(state, del("4"))))
+        assert.equal(result, state)
+        assert.deepEqual(effects, [])
+      })
+    })
   })
 
   describe('advanceToNextTrack', function () {
@@ -182,6 +235,55 @@ describe('playlist', function () {
           true,
         )
       ])
+    })
+  })
+
+
+  describe('deleteSelection', function () {
+    function fakeStore(state) {
+      const dispatched = []
+      state = Map({playerid: state.get("playerid"), playlist: state})
+      return {
+        dispatch: action => dispatched.push(action),
+        getState: () => state,
+        dispatched,
+      }
+    }
+    const lms = {command: (...args) => {
+      assert.deepEqual([PLAYERID, "playlist", "delete"], args.slice(0, 3),
+        "lms.command args")
+      return Promise.resolve()
+    }}
+    const actions = mod.reducer.actions
+
+    it('should not delete items if nothing is selected', function () {
+      const store = fakeStore(STATE.set("items", PLAYLIST_1))
+      return mod.deleteSelection(store, lms).then(() => {
+        assert.deepEqual(store.dispatched, [])
+      })
+    })
+
+    it('should delete selected item', function () {
+      const store = fakeStore(STATE.set("items", PLAYLIST_1).merge({
+        selection: Map({1: true, last: "1"}),
+      }))
+      return mod.deleteSelection(store, lms).then(() => {
+        assert.deepEqual(store.dispatched, [
+          actions.playlistItemDeleted("1")
+        ])
+      })
+    })
+
+    it('should delete multiple selected items', function () {
+      const store = fakeStore(STATE.set("items", PLAYLIST_1).merge({
+        selection: Map({1: true, 2: false, 3: true, last: "1"}),
+      }))
+      return mod.deleteSelection(store, lms).then(() => {
+        assert.deepEqual(store.dispatched, [
+          actions.playlistItemDeleted("3"),
+          actions.playlistItemDeleted("1"),
+        ])
+      })
     })
   })
 })

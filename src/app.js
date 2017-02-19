@@ -13,7 +13,7 @@ const Player = connect(state => state.toObject())(player.Player)
 const App = () => (
   <Provider store={store}>
     <div>
-      <Player dispatch={store.dispatch} />
+      <Player store={store} dispatch={store.dispatch} />
       {/* <DevTools /> */}
     </div>
   </Provider>
