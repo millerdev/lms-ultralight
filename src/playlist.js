@@ -61,8 +61,8 @@ export const reducer = makeReducer({
     }
     return combine(state.merge(data), effects)
   },
-  playlistItemSelected: (state, action, listid, index, modifier) => {
-    // TODO implement unique listid per Player instance
+  playlistItemSelected: (state, action, index, modifier) => {
+    index = String(index)
     const selection = {[index]: true, last: index}
     if (!modifier) {
       return state.set("selection", Map(selection))
@@ -82,6 +82,9 @@ export const reducer = makeReducer({
       _.each(_.range(last, next + step, step), i => { selection[i] = true })
     }
     return state.mergeIn(["selection"], selection)
+  },
+  clearPlaylistSelection: state => {
+    return state.set("selection", Map())
   },
   playlistItemDeleted: (state, action, index) => {
     index = String(index)
@@ -108,7 +111,7 @@ export const reducer = makeReducer({
       data.currentTrack = state.get("currentTrack").set(IX, currentIndex - 1)
     }
     return state.merge(data)
-  }
+  },
 }, defaultState)
 
 const actions = reducer.actions
@@ -236,8 +239,11 @@ export const Playlist = props => {
   function itemSelected(index, event) {
     const modifier = event.metaKey || event.ctrlKey ? SINGLE :
       (event.shiftKey ? TO_LAST : null)
-    props.dispatch(actions.playlistItemSelected(
-      props.listid, String(index), modifier))
+    props.dispatch(actions.playlistItemSelected(index, modifier))
+  }
+  function playTrackAtIndex(index) {
+    props.dispatch(actions.clearPlaylistSelection())
+    props.command("playlist", "index", index)
   }
   return <List className="playlist" selection>
     {props.items.filter(item => item !== undefined).map(item => {
@@ -247,6 +253,7 @@ export const Playlist = props => {
         {...item}
         command={props.command}
         itemSelected={itemSelected}
+        playTrackAtIndex={playTrackAtIndex}
         index={index}
         selected={props.selection.get(String(index))}
         active={props.currentIndex === index}
@@ -265,7 +272,7 @@ function songTitle({artist, title}) {
 export const PlaylistItem = props => (
   <List.Item
       onClick={(event) => props.itemSelected(props.index, event)}
-      onDoubleClick={() => props.command("playlist", "index", props.index)}
+      onDoubleClick={() => props.playTrackAtIndex(props.index)}
       onMouseDown={e => {
         // Prevent text selection on shift+click
         // http://stackoverflow.com/a/1529206/10840

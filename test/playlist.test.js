@@ -146,13 +146,13 @@ describe('playlist', function () {
 
       it('should select item in playlist', function () {
         const state = STATE.set("items", PLAYLIST_1)
-        const result = getState(reduce(state, playlistItemSelected(1, "1")))
+        const result = getState(reduce(state, playlistItemSelected("1")))
         assert.equal(result, state.set("selection", Map({1: true, last: "1"})))
       })
 
       it('should select item that is not first in playlist', function () {
         const state = STATE.set("items", PLAYLIST_1)
-        const result = getState(reduce(state, playlistItemSelected(1, "3")))
+        const result = getState(reduce(state, playlistItemSelected("3")))
         assert.equal(result, state.set("selection", Map({3: true, last: "3"})))
       })
 
@@ -161,7 +161,7 @@ describe('playlist', function () {
           items: PLAYLIST_1,
           selection: Map({1: true, last: "1"}),
         })
-        const result = getState(reduce(state, playlistItemSelected(1, "3")))
+        const result = getState(reduce(state, playlistItemSelected("3")))
         assert.equal(result, state.set("selection", Map({3: true, last: "3"})))
       })
 
@@ -170,7 +170,7 @@ describe('playlist', function () {
           items: PLAYLIST_1,
           selection: Map({1: true, last: "1"}),
         })
-        const result = getState(reduce(state, playlistItemSelected(1, "3", mod.SINGLE)))
+        const result = getState(reduce(state, playlistItemSelected("3", mod.SINGLE)))
         assert.equal(result, state.set("selection", Map({
           1: true,
           3: true,
@@ -183,7 +183,7 @@ describe('playlist', function () {
           items: PLAYLIST_1,
           selection: Map({1: true, last: "1"}),
         })
-        const result = getState(reduce(state, playlistItemSelected(1, "1", mod.SINGLE)))
+        const result = getState(reduce(state, playlistItemSelected("1", mod.SINGLE)))
         assert.equal(result, state.set("selection", Map({
           1: false,
           last: undefined,
@@ -195,13 +195,23 @@ describe('playlist', function () {
           items: PLAYLIST_1,
           selection: Map({1: true, last: "1"}),
         })
-        const result = getState(reduce(state, playlistItemSelected(1, "3", mod.TO_LAST)))
+        const result = getState(reduce(state, playlistItemSelected("3", mod.TO_LAST)))
         assert.equal(result, state.set("selection", Map({
           1: true,
           2: true,
           3: true,
           last: "3",
         })))
+      })
+    })
+
+    describe("clearPlaylistSelection", function () {
+      const clear = reduce.actions.clearPlaylistSelection
+
+      it('should clear selection', function () {
+        const state = STATE.set("selection", Map({2: true, last: "2"}))
+        const result = getState(reduce(state, clear()))
+        assert.equal(result, state.set("selection", Map()))
       })
     })
 
