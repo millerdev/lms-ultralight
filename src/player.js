@@ -182,7 +182,8 @@ export class Player extends React.Component {
       </PlayerUI>
       <playlist.Playlist
         command={command}
-        {...props.playlist.toJS()} />
+        dispatch={props.dispatch}
+        {...props.playlist.toObject()} />
     </div>
   }
 }

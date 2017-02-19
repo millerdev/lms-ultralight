@@ -105,6 +105,66 @@ describe('playlist', function () {
         }))
       })
     })
+
+    describe("playlistItemSelected", function () {
+      const playlistItemSelected = reduce.actions.playlistItemSelected
+
+      it('should select item in playlist', function () {
+        const state = STATE.set("items", PLAYLIST_1)
+        const result = getState(reduce(state, playlistItemSelected(1, "1")))
+        assert.equal(result, state.set("selection", Map({1: true, last: "1"})))
+      })
+
+      it('should select item that is not first in playlist', function () {
+        const state = STATE.set("items", PLAYLIST_1)
+        const result = getState(reduce(state, playlistItemSelected(1, "3")))
+        assert.equal(result, state.set("selection", Map({3: true, last: "3"})))
+      })
+
+      it('should deselect item on select other item', function () {
+        const state = STATE.set("items", PLAYLIST_1).merge({
+          selection: Map({1: true, last: "1"}),
+        })
+        const result = getState(reduce(state, playlistItemSelected(1, "3")))
+        assert.equal(result, state.set("selection", Map({3: true, last: "3"})))
+      })
+
+      it('should select multiple with SINGLE modifier', function () {
+        const state = STATE.set("items", PLAYLIST_1).merge({
+          selection: Map({1: true, last: "1"}),
+        })
+        const result = getState(reduce(state, playlistItemSelected(1, "3", mod.SINGLE)))
+        assert.equal(result, state.set("selection", Map({
+          1: true,
+          3: true,
+          last: "3",
+        })))
+      })
+
+      it('should deselect item with SINGLE modifier', function () {
+        const state = STATE.set("items", PLAYLIST_1).merge({
+          selection: Map({1: true, last: "1"}),
+        })
+        const result = getState(reduce(state, playlistItemSelected(1, "1", mod.SINGLE)))
+        assert.equal(result, state.set("selection", Map({
+          1: false,
+          last: undefined,
+        })))
+      })
+
+      it('should select contiguous items with TO_LAST modifier', function () {
+        const state = STATE.set("items", PLAYLIST_1).merge({
+          selection: Map({1: true, last: "1"}),
+        })
+        const result = getState(reduce(state, playlistItemSelected(1, "3", mod.TO_LAST)))
+        assert.equal(result, state.set("selection", Map({
+          1: true,
+          2: true,
+          3: true,
+          last: "3",
+        })))
+      })
+    })
   })
 
   describe('advanceToNextTrack', function () {

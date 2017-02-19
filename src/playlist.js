@@ -10,6 +10,9 @@ import { formatTime } from './util'
 import './playlist.styl'
 
 const IX = "playlist index"
+const MSIE = window.navigator.userAgent.indexOf("MSIE ") > -1
+export const SINGLE = "single"
+export const TO_LAST = "to last"
 
 export const defaultState = Map({
   items: IList(),
@@ -17,10 +20,11 @@ export const defaultState = Map({
   numTracks: null,
   currentIndex: null,
   currentTrack: Map(),
+  selection: Map(),
 })
 
 export const reducer = makeReducer({
-  gotPlayer: (state=defaultState, action, status) => {
+  gotPlayer: (state, action, status) => {
     const index = parseInt(status.playlist_cur_index)
     const list = status.playlist_loop
     const data = {
@@ -47,7 +51,31 @@ export const reducer = makeReducer({
     }
     return combine(state.merge(data), effects)
   },
+  playlistItemSelected: (state, action, listid, index, modifier) => {
+    // TODO implement unique listid per Player instance
+    const selection = {[index]: true, last: index}
+    if (!modifier) {
+      return state.set("selection", Map(selection))
+    }
+    const old = state.get("selection")
+    if (modifier === SINGLE) {
+      if (old.get(index)) {
+        selection[index] = false
+        if (old.get("last") === index) {
+          selection.last = undefined
+        }
+      }
+    } else if (modifier === TO_LAST) {
+      const last = parseInt(old.get("last") || 0)
+      const next = parseInt(index)
+      const step = last < next ? 1 : -1
+      _.each(_.range(last, next + step, step), i => { selection[i] = true })
+    }
+    return state.mergeIn(["selection"], selection)
+  },
 }, defaultState)
+
+const actions = reducer.actions
 
 export function advanceToNextTrack(state) {
   const items = state.get("items")
@@ -81,7 +109,7 @@ function isPlaylistChanged(prev, next) {
 }
 
 /**
- * Merge items with list
+ * Merge array of playlist items into existing playlist
  *
  * @param list - List of Maps.
  * @param array - Array of objects.
@@ -120,19 +148,28 @@ function mergePlaylist(list, array) {
   return IList(merged)
 }
 
-export const Playlist = props => (
-  <List className="playlist" selection>
-    {_.map(props.items, item => {
-      const index = item["playlist index"]
+export const Playlist = props => {
+  function itemSelected(index, event) {
+    const modifier = event.metaKey || event.ctrlKey ? SINGLE :
+      (event.shiftKey ? TO_LAST : null)
+    props.dispatch(actions.playlistItemSelected(
+      props.listid, String(index), modifier))
+  }
+  return <List className="playlist" selection>
+    {props.items.filter(item => item !== undefined).map(item => {
+      item = item.toJS()
+      const index = item[IX]
       return <PlaylistItem
         {...item}
         command={props.command}
+        itemSelected={itemSelected}
         index={index}
+        selected={props.selection.get(String(index))}
         active={props.currentIndex === index}
         key={index} />
-    })}
+    }).toArray()}
   </List>
-)
+}
 
 function songTitle({artist, title}) {
   if (artist && title) {
@@ -143,7 +180,20 @@ function songTitle({artist, title}) {
 
 export const PlaylistItem = props => (
   <List.Item
+      onClick={(event) => props.itemSelected(props.index, event)}
       onDoubleClick={() => props.command("playlist", "index", props.index)}
+      onMouseDown={e => {
+        if (e.shiftKey) {
+          // For non-IE browsers
+          e.preventDefault()
+          // For IE
+          if (MSIE) {
+            this.onselectstart = () => false
+            window.setTimeout(() => this.onselectstart = null, 0)
+          }
+        }
+      }}
+      className={props.selected ? "selected" : undefined}
       active={props.active}>
     <List.Content floated="right">
       <List.Description>
@@ -151,7 +201,7 @@ export const PlaylistItem = props => (
       </List.Description>
     </List.Content>
     <Item.Image
-      size="micro"
+      ui className="image"
       shape="rounded"
       height="18px"
       width="18px"
