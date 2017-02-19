@@ -11,7 +11,42 @@ describe('playlist', function () {
 
       it('should set current track and playlist metadata', function () {
         const state = getState(reduce(mod.defaultState, gotPlayer(STATUS.toJS())))
-        assert.equal(state, STATE.set("items", STATUS.get("playlist_loop")))
+        assert.equal(state, STATE)
+      })
+
+      it('should clear playlist when playlist is empty', function () {
+        const data = {
+          can_seek: 1,
+          digital_volume_control: 1,
+          duration: 208.026,
+          isPlaylistUpdate: false,
+          localTime: 1487467622514,
+          "mixer volume": 17,
+          mode: "stop",
+          player_connected: 1,
+          playerid: PLAYERID,
+          "playlist mode": "off",
+          "playlist repeat": 0,
+          "playlist shuffle": 0,
+          playlist_tracks: 0,
+          power: 0,
+          rate: 1,
+          seq_no: 0,
+          signalstrength: 0,
+          time: 0,
+        }
+        const state = getState(reduce(STATE, gotPlayer(data)))
+        assert.equal(state, mod.defaultState.set("playerid", PLAYERID))
+      })
+
+      it('should clear selection on playerid change', function () {
+        const data = STATUS.set("playerid", PLAYERID + "1").toJS()
+        const state = STATE.set("selection",  Map({1: true, last: "1"}))
+        const result = getState(reduce(state, gotPlayer(data)))
+        assert.equal(result, state.merge({
+          playerid: PLAYERID + "1",
+          selection: Map(),
+        }))
       })
 
       it('should update playlist with playlist query', function () {
@@ -45,7 +80,7 @@ describe('playlist', function () {
           isPlaylistUpdate: true,
           playlist_loop: PLAYLIST_2,
         }).toJS())))
-        assert.equal(state, STATE.set("items", PLAYLIST_2))
+        assert.equal(state, STATE.set("items", STATE.get("items").concat(PLAYLIST_2)))
       })
 
       it('should not fetch playlist on playlist update and playlist not changed', function () {
@@ -122,7 +157,8 @@ describe('playlist', function () {
       })
 
       it('should deselect item on select other item', function () {
-        const state = STATE.set("items", PLAYLIST_1).merge({
+        const state = STATE.merge({
+          items: PLAYLIST_1,
           selection: Map({1: true, last: "1"}),
         })
         const result = getState(reduce(state, playlistItemSelected(1, "3")))
@@ -130,7 +166,8 @@ describe('playlist', function () {
       })
 
       it('should select multiple with SINGLE modifier', function () {
-        const state = STATE.set("items", PLAYLIST_1).merge({
+        const state = STATE.merge({
+          items: PLAYLIST_1,
           selection: Map({1: true, last: "1"}),
         })
         const result = getState(reduce(state, playlistItemSelected(1, "3", mod.SINGLE)))
@@ -142,7 +179,8 @@ describe('playlist', function () {
       })
 
       it('should deselect item with SINGLE modifier', function () {
-        const state = STATE.set("items", PLAYLIST_1).merge({
+        const state = STATE.merge({
+          items: PLAYLIST_1,
           selection: Map({1: true, last: "1"}),
         })
         const result = getState(reduce(state, playlistItemSelected(1, "1", mod.SINGLE)))
@@ -153,7 +191,8 @@ describe('playlist', function () {
       })
 
       it('should select contiguous items with TO_LAST modifier', function () {
-        const state = STATE.set("items", PLAYLIST_1).merge({
+        const state = STATE.merge({
+          items: PLAYLIST_1,
           selection: Map({1: true, last: "1"}),
         })
         const result = getState(reduce(state, playlistItemSelected(1, "3", mod.TO_LAST)))
@@ -401,4 +440,5 @@ const STATE = mod.defaultState.merge({
     "playlist index": 2,
     "url": "file:///.../Vangelis%20-%20Direct/03%20Metallic%20Rain.flac",
   }),
+  items: STATUS.get("playlist_loop"),
 })

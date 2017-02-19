@@ -17,7 +17,7 @@ export const TO_LAST = "to last"
 export const defaultState = Map({
   items: IList(),
   timestamp: null,
-  numTracks: null,
+  numTracks: 0,
   currentIndex: null,
   currentTrack: Map(),
   selection: Map(),
@@ -25,29 +25,39 @@ export const defaultState = Map({
 
 export const reducer = makeReducer({
   gotPlayer: (state, action, status) => {
-    const index = parseInt(status.playlist_cur_index)
-    const list = status.playlist_loop
+    const effects = []
+    const list = status.playlist_loop // TODO test for undefined
     const data = {
       playerid: status.playerid,
-      timestamp: status.playlist_timestamp,
       numTracks: status.playlist_tracks,
-      currentIndex: index,
+      timestamp: status.playlist_timestamp || null,
     }
-    const changed = isPlaylistChanged(state.toObject(), data)
-    const effects = []
-    const gotCurrent = index >= list[0][IX] && index <= list[list.length - 1][IX]
-    if (status.isPlaylistUpdate || changed) {
-      // TODO merge will return wrong result if all items in playlist have
-      // changed but only a subset is loaded in this update
-      data.items = mergePlaylist(state.get("items"), list)
-      if (gotCurrent) {
-        data.currentTrack = fromJS(list[index - list[0][IX]])
+    if (state.get("playerid") !== data.playerid) {
+      data.selection = Map()
+    }
+    if (list) {
+      const index = parseInt(status.playlist_cur_index)
+      const changed = isPlaylistChanged(state.toObject(), data)
+      const gotCurrent = index >= list[0][IX] && index <= list[list.length - 1][IX]
+      data.currentIndex = index
+      if (status.isPlaylistUpdate || changed) {
+        // TODO merge will return wrong result if all items in playlist have
+        // changed but only a subset is loaded in this update
+        data.items = mergePlaylist(state.get("items"), list)
+        if (gotCurrent) {
+          data.currentTrack = fromJS(list[index - list[0][IX]])
+        }
+      } else {
+        data.currentTrack = fromJS(list[0] || {})
+      }
+      if (changed && (!status.isPlaylistUpdate || !gotCurrent)) {
+        effects.push(effect(require("./player").loadPlayer, data.playerid, true))
       }
     } else {
-      data.currentTrack = fromJS(list[0] || {})
-    }
-    if (changed && (!status.isPlaylistUpdate || !gotCurrent)) {
-      effects.push(effect(require("./player").loadPlayer, data.playerid, true))
+      data.items = IList()
+      data.currentIndex = null
+      data.currentTrack = Map()
+      data.selection = Map()
     }
     return combine(state.merge(data), effects)
   },
