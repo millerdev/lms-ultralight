@@ -26,7 +26,7 @@ export const defaultState = Map({
 export const reducer = makeReducer({
   gotPlayer: (state, action, status) => {
     const effects = []
-    const list = status.playlist_loop // TODO test for undefined
+    const list = status.playlist_loop
     const data = {
       playerid: status.playerid,
       numTracks: status.playlist_tracks,
@@ -138,16 +138,16 @@ export function advanceToNextTrack(state) {
 
 export function deleteSelection(store, lms) {
   return new Promise(resolve => {
-    function deleteLastSelectedItem() {
-      if (!reversed.length) {
+    function remove(items) {
+      if (!items.length) {
         return resolve()
       }
-      const index = reversed.shift()
+      const index = items.shift()
       lms.command(playerid, "playlist", "delete", index)
         .then(() => {
           // TODO abort if selection changed
           store.dispatch(actions.playlistItemDeleted(index))
-          deleteLastSelectedItem()
+          remove(items)
         })
         .catch(err => {
           if (err) {
@@ -159,11 +159,11 @@ export function deleteSelection(store, lms) {
     const state = store.getState()
     const playerid = state.get("playerid")
     const selection = state.getIn(["playlist", "selection"])
-    const reversed = selection
+    const items = selection
       .toSeq()
       .sortBy(index => -index)
       .toArray()
-    deleteLastSelectedItem()
+    remove(items)
   })
 }
 
