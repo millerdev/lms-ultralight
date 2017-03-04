@@ -4,8 +4,14 @@ global.expect = chai.expect
 
 chai.should()
 chai.config.includeStack = true
-chai.use(require('chai-immutable'))
+chai.use(require('chai-eql-immutable'))
 
-assert.equal = assert.strictEqual
+assert.equal = function (a, b, message) {
+    const Iterable = require("immutable").Iterable
+    if (Iterable.isIterable(a) && Iterable.isIterable(b)) {
+        return expect(a).eql(b, message)
+    }
+    return assert.strictEqual(a, b, message)
+}
 
 require('./browser')

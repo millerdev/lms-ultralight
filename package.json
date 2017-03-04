@@ -33,7 +33,7 @@
     "babel-preset-react": "^6.5.0",
     "browser-sync": "^2.12.8",
     "chai": "^3.5.0",
-    "chai-immutable": "^1.6.0",
+    "chai-eql-immutable": "0.0.3",
     "copy-webpack-plugin": "^3.0.0",
     "css-loader": "^0.23.1",
     "enzyme": "^2.7.0",
