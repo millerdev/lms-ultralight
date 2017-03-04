@@ -145,160 +145,49 @@ describe('playlist', function () {
       })
     })
 
+    function reducerTest(name, action, startConfig, endConfig) {
+      it(startConfig + " [" + name + "] -> " + endConfig, function () {
+        const state = makeState(startConfig)
+        const [result, effects] = split(getState(reduce(state, action)))
+        assert.equal(makeConfig(result), endConfig)
+        assert.equal(result, makeState(endConfig))
+        assert.equal(result.getIn(["currentTrack", "playlist index"]),
+                     result.get("currentIndex"))
+        assert.deepEqual(effects, [])
+      })
+    }
+
     describe("playlistItemSelected", function () {
-      const playlistItemSelected = reduce.actions.playlistItemSelected
+      function test(startConfig, ix, endConfig, modifier) {
+        const action = reduce.actions.playlistItemSelected(ix, modifier)
+        reducerTest("sel " + ix, action, startConfig, endConfig)
+      }
 
-      it('should select item in playlist', function () {
-        const state = STATE.set("items", PLAYLIST_1)
-        const result = getState(reduce(state, playlistItemSelected(1)))
-        assert.equal(result, state.merge({
-          selection: Set([1]),
-          lastSelected: List([1]),
-        }))
-      })
-
-      it('should select item that is not first in playlist', function () {
-        const state = STATE.set("items", PLAYLIST_1)
-        const result = getState(reduce(state, playlistItemSelected(3)))
-        assert.equal(result, state.merge({
-          selection: Set([3]),
-          lastSelected: List([3]),
-        }))
-      })
-
-      it('should deselect item on select other item', function () {
-        const state = STATE.merge({
-          items: PLAYLIST_1,
-          selection: Set([1]),
-          lastSelected: List([1]),
-        })
-        const result = getState(reduce(state, playlistItemSelected(3)))
-        assert.equal(result, state.merge({
-          selection: Set([3]),
-          lastSelected: List([3]),
-        }))
-      })
-
-      it('should select multiple with SINGLE modifier', function () {
-        const state = STATE.merge({
-          items: PLAYLIST_1,
-          selection: Set([1]),
-          lastSelected: List([1]),
-        })
-        const result = getState(reduce(state, playlistItemSelected(3, mod.SINGLE)))
-        assert.equal(result, state.merge({
-          selection: Set([1, 3]),
-          lastSelected: List([1, 3]),
-        }))
-      })
-
-      it('should deselect item with SINGLE modifier', function () {
-        const state = STATE.merge({
-          items: PLAYLIST_1,
-          selection: Set([1]),
-          lastSelected: List([1]),
-        })
-        const result = getState(reduce(state, playlistItemSelected(1, mod.SINGLE)))
-        assert.equal(result, state.merge({
-          selection: Set(),
-          lastSelected: List(),
-        }))
-      })
-
-      it('should select contiguous items with TO_LAST modifier', function () {
-        const state = STATE.merge({
-          items: PLAYLIST_1,
-          selection: Set([1]),
-          lastSelected: List([1]),
-        })
-        const result = getState(reduce(state, playlistItemSelected(3, mod.TO_LAST)))
-        assert.equal(result, state.merge({
-          selection: Set([1, 2, 3]),
-          lastSelected: List([1, 3]),
-        }))
-      })
+      test("ab(c)defg", 1, "aB(c)defg | b")
+      test("ab(c)defg", 3, "ab(c)Defg | d")
+      test("aB(c)defg | b", 3, "ab(c)Defg | d")
+      test("aB(c)defg | b", 3, "aB(c)Defg | bd", mod.SINGLE)
+      test("aB(c)defg | b", 1, "ab(c)defg", mod.SINGLE)
+      test("aB(c)defg | b", 3, "aB(C)Defg | bd", mod.TO_LAST)
     })
 
     describe("clearPlaylistSelection", function () {
       const clear = reduce.actions.clearPlaylistSelection
 
-      it('should clear selection', function () {
-        const state = STATE.merge({
-          selection: Set([2]),
-          lastSelected: List([2]),
-        })
-        const result = getState(reduce(state, clear()))
-        assert.equal(result, state.merge({
-          selection: Set(),
-          lastSelected: List(),
-        }))
-      })
+      function test(startConfig, endConfig) {
+        reducerTest("clear", clear(), startConfig, endConfig)
+      }
+
+      test("aB(c)defg | b", "ab(c)defg")
+      test("ab(C)defg | c", "ab(c)defg")
+      test("aB(C)Defg | bd", "ab(c)defg")
     })
 
     describe("playlistItemMoved", function () {
-      const playlistItemMoved = reduce.actions.playlistItemMoved
-
-      /**
-       * Make playlist state for given configuration
-       *
-       * Configuration syntax:
-       * - playlist items are letters (abcd...)
-       * - capitalized letters are selected items
-       * - letter in (parens) is current track
-       * - letters after " | " are lastSelected items
-       */
-      function makeState(config) {
-        const index = c => indexMap.get(c.toLowerCase())
-        const match = /^((?:[a-z]|\([a-z]\))+)(?: \| ([a-z]*))?$/i.exec(config)
-        const playchars = Seq(match[1])
-          .filter(c => /[a-z]/i.test(c)).cacheResult()
-        const indexMap = playchars
-          .map(c => c.toLowerCase()).toKeyedSeq().flip().toMap()
-        const current = index(/\(([a-z])\)/i.exec(config)[1])
-        const items = playchars.map((c, i) => (Map({
-          "url": "file:///" + c.toLowerCase(),
-          "playlist index": i,
-          "title": c.toLowerCase(),
-          "id": 1000 + index(c),
-        }))).toList()
-        const data = {
-          items: items,
-          selection: playchars.filter(c => /[A-Z]/.test(c)).map(index).toSet(),
-          lastSelected: Seq(match[2]).map(index).toList(),
-          currentIndex: current,
-          currentTrack: items.get(current),
-          numTracks: playchars.size,
-        }
-        return STATE.merge(data)
-      }
-
-      function makeConfig(state) {
-        const selection = state.get("selection")
-        const current = state.get("currentIndex")
-        const playchars = state.get("items").map(item => {
-          const i = item.get("playlist index")
-          const t = item.get("title")
-          const c = i === current ? "(" + t + ")" : t
-          return selection.has(i) ? c.toUpperCase() : c
-        }).join("")
-        const last = state.get("lastSelected").map(i =>
-          state.getIn(["items", i, "title"])
-        ).join("")
-        return playchars + (last ? " | " + last : "")
-      }
-
       function test(startConfig, fromIndex, toIndex, endConfig) {
-        it(startConfig + " [" + fromIndex + "->" + toIndex + "] " + endConfig, function () {
-          const state = makeState(startConfig)
-          const action = playlistItemMoved(fromIndex, toIndex)
-          const [result, effects] = split(getState(reduce(state, action)))
-          assert.equal(makeConfig(result), endConfig)
-          assert.equal(result.getIn(["currentTrack", "playlist index"]),
-                       result.get("currentIndex"))
-          assert.deepEqual(effects, [])
-        })
+        const action = reduce.actions.playlistItemMoved(fromIndex, toIndex)
+        reducerTest(fromIndex + "->" + toIndex, action, startConfig, endConfig)
       }
-
 
       test("aB(C)defg | bc", 0, 3, "b(c)adefg")
       test("aBCde(f)g | bc", 0, 3, "bcade(f)g")
@@ -323,46 +212,15 @@ describe('playlist', function () {
 
     describe("playlistItemDeleted", function () {
       const del = reduce.actions.playlistItemDeleted
-      let state
-      before(() => {
-        state = STATE.merge({
-          items: PLAYLIST_1,
-          selection: Set([1, 3]),
-          lastSelected: List([1, 3]),
-        })
-      })
 
-      it('should remove item from playlist', function () {
-        const ix = 3
-        const [result, effects] = split(getState(reduce(state, del(ix))))
-        assert.equal(result, state.merge({
-          items: mod.deleteItem(PLAYLIST_1, ix),
-          selection: Set([1]),
-          lastSelected: List([1]),
-          numTracks: 6,
-        }))
-        assert.deepEqual(effects, [])
-      })
+      function test(startConfig, ix, endConfig) {
+        reducerTest("rm " + ix, del(ix), startConfig, endConfig)
+      }
 
-      it('should remove item from playlist and update other state', function () {
-        const ix = 1
-        const [result, effects] = split(getState(reduce(state, del(ix))))
-        assert.equal(result, state.merge({
-          items: mod.deleteItem(PLAYLIST_1, ix),
-          selection: Set([3]),
-          lastSelected: List([3]),
-          numTracks: 6,
-          currentIndex: 1,
-          currentTrack: state.get("currentTrack").set("playlist index", 1),
-        }))
-        assert.deepEqual(effects, [])
-      })
-
-      it('should do nothing if index out of bounds', function () {
-        const [result, effects] = split(getState(reduce(state, del("4"))))
-        assert.equal(result, state)
-        assert.deepEqual(effects, [])
-      })
+      test("aB(c)Defg | bd", 1, "a(c)Defg | d")
+      //test("aB(c)Defg | bd", 2, "a(B)Defg | bd")
+      test("aB(c)Defg | bd", 3, "aB(c)efg | b")
+      test("aB(c)Defg | bd", 7, "aB(c)Defg | bd") // index out of bounds
     })
   })
 
@@ -641,6 +499,54 @@ describe('playlist', function () {
     })
   })
 })
+
+/**
+ * Make playlist state for given configuration
+ *
+ * Configuration syntax:
+ * - playlist items are letters (abcd...)
+ * - capitalized letters are selected items
+ * - letter in (parens) is current track
+ * - letters after " | " are lastSelected items
+ */
+function makeState(config) {
+  const index = c => indexMap.get(c.toLowerCase())
+  const match = /^((?:[a-z]|\([a-z]\))+)(?: \| ([a-z]*))?$/i.exec(config)
+  const playchars = Seq(match[1])
+    .filter(c => /[a-z]/i.test(c)).cacheResult()
+  const indexMap = playchars
+    .map(c => c.toLowerCase()).toKeyedSeq().flip().toMap()
+  const current = index(/\(([a-z])\)/i.exec(config)[1])
+  const items = playchars.map((c, i) => (Map({
+    "url": "file:///" + c.toLowerCase(),
+    "playlist index": i,
+    "title": c.toLowerCase(),
+  }))).toList()
+  const data = {
+    items: items,
+    selection: playchars.filter(c => /[A-Z]/.test(c)).map(index).toSet(),
+    lastSelected: Seq(match[2]).map(index).toList(),
+    currentIndex: current,
+    currentTrack: items.get(current),
+    numTracks: playchars.size,
+  }
+  return STATE.merge(data)
+}
+
+function makeConfig(state) {
+  const selection = state.get("selection")
+  const current = state.get("currentIndex")
+  const playchars = state.get("items").map(item => {
+    const i = item.get("playlist index")
+    const t = item.get("title")
+    const c = i === current ? "(" + t + ")" : t
+    return selection.has(i) ? c.toUpperCase() : c
+  }).join("")
+  const last = state.get("lastSelected").map(i =>
+    state.getIn(["items", i, "title"])
+  ).join("")
+  return playchars + (last ? " | " + last : "")
+}
 
 const PLAYERID = "1:1:1:1"
 

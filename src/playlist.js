@@ -133,11 +133,12 @@ export const reducer = makeReducer({
     if (items.equals(oldItems)) {
       return state
     }
+    const reindex = x => x > index ? x -= 1 : x
     const data = {
       items,
       numTracks: state.get("numTracks") - 1,
-      selection: state.get("selection").remove(index),
-      lastSelected: state.get("lastSelected").filter(x => x != index),
+      selection: state.get("selection").remove(index).map(reindex),
+      lastSelected: state.get("lastSelected").filter(x => x != index).map(reindex),
     }
     const currentIndex = state.get("currentIndex")
     if (index <= currentIndex) {
