@@ -1,4 +1,4 @@
-import { fromJS, List, Map, Set } from 'immutable'
+import { fromJS, List, Map, Seq, Set } from 'immutable'
 
 import { effect, getEffects, getState, split } from '../src/effects'
 import * as mod from '../src/playlist'
@@ -235,6 +235,92 @@ describe('playlist', function () {
       })
     })
 
+    describe("playlistItemMoved", function () {
+      const playlistItemMoved = reduce.actions.playlistItemMoved
+
+      /**
+       * Make playlist state for given configuration
+       *
+       * Configuration syntax:
+       * - playlist items are letters (abcd...)
+       * - capitalized letters are selected items
+       * - letter in (parens) is current track
+       * - letters after " | " are lastSelected items
+       */
+      function makeState(config) {
+        const index = c => indexMap.get(c.toLowerCase())
+        const match = /^((?:[a-z]|\([a-z]\))+)(?: \| ([a-z]*))?$/i.exec(config)
+        const playchars = Seq(match[1])
+          .filter(c => /[a-z]/i.test(c)).cacheResult()
+        const indexMap = playchars
+          .map(c => c.toLowerCase()).toKeyedSeq().flip().toMap()
+        const current = index(/\(([a-z])\)/i.exec(config)[1])
+        const items = playchars.map((c, i) => (Map({
+          "url": "file:///" + c.toLowerCase(),
+          "playlist index": i,
+          "title": c.toLowerCase(),
+          "id": 1000 + index(c),
+        }))).toList()
+        const data = {
+          items: items,
+          selection: playchars.filter(c => /[A-Z]/.test(c)).map(index).toSet(),
+          lastSelected: Seq(match[2]).map(index).toList(),
+          currentIndex: current,
+          currentTrack: items.get(current),
+          numTracks: playchars.size,
+        }
+        return STATE.merge(data)
+      }
+
+      function makeConfig(state) {
+        const selection = state.get("selection")
+        const current = state.get("currentIndex")
+        const playchars = state.get("items").map(item => {
+          const i = item.get("playlist index")
+          const t = item.get("title")
+          const c = i === current ? "(" + t + ")" : t
+          return selection.has(i) ? c.toUpperCase() : c
+        }).join("")
+        const last = state.get("lastSelected").map(i =>
+          state.getIn(["items", i, "title"])
+        ).join("")
+        return playchars + (last ? " | " + last : "")
+      }
+
+      function test(startConfig, fromIndex, toIndex, endConfig) {
+        it(startConfig + " [" + fromIndex + "->" + toIndex + "] " + endConfig, function () {
+          const state = makeState(startConfig)
+          const action = playlistItemMoved(fromIndex, toIndex)
+          const [result, effects] = split(getState(reduce(state, action)))
+          assert.equal(makeConfig(result), endConfig)
+          assert.equal(result.getIn(["currentTrack", "playlist index"]),
+                       result.get("currentIndex"))
+          assert.deepEqual(effects, [])
+        })
+      }
+
+
+      test("aB(C)defg | bc", 0, 3, "b(c)adefg")
+      test("aBCde(f)g | bc", 0, 3, "bcade(f)g")
+      test("ab(C)Defg | cd", 0, 4, "b(C)Daefg | cd")
+      test("aB(C)defg | bc", 2, 4, "aBd(c)efg | b")
+      test("aB(C)Defg | bcd", 0, 3, "b(c)aDefg | d") // probably never happen
+
+      test("aB(c)DeFg | bdf", 0, 6, "b(c)DeFag | df")
+      test("b(c)DeFag | df", 1, 6, "bdeFa(c)g | f")
+      test("bdeFa(c)g | f", 2, 6, "bdfa(c)eg")
+
+      test("aB(C)defg | bc", 1, 0, "ba(C)defg | c")
+      test("aB(C)defg | bc", 3, 1, "adb(c)efg")
+      test("aB(C)defg | bc", 4, 1, "aeB(C)dfg | bc")
+      test("aB(C)dEFg | bcef", 6, 3, "aB(C)gdef | bc") // probably never happen
+      test("aB(C)DEFg | bcdef", 6, 3, "aB(C)gdef | bc") // probably never happen
+
+      test("aB(c)DeFg | bdf", 6, 1, "agB(c)Def | bd")
+      test("agB(c)Def | bd", 5, 2, "ageB(c)df | b")
+      test("ageB(c)df | b", 4, 3, "age(c)bdf")
+    })
+
     describe("playlistItemDeleted", function () {
       const del = reduce.actions.playlistItemDeleted
       let state
@@ -298,6 +384,192 @@ describe('playlist', function () {
     })
   })
 
+  describe('moveItems', function () {
+    function fakeStore(selection=Set()) {
+      const dispatched = []
+      const state = Map({
+        playerid: PLAYERID,
+        playlist: STATE.set("selection", selection)
+      })
+      return {
+        dispatch: action => dispatched.push(action),
+        getState: () => state,
+        dispatched,
+      }
+    }
+    const lms = {command: (...args) => {
+      assert.deepEqual([PLAYERID, "playlist", "move"], args.slice(0, 3),
+        "lms.command args")
+      return Promise.resolve()
+    }}
+    const actions = mod.reducer.actions
+
+    it('should move single item down', function () {
+      const store = fakeStore()
+      return mod.moveItems(1, 0, store, lms).then(moved => {
+        assert.deepEqual(store.dispatched, [
+          actions.playlistItemMoved(1, 0),
+        ])
+        assert(moved, "should signal move")
+      })
+    })
+
+    it('should move single item up', function () {
+      const store = fakeStore()
+      return mod.moveItems(0, 2, store, lms).then(moved => {
+        assert.deepEqual(store.dispatched, [
+          actions.playlistItemMoved(0, 2),
+        ])
+        assert(moved, "should signal move")
+      })
+    })
+
+    it('should not move single item to own index', function () {
+      const store = fakeStore()
+      return mod.moveItems(1, 1, store, lms).then(moved => {
+        assert.deepEqual(store.dispatched, [])
+        assert(!moved, "should not have any moves")
+      })
+    })
+
+    it('should not move single item to next index', function () {
+      const store = fakeStore()
+      return mod.moveItems(1, 2, store, lms).then(moved => {
+        assert.deepEqual(store.dispatched, [])
+        assert(!moved, "should not have any moves")
+      })
+    })
+
+    it('should not move selected items up to next', function () {
+      const store = fakeStore(Set([2, 3]))
+      return mod.moveItems(3, 4, store, lms).then(moved => {
+        assert.deepEqual(store.dispatched, [])
+        assert(!moved, "should not have any moves")
+      })
+    })
+
+    it('should move unselected item above selection', function () {
+      const store = fakeStore(Set([2, 3]))
+      return mod.moveItems(2, 1, store, lms).then(moved => {
+        assert.deepEqual(store.dispatched, [
+          actions.playlistItemMoved(1, 4),
+        ])
+        assert(moved, "should signal move")
+      })
+    })
+
+    it('should move unselected item below selection', function () {
+      const store = fakeStore(Set([2, 3]))
+      return mod.moveItems(3, 5, store, lms).then(moved => {
+        assert.deepEqual(store.dispatched, [
+          actions.playlistItemMoved(4, 2),
+        ])
+        assert(moved, "should signal move")
+      })
+    })
+
+    it('should move (2) selected items down', function () {
+      const store = fakeStore(Set([2, 3]))
+      return mod.moveItems(2, 0, store, lms).then(moved => {
+        assert.deepEqual(store.dispatched, [
+          actions.playlistItemMoved(2, 0),
+          actions.playlistItemMoved(3, 1),
+        ])
+        assert(moved, "should signal move")
+      })
+    })
+
+    it('should move (2) selected items up', function () {
+      const store = fakeStore(Set([2, 3]))
+      return mod.moveItems(3, 6, store, lms).then(moved => {
+        assert.deepEqual(store.dispatched, [
+          actions.playlistItemMoved(3, 6),
+          actions.playlistItemMoved(2, 5),
+        ])
+        assert(moved, "should signal move")
+      })
+    })
+
+    it('should move (2) unselected items below (3) selected', function () {
+      const store = fakeStore(Set([2, 3, 5]))
+      return mod.moveItems(3, 7, store, lms).then(moved => {
+        assert.deepEqual(store.dispatched, [
+          actions.playlistItemMoved(4, 2),
+          actions.playlistItemMoved(6, 3),
+        ])
+        assert(moved, "should signal move")
+      })
+    })
+
+    it('should move (2) unselected items down and up', function () {
+      const store = fakeStore(Set([2, 3, 6, 7]))
+      return mod.moveItems(2, 5, store, lms).then(moved => {
+        assert.deepEqual(store.dispatched, [
+          actions.playlistItemMoved(4, 2),
+          actions.playlistItemMoved(5, 8),
+        ])
+        assert(moved, "should signal move")
+      })
+    })
+
+    it('should move (1) unselected item down and (2) selected items down', function () {
+      const store = fakeStore(Set([2, 3, 8, 9]))
+      return mod.moveItems(2, 5, store, lms).then(moved => {
+        assert.deepEqual(store.dispatched, [
+          actions.playlistItemMoved(4, 2),
+          actions.playlistItemMoved(8, 5),
+          actions.playlistItemMoved(9, 6),
+        ])
+        assert(moved, "should signal move")
+      })
+    })
+
+    it('should move (2) selected items up and (1) unselected item down', function () {
+      const store = fakeStore(Set([2, 3, 8, 9]))
+      return mod.moveItems(2, 7, store, lms).then(moved => {
+        assert.deepEqual(store.dispatched, [
+          actions.playlistItemMoved(3, 7),
+          actions.playlistItemMoved(2, 6),
+          actions.playlistItemMoved(7, 10),
+        ])
+        assert(moved, "should signal move")
+      })
+    })
+
+    it('should move selected items down and up (with unmoved index)', function () {
+      const store = fakeStore(Set([0, 1, 3, 9]))
+      return mod.moveItems(1, 3, store, lms).then(() => {
+        assert.deepEqual(store.dispatched, [
+          actions.playlistItemMoved(2, 0),
+          actions.playlistItemMoved(9, 4),
+        ])
+      })
+    })
+
+    it('should move selected items down and up (with unmoved indices)', function () {
+      const store = fakeStore(Set([0, 1, 3, 4, 9]))
+      return mod.moveItems(1, 3, store, lms).then(() => {
+        assert.deepEqual(store.dispatched, [
+          actions.playlistItemMoved(2, 0),
+          actions.playlistItemMoved(9, 5),
+        ])
+      })
+    })
+
+    it('should abort move on lms failure', function () {
+      const lms = {command: (...args) => {
+        assert.deepEqual([PLAYERID, "playlist", "move"], args.slice(0, 3),
+          "lms.command args")
+        return args[3] === 1 ? Promise.resolve() : Promise.reject()
+      }}
+      const store = fakeStore(Set([0, 1]))
+      return mod.moveItems(1, 6, store, lms).then(() => {
+        assert.deepEqual(store.dispatched, [
+          actions.playlistItemMoved(1, 6),
+        ])
+      })
+    })
+  })
 
   describe('deleteSelection', function () {
     function fakeStore(state) {
