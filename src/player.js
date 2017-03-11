@@ -170,6 +170,16 @@ export class Player extends React.Component {
     localStorage.currentPlayer = playerid
     this.loadPlayer(playerid, true)
   }
+  onMoveItems(fromIndex, toIndex) {
+    const store = this.props.store
+    playlist.moveItems(fromIndex, toIndex, store, lms).then(() => {
+      const playerid = store.getState().get("playerid")
+      loadPlayer(playerid, true).then(action => store.dispatch(action))
+    }).catch(err => {
+      // TODO convey failure to view somehow
+      window.console.log(err)
+    })
+  }
   loadPlayer(...args) {
     loadPlayer(...args).then(action => this.props.dispatch(action))
     // TODO convey failure to view somehow
@@ -200,6 +210,7 @@ export class Player extends React.Component {
       </PlayerUI>
       <playlist.Playlist
         command={command}
+        onMoveItems={this.onMoveItems.bind(this)}
         dispatch={props.dispatch}
         {...props.playlist.toObject()} />
     </div>

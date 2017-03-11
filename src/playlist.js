@@ -10,7 +10,6 @@ import { formatTime } from './util'
 import './playlist.styl'
 
 const IX = "playlist index"
-const MSIE = window.navigator.userAgent.indexOf("MSIE ") > -1
 export const SINGLE = "single"
 export const TO_LAST = "to last"
 
@@ -180,7 +179,7 @@ export function moveItems(fromIndex, toIndex, store, lms) {
         return resolve(true)
       }
       const [from, to] = items.shift()
-      lms.command(playerid, "playlist", "move", from, to)
+      lms.command(playerid, "playlist", "move", from, to > from ? to - 1 : to)
         .then(() => {
           // TODO abort if selection changed
           store.dispatch(actions.playlistItemMoved(from, to))
@@ -349,31 +348,79 @@ export function moveItem(list, fromIndex, toIndex) {
     .toList()
 }
 
-export const Playlist = props => {
-  function itemSelected(index, event) {
-    const modifier = event.metaKey || event.ctrlKey ? SINGLE :
-      (event.shiftKey ? TO_LAST : null)
-    props.dispatch(actions.playlistItemSelected(index, modifier))
+const PLAYLIST_ITEMS = "playlist items"
+
+function getDropIndex(event, index) {
+  const a = event.clientY - event.currentTarget.offsetTop
+  const b = event.currentTarget.offsetHeight / 2
+  return a > b ? index + 1 : index
+}
+
+export class Playlist extends React.Component {
+  constructor() {
+    super()
+    this.state = {dropIndex: -1, fromIndex: -1}
   }
-  function playTrackAtIndex(index) {
-    props.dispatch(actions.clearPlaylistSelection())
-    props.command("playlist", "index", index)
+  render() {
+    const props = this.props
+    const state = this.state
+    function itemSelected(index, event) {
+      const modifier = event.metaKey || event.ctrlKey ? SINGLE :
+        (event.shiftKey ? TO_LAST : null)
+      props.dispatch(actions.playlistItemSelected(index, modifier))
+    }
+    function playTrackAtIndex(index) {
+      props.dispatch(actions.clearPlaylistSelection())
+      props.command("playlist", "index", index)
+    }
+    const dragStart = (event, index) => {
+      event.dataTransfer.effectAllowed = "move"
+      event.dataTransfer.setData(PLAYLIST_ITEMS, String(index))
+      this.setState({fromIndex: index})
+    }
+    const dragOver = (event, index) => {
+      let dropIndex = -1
+      if(Set(event.dataTransfer.types).has(PLAYLIST_ITEMS)) {
+        const from = this.state.fromIndex
+        const i = getDropIndex(event, index)
+        const sel = props.selection
+        if (sel.has(from) && (!sel.has(i) || !sel.has(i - 1)) ||
+            (i !== from && i !== from + 1)) {
+          event.preventDefault()
+          dropIndex = i
+        }
+      }
+      if (this.state.dropIndex !== dropIndex) {
+        this.setState({dropIndex})
+      }
+    }
+    const dragEnd = () => {
+      this.setState({dropIndex: -1, fromIndex: -1})
+    }
+    const drop = (event, index) => {
+      const fromIndex = parseInt(event.dataTransfer.getData(PLAYLIST_ITEMS))
+      props.onMoveItems(fromIndex, getDropIndex(event, index))
+    }
+    return <List className="playlist" selection>
+      {props.items.toSeq().filter(item => item).map(item => {
+        item = item.toJS()
+        const index = item[IX]
+        const dropClass = index === state.dropIndex - 1 ? "dropAfter" :
+                          index === state.dropIndex ? "dropBefore" : null
+        return <PlaylistItem
+          {...item}
+          command={props.command}
+          itemSelected={itemSelected}
+          dragStart={dragStart} dragOver={dragOver} drop={drop} dragEnd={dragEnd}
+          dropClass={dropClass}
+          playTrackAtIndex={playTrackAtIndex}
+          index={index}
+          selected={props.selection.has(index)}
+          active={props.currentIndex === index}
+          key={index} />
+      }).toArray()}
+    </List>
   }
-  return <List className="playlist" selection>
-    {props.items.toSeq().filter(item => item).map(item => {
-      item = item.toJS()
-      const index = item[IX]
-      return <PlaylistItem
-        {...item}
-        command={props.command}
-        itemSelected={itemSelected}
-        playTrackAtIndex={playTrackAtIndex}
-        index={index}
-        selected={props.selection.has(index)}
-        active={props.currentIndex === index}
-        key={index} />
-    }).toArray()}
-  </List>
 }
 
 function songTitle({artist, title}) {
@@ -383,28 +430,20 @@ function songTitle({artist, title}) {
   return artist || title
 }
 
-function preventTextSelection (event) {
-  // Prevent text selection on shift+click
-  // http://stackoverflow.com/a/1529206/10840
-  if (event.shiftKey) {
-    // For non-IE browsers
-    event.preventDefault()
-    // For IE (untested)
-    if (MSIE) {
-      const target = event.target
-      target.onselectstart = () => false
-      window.setTimeout(() => target.onselectstart = null, 0)
-    }
-  }
-}
-
 export const PlaylistItem = props => (
   <List.Item
-      onClick={(event) => props.itemSelected(props.index, event)}
+      onClick={event => props.itemSelected(props.index, event)}
       onDoubleClick={() => props.playTrackAtIndex(props.index)}
-      onMouseDown={preventTextSelection}
-      className={props.selected ? "selected" : undefined}
-      active={props.active}>
+      onDragStart={event => props.dragStart(event, props.index)}
+      onDragOver={event => props.dragOver(event, props.index)}
+      onDrop={event => props.drop(event, props.index)}
+      onDragEnd={props.dragEnd}
+      className={_.filter([
+        props.selected ? "selected" : null,
+        props.dropClass,
+      ]).join(" ")}
+      active={props.active}
+      draggable="true">
     <List.Content floated="right">
       <List.Description>
         {formatTime(props.duration || 0)}
