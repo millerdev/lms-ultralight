@@ -350,12 +350,6 @@ export function moveItem(list, fromIndex, toIndex) {
 
 const PLAYLIST_ITEMS = "playlist items"
 
-function getDropIndex(event, index) {
-  const a = event.clientY - event.currentTarget.offsetTop
-  const b = event.currentTarget.offsetHeight / 2
-  return a > b ? index + 1 : index
-}
-
 export class Playlist extends React.Component {
   constructor() {
     super()
@@ -372,6 +366,11 @@ export class Playlist extends React.Component {
     function playTrackAtIndex(index) {
       props.dispatch(actions.clearPlaylistSelection())
       props.command("playlist", "index", index)
+    }
+    function getDropIndex(event, index) {
+      const a = event.clientY - event.currentTarget.offsetTop
+      const b = event.currentTarget.offsetHeight / 2
+      return a > b ? index + 1 : index
     }
     const dragStart = (event, index) => {
       event.dataTransfer.effectAllowed = "move"
@@ -442,23 +441,34 @@ export const PlaylistItem = props => (
         props.selected ? "selected" : null,
         props.dropClass,
       ]).join(" ")}
-      active={props.active}
       draggable="true">
     <List.Content floated="right">
       <List.Description>
+        {props.active ? <CurrentTrackIcon /> : ''}
         {formatTime(props.duration || 0)}
       </List.Description>
     </List.Content>
-    <Image
-      ui
-      shape="rounded"
-      height="18px"
-      width="18px"
-      src={lms.getImageUrl(props.playerid, props)} />
     <List.Content>
-      <List.Description>
+      <List.Description className="title">
+        <span>
+          <Image
+            ui
+            inline
+            shape="rounded"
+            height="18px"
+            width="18px"
+            className="gap-right"
+            src={lms.getImageUrl(props.playerid, props)} />
+          </span>
         {songTitle(props)}
       </List.Description>
     </List.Content>
   </List.Item>
+)
+
+
+const CurrentTrackIcon = () => (
+  <span className="gap-right">
+    <i className="fa fa-play"></i>
+  </span>
 )
