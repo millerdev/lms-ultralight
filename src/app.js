@@ -1,8 +1,9 @@
 import React from 'react'
 import { connect, Provider } from 'react-redux'
-import 'semantic-ui-css/semantic.min.css'
+//import 'semantic-ui-css/semantic.min.css'
 
 //import DevTools from './devtools'
+import './semantic.css'
 import * as player from './player'
 import { makeStore } from './store'
 

@@ -95,60 +95,71 @@ export const PlayerUI = props => (
         </Button.Group>
       </div>
     </div>
-    <div className="ui stackable grid">
-      <div className="three wide column">
-        <Button.Group basic size="small">
-          <Button
-            icon="backward"
-            onClick={() => props.command("playlist", "index", "-1")}
+    <div className="ui grid">
+      <div className="middle aligned row">
+        <div className="left floated eight wide mobile four wide tablet two wide computer column">
+          <Button.Group basic size="small">
+            <Button
+              icon="backward"
+              onClick={() => props.command("playlist", "index", "-1")}
+              disabled={!props.playerid} />
+            <IconToggleButton
+              isOn={() => props.isPlaying}
+              onClick={() =>
+                props.command(props.isPlaying ? "pause" : "play")}
+              iconOn="play"
+              iconOff="pause"
+              disabled={!props.playerid} />
+            <Button
+              icon="forward"
+              onClick={() => props.command("playlist", "index", "+1")}
+              disabled={!props.playerid} />
+          </Button.Group>
+        </div>
+        <div className="computer tablet only eight wide tablet twelve wide computer column">
+          <Slider
+            marks={volumeMarks}
+            value={props.volumeLevel}
+            onChange={value => setVolume(props.command, value)}
             disabled={!props.playerid} />
-          <IconToggleButton
-            isOn={() => props.isPlaying}
-            onClick={() =>
-              props.command(props.isPlaying ? "pause" : "play")}
-            iconOn="play"
-            iconOff="pause"
-            disabled={!props.playerid} />
-          <Button
-            icon="forward"
-            onClick={() => props.command("playlist", "index", "+1")}
-            disabled={!props.playerid} />
-        </Button.Group>
+        </div>
+        <div className="right floated eight wide mobile four wide tablet two wide computer column right aligned">
+          <Button.Group basic size="small">
+            <NWayButton
+              markup={[
+                <i className="fa fa-long-arrow-right"></i>,
+                <span className="fa-stack fa-lg icon-repeat-one">
+                  <i className="fa fa-repeat fa-stack-2x"></i>
+                  <i className="fa fa-stack-1x">1</i>
+                </span>,
+                <i className="fa fa-repeat"></i>,
+              ]}
+              value={props.repeatMode}
+              onChange={value => props.command("playlist", "repeat", value)}
+              disabled={!props.playerid} />
+            <NWayButton
+              markup={[
+                <i className="fa fa-sort-amount-asc"></i>,
+                <i className="fa fa-random"></i>,
+                <span className="fa-stack fa-lg icon-shuffle-album">
+                  <i className="fa fa-square-o fa-stack-2x"></i>
+                  <i className="fa fa-random fa-stack-1x"></i>
+                </span>,
+              ]}
+              value={props.shuffleMode}
+              onChange={value => props.command("playlist", "shuffle", value)}
+              disabled={!props.playerid} />
+          </Button.Group>
+        </div>
       </div>
-      <div className="ten wide column">
-        <Slider
-          marks={volumeMarks}
-          value={props.volumeLevel}
-          onChange={value => setVolume(props.command, value)}
-          disabled={!props.playerid} />
-      </div>
-      <div className="three wide column right aligned">
-        <Button.Group basic size="small">
-          <NWayButton
-            markup={[
-              <i className="fa fa-long-arrow-right"></i>,
-              <span className="fa-stack fa-lg icon-repeat-one">
-                <i className="fa fa-repeat fa-stack-2x"></i>
-                <i className="fa fa-stack-1x">1</i>
-              </span>,
-              <i className="fa fa-repeat"></i>,
-            ]}
-            value={props.repeatMode}
-            onChange={value => props.command("playlist", "repeat", value)}
+      <div className="mobile only row">
+        <div className="sixteen wide column">
+          <Slider
+            marks={volumeMarks}
+            value={props.volumeLevel}
+            onChange={value => setVolume(props.command, value)}
             disabled={!props.playerid} />
-          <NWayButton
-            markup={[
-              <i className="fa fa-sort-amount-asc"></i>,
-              <i className="fa fa-random"></i>,
-              <span className="fa-stack fa-lg icon-shuffle-album">
-                <i className="fa fa-square-o fa-stack-2x"></i>
-                <i className="fa fa-random fa-stack-1x"></i>
-              </span>,
-            ]}
-            value={props.shuffleMode}
-            onChange={value => props.command("playlist", "shuffle", value)}
-            disabled={!props.playerid} />
-        </Button.Group>
+        </div>
       </div>
     </div>
     <CurrentTrackInfo
