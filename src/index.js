@@ -10,6 +10,8 @@ import App from './app'
 if (process.env.NODE_ENV === "development") {
   window.console.log('LMS_URL:', LMS_URL)
   require('axios').defaults.baseURL = LMS_URL
+} else {
+  require('axios').defaults.baseURL = ""
 }
 
 const root = document.getElementById('app')

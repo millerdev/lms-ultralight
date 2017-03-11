@@ -55,9 +55,7 @@ if (DEBUG) {
 }
 else {
   stylLoader = ExtractTextPlugin.extract([
-    "css?sourceMap&minimize&localIdentName=[hash:base64:4]",
-    "stylus?sourceMap&outputStyle=compressed",
-    "postcss"
+    "style!css?localIdentName=[local]-[hash:base64:4]&sourceMap!stylus?sourceMap&outputStyle=compressed"
   ]);
 }
 
@@ -136,7 +134,7 @@ module.exports = {
     path: __dirname + '/dist',
     filename: !DEBUG ? 'js/[name]-[hash].js' : 'js/[name]-.js',
     chunkFilename: "js/[name]-[chunkhash].js",
-    publicPath: '/'
+    publicPath: !DEBUG ? '/ultralight/' : '/',
   },
   plugins: plugins,
   module: {
