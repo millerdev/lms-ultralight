@@ -12,9 +12,11 @@ const Player = connect(state => state.toObject())(player.Player)
 
 const App = () => (
   <Provider store={store}>
-    <div>
-      <Player store={store} dispatch={store.dispatch} />
-      {/* <DevTools /> */}
+    <div className="ui padded grid">
+      <div className="sixteen wide column">
+        <Player store={store} dispatch={store.dispatch} />
+        {/* <DevTools /> */}
+      </div>
     </div>
   </Provider>
 )
