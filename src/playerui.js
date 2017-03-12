@@ -130,21 +130,21 @@ export const PlayerUI = props => (
             <NWayButton
               className="repeat-toggle"
               markup={[
-                <i className="fa fa-long-arrow-right"></i>,
+                <i className="fa fa-fw fa-lg fa-long-arrow-right"></i>,
                 <span className="fa-stack icon-repeat-one">
                   <i className="fa fa-repeat fa-stack-2x"></i>
                   <i className="fa fa-stack-1x">1</i>
                 </span>,
-                <i className="fa fa-repeat"></i>,
+                <i className="fa fa-fw fa-lg fa-repeat"></i>,
               ]}
               value={props.repeatMode}
               onChange={value => props.command("playlist", "repeat", value)}
               disabled={!props.playerid} />
             <NWayButton
               markup={[
-                <i className="fa fa-sort-amount-asc"></i>,
-                <i className="fa fa-random"></i>,
-                <span className="fa-stack fa-lg icon-shuffle-album">
+                <i className="fa fa-fw fa-lg fa-sort-amount-asc"></i>,
+                <i className="fa fa-fw fa-lg fa-random"></i>,
+                <span className="fa-stack fa-fw fa-lg icon-shuffle-album">
                   <i className="fa fa-square-o fa-stack-2x"></i>
                   <i className="fa fa-random fa-stack-1x"></i>
                 </span>,
