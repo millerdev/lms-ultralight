@@ -8,6 +8,7 @@ import * as lms from './lmsclient'
 import * as players from './playerselect'
 import { formatTime } from './util'
 import 'font-awesome/css/font-awesome.css'
+import './player.styl'
 
 const IconToggleButton = props => (
   <Button
@@ -19,6 +20,7 @@ const IconToggleButton = props => (
 const NWayButton = props => {
   const next = props.value + 1 >= props.markup.length ? 0 : props.value + 1
   return <Button
+      className={props.className}
       onClick={() => props.onChange(props.values ? props.values[next] : next)}
       disabled={props.disabled}
       >{props.markup[props.value]}</Button>
@@ -76,7 +78,7 @@ const volumeMarks = {10: "", 20: "", 30: "", 40: "", 50: "", 60: "", 70: "", 80:
 const setVolume = _.throttle((command, value) => command("mixer", "volume", value), 300)
 
 export const PlayerUI = props => (
-  <div>
+  <div className="player">
     <div className="ui grid">
       <div className="twelve wide column">
         <players.SelectPlayer
@@ -126,9 +128,10 @@ export const PlayerUI = props => (
         <div className="right floated eight wide mobile four wide tablet two wide computer column right aligned">
           <Button.Group basic size="small">
             <NWayButton
+              className="repeat-toggle"
               markup={[
                 <i className="fa fa-long-arrow-right"></i>,
-                <span className="fa-stack fa-lg icon-repeat-one">
+                <span className="fa-stack icon-repeat-one">
                   <i className="fa fa-repeat fa-stack-2x"></i>
                   <i className="fa fa-stack-1x">1</i>
                 </span>,
