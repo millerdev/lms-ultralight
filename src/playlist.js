@@ -450,16 +450,14 @@ export const PlaylistItem = props => (
     </List.Content>
     <List.Content>
       <List.Description className="title">
-        <span>
-          <Image
-            ui
-            inline
-            shape="rounded"
-            height="18px"
-            width="18px"
-            className="gap-right"
-            src={lms.getImageUrl(props.playerid, props)} />
-          </span>
+        <Image
+          ui
+          inline
+          shape="rounded"
+          height="18px"
+          width="18px"
+          className="gap-right"
+          src={lms.getImageUrl(props.playerid, props)} />
         {songTitle(props)}
       </List.Description>
     </List.Content>
