@@ -72,10 +72,31 @@ export class SeekBar extends React.Component {
   }
 }
 
-const volumeMarks = {10: "", 20: "", 30: "", 40: "", 50: "", 60: "", 70: "", 80: "", 90: ""}
-// TODO make volume adjustment UI smoother: decouple slider adjustment (and
-// state update) speed from sending events to the server
-const setVolume = _.throttle((command, value) => command("mixer", "volume", value), 300)
+export class VolumeSlider extends React.Component {
+  constructor() {
+    super()
+    this.state = {sliding: false, level: 0}
+    this.setVolume = _.throttle((command, value) => {
+      command("mixer", "volume", value)
+    }, 500)
+    this.marks = _.fromPairs(_.map(_.range(10, 100, 10), n => [n, ""]))
+  }
+  render() {
+    const props = this.props
+    return <Slider
+      marks={this.marks}
+      value={this.state.sliding ? this.state.level : props.volumeLevel}
+      onBeforeChange={level => this.setState({sliding: true, level})}
+      onChange={level => {
+        // TODO make volume adjustment UI smoother: decouple slider adjustment (and
+        // state update) speed from sending events to the server
+        this.setVolume(props.command, level)
+        this.setState({level})
+      }}
+      onAfterChange={() => this.setState({sliding: false})}
+      disabled={!props.playerid} />
+  }
+}
 
 export const PlayerUI = props => (
   <div className="player">
@@ -119,11 +140,7 @@ export const PlayerUI = props => (
           </Button.Group>
         </div>
         <div className="computer tablet only eight wide tablet twelve wide computer column">
-          <Slider
-            marks={volumeMarks}
-            value={props.volumeLevel}
-            onChange={value => setVolume(props.command, value)}
-            disabled={!props.playerid} />
+          <VolumeSlider {...props} />
         </div>
         <div className="right floated eight wide mobile four wide tablet two wide computer column right aligned">
           <Button.Group basic size="small">
@@ -157,11 +174,7 @@ export const PlayerUI = props => (
       </div>
       <div className="mobile only row">
         <div className="sixteen wide column">
-          <Slider
-            marks={volumeMarks}
-            value={props.volumeLevel}
-            onChange={value => setVolume(props.command, value)}
-            disabled={!props.playerid} />
+          <VolumeSlider {...props} />
         </div>
       </div>
     </div>
