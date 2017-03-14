@@ -54,9 +54,10 @@ if (DEBUG) {
   stylLoader = 'style!css?localIdentName=[local]-[hash:base64:4]&sourceMap!stylus?sourceMap';
 }
 else {
-  stylLoader = ExtractTextPlugin.extract([
-    "style!css?localIdentName=[local]-[hash:base64:4]&sourceMap!stylus?sourceMap&outputStyle=compressed"
-  ]);
+  stylLoader = ExtractTextPlugin.extract(
+    "style",
+    "css?localIdentName=[local]-[hash:base64:4]&sourceMap!stylus?sourceMap&outputStyle=compressed"
+  );
 }
 
 const loaders = [
