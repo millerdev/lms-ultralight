@@ -354,10 +354,17 @@ export class Playlist extends React.Component {
   constructor() {
     super()
     this.state = {dropIndex: -1, fromIndex: -1}
+    this.dragging = false
   }
   render() {
     const props = this.props
     const state = this.state
+    const dragging = value => {
+      if (value !== undefined) {
+        this.dragging = value
+      }
+      return this.dragging
+    }
     function itemSelected(index, event) {
       const modifier = event.metaKey || event.ctrlKey ? SINGLE :
         (event.shiftKey ? TO_LAST : null)
@@ -410,6 +417,7 @@ export class Playlist extends React.Component {
           {...item}
           command={props.command}
           itemSelected={itemSelected}
+          dragging={dragging}
           dragStart={dragStart} dragOver={dragOver} drop={drop} dragEnd={dragEnd}
           dropClass={dropClass}
           playTrackAtIndex={playTrackAtIndex}
@@ -431,6 +439,14 @@ function songTitle({artist, title}) {
 
 export const PlaylistItem = props => (
   <List.Item
+      onTouchStart={() => { props.dragging(false) }}
+      onTouchMove={() => { props.dragging(true) }}
+      onTouchEnd={event => {
+        if (!props.dragging()) {
+          event.preventDefault()
+          props.playTrackAtIndex(props.index)
+        }
+      }}
       onClick={event => props.itemSelected(props.index, event)}
       onDoubleClick={() => props.playTrackAtIndex(props.index)}
       onDragStart={event => props.dragStart(event, props.index)}
