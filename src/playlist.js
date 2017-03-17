@@ -354,17 +354,11 @@ export class Playlist extends React.Component {
   constructor() {
     super()
     this.state = {dropIndex: -1, fromIndex: -1}
-    this.dragging = false
+    this.slide = makeSlider(this)
   }
   render() {
     const props = this.props
     const state = this.state
-    const dragging = value => {
-      if (value !== undefined) {
-        this.dragging = value
-      }
-      return this.dragging
-    }
     function itemSelected(index, event) {
       const modifier = event.metaKey || event.ctrlKey ? SINGLE :
         (event.shiftKey ? TO_LAST : null)
@@ -373,39 +367,6 @@ export class Playlist extends React.Component {
     function playTrackAtIndex(index) {
       props.dispatch(actions.clearPlaylistSelection())
       props.command("playlist", "index", index)
-    }
-    function getDropIndex(event, index) {
-      const a = event.clientY - event.currentTarget.offsetTop
-      const b = event.currentTarget.offsetHeight / 2
-      return a > b ? index + 1 : index
-    }
-    const dragStart = (event, index) => {
-      event.dataTransfer.effectAllowed = "move"
-      event.dataTransfer.setData(PLAYLIST_ITEMS, String(index))
-      this.setState({fromIndex: index})
-    }
-    const dragOver = (event, index) => {
-      let dropIndex = -1
-      if(Set(event.dataTransfer.types).has(PLAYLIST_ITEMS)) {
-        const from = this.state.fromIndex
-        const i = getDropIndex(event, index)
-        const sel = props.selection
-        if (sel.has(from) && (!sel.has(i) || !sel.has(i - 1)) ||
-            (i !== from && i !== from + 1)) {
-          event.preventDefault()
-          dropIndex = i
-        }
-      }
-      if (this.state.dropIndex !== dropIndex) {
-        this.setState({dropIndex})
-      }
-    }
-    const dragEnd = () => {
-      this.setState({dropIndex: -1, fromIndex: -1})
-    }
-    const drop = (event, index) => {
-      const fromIndex = parseInt(event.dataTransfer.getData(PLAYLIST_ITEMS))
-      props.onMoveItems(fromIndex, getDropIndex(event, index))
     }
     return <List className="playlist" selection>
       {props.items.toSeq().filter(item => item).map(item => {
@@ -417,8 +378,7 @@ export class Playlist extends React.Component {
           {...item}
           command={props.command}
           itemSelected={itemSelected}
-          dragging={dragging}
-          dragStart={dragStart} dragOver={dragOver} drop={drop} dragEnd={dragEnd}
+          slide={this.slide}
           dropClass={dropClass}
           playTrackAtIndex={playTrackAtIndex}
           index={index}
@@ -439,20 +399,15 @@ function songTitle({artist, title}) {
 
 export const PlaylistItem = props => (
   <List.Item
-      onTouchStart={() => { props.dragging(false) }}
-      onTouchMove={() => { props.dragging(true) }}
-      onTouchEnd={event => {
-        if (!props.dragging()) {
-          event.preventDefault()
-          props.playTrackAtIndex(props.index)
-        }
-      }}
       onClick={event => props.itemSelected(props.index, event)}
       onDoubleClick={() => props.playTrackAtIndex(props.index)}
-      onDragStart={event => props.dragStart(event, props.index)}
-      onDragOver={event => props.dragOver(event, props.index)}
-      onDrop={event => props.drop(event, props.index)}
-      onDragEnd={props.dragEnd}
+      onDragStart={event => props.slide.dragStart(event, props.index)}
+      onDragOver={event => props.slide.dragOver(event, props.index)}
+      onDrop={event => props.slide.drop(event, props.index)}
+      onDragEnd={props.slide.dragEnd}
+      onTouchStart={props.slide.touchStart}
+      onTouchMove={props.slide.touchMove}
+      onTouchEnd={props.slide.touchEnd}
       className={_.filter([
         props.selected ? "selected" : null,
         props.dropClass,
@@ -486,3 +441,67 @@ const CurrentTrackIcon = () => (
     <i className="fa fa-play"></i>
   </span>
 )
+
+
+/**
+ * Playlist drag/drop manager
+ */
+function makeSlider(playlist) {
+  let dragging = false
+
+  function touchStart() {
+    dragging = false
+  }
+  function touchMove() {
+    dragging = true
+  }
+  function touchEnd(event) {
+    if (!dragging) {
+      event.preventDefault()
+      playlist.props.playTrackAtIndex(playlist.props.index)
+    }
+  }
+  function getDropIndex(event, index) {
+    const a = event.clientY - event.currentTarget.offsetTop
+    const b = event.currentTarget.offsetHeight / 2
+    return a > b ? index + 1 : index
+  }
+  function dragStart(event, index) {
+    event.dataTransfer.effectAllowed = "move"
+    event.dataTransfer.setData(PLAYLIST_ITEMS, String(index))
+    playlist.setState({fromIndex: index})
+  }
+  function dragOver(event, index) {
+    let dropIndex = -1
+    if(Set(event.dataTransfer.types).has(PLAYLIST_ITEMS)) {
+      const from = playlist.state.fromIndex
+      const i = getDropIndex(event, index)
+      const sel = playlist.props.selection
+      if (sel.has(from) && (!sel.has(i) || !sel.has(i - 1)) ||
+          (i !== from && i !== from + 1)) {
+        event.preventDefault()
+        dropIndex = i
+      }
+    }
+    if (playlist.state.dropIndex !== dropIndex) {
+      playlist.setState({dropIndex})
+    }
+  }
+  function dragEnd() {
+    playlist.setState({dropIndex: -1, fromIndex: -1})
+  }
+  function drop(event, index) {
+    const fromIndex = parseInt(event.dataTransfer.getData(PLAYLIST_ITEMS))
+    playlist.props.onMoveItems(fromIndex, getDropIndex(event, index))
+  }
+
+  return {
+    touchStart,
+    touchMove,
+    touchEnd,
+    dragStart,
+    dragOver,
+    dragEnd,
+    drop,
+  }
+}
