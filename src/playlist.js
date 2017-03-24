@@ -425,6 +425,7 @@ export const PlaylistItem = props => (
       onDragOver={event => props.slide.dragOver(event, props.index)}
       onDrop={event => props.slide.drop(event, props.index)}
       onDragEnd={props.slide.dragEnd}
+      onContextMenu={event => event.preventDefault()}
       data-index={props.index}
       className={_.filter([
         props.selected ? "selected" : null,
@@ -535,6 +536,7 @@ function makeSlider(playlist) {
         if (isSelected && playlist.props.selection.size) {
           playlist.touchClearSelection()
           isHolding = false
+          latestPosition = null  // prevent play on touchEnd
         } else {
           toggleSelection(fromIndex)
         }
@@ -561,14 +563,14 @@ function makeSlider(playlist) {
   }
   function touchEnd(event) {
     event.stopPropagation()
-    if (startPosition === latestPosition) {
+    if (!isHolding && startPosition === latestPosition) {
       event.preventDefault()
       if (playlist.props.selection.size) {
         toggleSelection(fromIndex)
       } else {
         playlist.playTrackAtIndex(fromIndex)
       }
-    } else if (playlist.props.selection.size) {
+    } else if (playlist.props.selection.size && latestPosition) {
       const target = getTarget(latestPosition)
       const hoverIndex = getIndex(target)
       if (hoverIndex !== null) {
