@@ -626,8 +626,11 @@ function makeSlider(playlist) {
   }
   function allowedDropIndex(index) {
     const sel = playlist.props.selection
-    if (sel.has(fromIndex) && !(sel.has(index) || sel.has(index - 1)) ||
-        (index !== fromIndex && index !== fromIndex + 1)) {
+    if (sel.has(fromIndex)) {
+      if (!(sel.has(index) || sel.has(index - 1))) {
+        return index
+      }
+    } else if (index !== fromIndex && index !== fromIndex + 1) {
       return index
     }
     return -1
