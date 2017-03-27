@@ -447,7 +447,7 @@ export const PlaylistItem = props => (
           shape="rounded"
           height="18px"
           width="18px"
-          className="gap-right"
+          className="track-art gap-right"
           src={lms.getImageUrl(props.playerid, props)} />
         {songTitle(props)}
       </List.Description>
@@ -480,16 +480,16 @@ const DragHandle = () => (
  *  - double-click to play track
  *
  * Touch interaction:
- *  - tap to play track
- *  - long-press to enter selection mode
+ *  - tap track art to play
+ *  - tap to select and enter selection/reorder mode
  *    - tap to select/deselect tracks
- *    - TODO tap album art icon to view track details
  *    - drag on drag handle to rearrange tracks in playlist
  *    - long-press+drag to select and rearrange track(s) in playlist
  *    - long-press selected track to exit selection mode
  *    - tap/deselect last selected track to exit selection mode
  *  - TODO swipe to enter delete mode
  *    - click delete icon on right to confirm deletion
+ *  - TODO long-press to view track details
  */
 function makeSlider(playlist) {
   let listeners = []
@@ -519,7 +519,6 @@ function makeSlider(playlist) {
     if (event.touches.length > 1) {
       return
     }
-    event.stopPropagation()
     const pos = startPosition = latestPosition = {
       x: event.touches[0].clientX,
       y: event.touches[0].clientY,
@@ -536,8 +535,9 @@ function makeSlider(playlist) {
         if (isSelected && playlist.props.selection.size) {
           playlist.touchClearSelection()
           isHolding = false
-          latestPosition = null  // prevent play on touchEnd
+          latestPosition = null  // do nothing on touchEnd
         } else {
+          // TODO show track info instead of select
           toggleSelection(fromIndex)
         }
       }
@@ -562,16 +562,18 @@ function makeSlider(playlist) {
     }
   }
   function touchEnd(event) {
-    event.stopPropagation()
+    if (!latestPosition) {
+      return  // hold selected -> clear selection
+    }
+    const target = getTarget(latestPosition)
     if (!isHolding && startPosition === latestPosition) {
       event.preventDefault()
-      if (playlist.props.selection.size) {
-        toggleSelection(fromIndex)
-      } else {
+      if (hasClass(target, "track-art")) {
         playlist.playTrackAtIndex(fromIndex)
+      } else {
+        toggleSelection(fromIndex)
       }
-    } else if (playlist.props.selection.size && latestPosition) {
-      const target = getTarget(latestPosition)
+    } else if (playlist.props.selection.size) {
       const hoverIndex = getIndex(target)
       if (hoverIndex !== null) {
         const toIndex = allowedDropIndex(getDropIndex(event, hoverIndex, target))
