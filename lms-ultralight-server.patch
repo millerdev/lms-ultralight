@@ -1,0 +1,31 @@
+diff --git a/Slim/Web/HTTP.pm b/Slim/Web/HTTP.pm
+index 75f17f2..577bd63 100644
+--- a/Slim/Web/HTTP.pm
++++ b/Slim/Web/HTTP.pm
+@@ -944,7 +944,7 @@ sub generateHTTPResponse {
+ 	# setup our defaults
+ 	$response->content_type($contentType);
+ 	#$response->expires(0);
+-
++=pod
+ 	# short-circuit if we don't have a content type to respond to.
+ 	unless (defined($contentType)) {
+ 
+@@ -962,7 +962,7 @@ sub generateHTTPResponse {
+ 			$response,
+ 		);
+ 	}
+-
++=cut
+ 	main::INFOLOG && $log->is_info && $log->info("Generating response for ($type, $contentType) $path");
+ 
+ 	# some generally useful form details...
+@@ -1022,7 +1022,7 @@ sub generateHTTPResponse {
+ 		$path = 'html/mypage.ico';
+ 		$isStatic = 1;
+ 	}
+-	elsif ( $path =~ /\.css|\.js(?!on)|robots\.txt/ ) {
++	elsif ( $path =~ /\.css|\.js(?!on)|\.woff2?|\.ttf|robots\.txt/ ) {
+ 		$isStatic = 1;
+ 	}
+ 	elsif (    $path =~ m{html/} 
