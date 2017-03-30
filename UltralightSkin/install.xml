@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<extension>
+	<id>d61ddfa2-f7ca-4fb0-a9be-1f242b4f6ec8</id>
+	<name>ULTRALIGHT_SKIN</name>
+	<module>Plugins::UltralightSkin::Plugin</module>
+	<version>0.1.0</version>
+	<description>PLUGIN_ULTRALIGHT_SKIN</description>
+	<creator>whomever</creator>
+	<defaultState>enabled</defaultState>
+	<type>2</type>
+	<enforce>1</enforce>
+	<targetApplication>
+		<id>Logitech Media Server</id>
+		<minVersion>7.9</minVersion>
+		<maxVersion>*</maxVersion>
+	</targetApplication>
+</extension>

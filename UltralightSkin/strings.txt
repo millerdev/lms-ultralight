@@ -1,0 +1,5 @@
+ULTRALIGHT_SKIN
+	EN	Ultralight
+	
+PLUGIN_ULTRALIGHT_SKIN
+	EN	This is a light weight, responsive skin, suitable for mobile as well as desktop use.
