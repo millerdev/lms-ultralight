@@ -1,6 +1,6 @@
-# Ultralight (preview) - a Logitech Media Server theme
+# Ultralight (preview) - a Logitech Media Server skin
 
-Ultralight is a responsive theme for Logitech Media Server that works well
+Ultralight is a responsive skin for Logitech Media Server that works well
 on desktop and mobile browsers. 
 
 ![Ultralight](ultralight.png?raw=true "Ultralight")
@@ -14,7 +14,7 @@ Features
   Backspace key).
 
 There is no support for adding items to the playlist yet, so it is recommended
-to not set ultralight as the default theme. Instead, use the default theme to
+to not set ultralight as the default skin. Instead, use the default skin to
 browse the media library and add items to the playlist, and use ultralight on
 your mobile device and/or to rearrange or delete items in the playlist. A media
 library browser will hopefully be developed someday.
