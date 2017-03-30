@@ -3,9 +3,9 @@
 	<id>d61ddfa2-f7ca-4fb0-a9be-1f242b4f6ec8</id>
 	<name>ULTRALIGHT_SKIN</name>
 	<module>Plugins::UltralightSkin::Plugin</module>
-	<version>0.1.0</version>
+	<version>{version}</version>
 	<description>PLUGIN_ULTRALIGHT_SKIN</description>
-	<creator>whomever</creator>
+	<creator>Daniel Miller</creator>
 	<defaultState>enabled</defaultState>
 	<type>2</type>
 	<enforce>1</enforce>
