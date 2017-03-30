@@ -33,21 +33,14 @@ npm run dev
 npm test
 ```
 
-## Build/installation
+## Build/package/install
 
 ```
 npm run build
+npm package
 ```
 
-Build artifacts will be located in `./dist` when the build completes. Create a
-new directory `HTML/ultralight` in your LMS themes dir and copy the files from
-`./dist` into it.
+This creates a packaged version file: `UltralightSkin-vX.Y.Z.zip`
 
-Unfortunately the server needs to be patched to serve the font files. For now
-the workaround is to apply a (hacky) patch (
-[`lms-ultralight-server.patch`](lms-ultralight-server.patch)) to
-`Slim/Web/HTTP.pm`
-
-Once the patch is applied and the `ultralight` theme directory has been
-populated, the theme can be accessed at http://localhost:9000/ultralight/
-(assuming the Logitech Media Server is running on localhost port 9000).
+Unzip this file into your [LMS Plugins folder](http://wiki.slimdevices.com/index.php/Logitech_Media_Server_Plugins)
+and restart Logitech Media Server.
