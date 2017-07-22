@@ -2,7 +2,7 @@ import { List as IList, Map, Range, Set, fromJS } from 'immutable'
 import _ from 'lodash'
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { List, Icon, Image } from 'semantic-ui-react'
+import { Button, List, Icon, Image } from 'semantic-ui-react'
 
 import { effect, combine } from './effects'
 import * as lms from './lmsclient'
@@ -231,7 +231,7 @@ export function moveItems(fromIndex, toIndex, store, lms) {
   })
 }
 
-export function deleteSelection(store, lms) {
+export function deleteSelection(store, lms=lms) {
   return new Promise(resolve => {
     function remove(items) {
       if (!items.length) {
@@ -351,6 +351,31 @@ export function moveItem(list, fromIndex, toIndex) {
 const PLAYLIST_ITEMS = "playlist items"
 
 export class Playlist extends React.Component {
+  deleteSelectedItems() {
+    const store = this.props.store
+    deleteSelection(store).then(() => {
+      const loadPlayer = require("./player").loadPlayer
+      const playerid = this.props.playerid
+      loadPlayer(playerid, true).then(action => store.dispatch(action))
+    })
+  }
+  render() {
+    const props = this.props
+    return <div>
+      <PlaylistItems {...props} />
+      <Button.Group basic size="small">
+        <Button
+          icon="remove"
+          content="Delete"
+          labelPosition="left"
+          onClick={() => this.deleteSelectedItems()}
+          disabled={!props.selection.size} />
+      </Button.Group>
+    </div>
+  }
+}
+
+class PlaylistItems extends React.Component {
   constructor() {
     super()
     this.state = {dropIndex: -1, selecting: false}

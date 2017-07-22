@@ -133,7 +133,7 @@ export function reducer(state_=defaultState, action) {
 }
 
 function onDeleteKey(store) {
-  playlist.deleteSelection(store, lms).then(() => {
+  playlist.deleteSelection(store).then(() => {
     const playerid = store.getState().get("playerid")
     loadPlayer(playerid, true).then(action => store.dispatch(action))
   })
@@ -209,6 +209,7 @@ export class Player extends React.Component {
           disabled={!props.playerid} />
       </PlayerUI>
       <playlist.Playlist
+        store={props.store}
         command={command}
         onMoveItems={this.onMoveItems.bind(this)}
         dispatch={props.dispatch}
