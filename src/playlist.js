@@ -2,7 +2,7 @@ import { List as IList, Map, Range, Set, fromJS } from 'immutable'
 import _ from 'lodash'
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { List, Image } from 'semantic-ui-react'
+import { List, Icon, Image } from 'semantic-ui-react'
 
 import { effect, combine } from './effects'
 import * as lms from './lmsclient'
@@ -414,7 +414,7 @@ function songTitle({artist, title}) {
   if (artist && title) {
     return artist + " - " + title
   }
-  return artist || title
+  return artist || title || "..."
 }
 
 export const PlaylistItem = props => (
@@ -434,21 +434,22 @@ export const PlaylistItem = props => (
       draggable="true">
     <List.Content floated="right">
       <List.Description className={props.selecting ? "drag-handle" : ""}>
-        {props.active ? <CurrentTrackIcon /> : ""}
         {formatTime(props.duration || 0)}
         {props.selecting ? <DragHandle /> : ""}
       </List.Description>
     </List.Content>
     <List.Content>
       <List.Description className="title">
-        <Image
-          ui
-          inline
-          shape="rounded"
-          height="18px"
-          width="18px"
-          className="track-art gap-right"
-          src={lms.getImageUrl(props.playerid, props)} />
+        {props.active ?
+          <CurrentTrackIcon /> :
+          <Image
+            ui
+            inline
+            shape="rounded"
+            height="18px"
+            width="18px"
+            className="track-art gap-right"
+            src={lms.getImageUrl(props.playerid, props)} /> }
         {songTitle(props)}
       </List.Description>
     </List.Content>
@@ -458,7 +459,7 @@ export const PlaylistItem = props => (
 
 const CurrentTrackIcon = () => (
   <span className="gap-right">
-    <i className="fa fa-play"></i>
+    <Icon name="video play" size="large" fitted />
   </span>
 )
 
