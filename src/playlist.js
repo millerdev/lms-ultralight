@@ -231,7 +231,7 @@ export function moveItems(fromIndex, toIndex, store, lms) {
   })
 }
 
-export function deleteSelection(store, lms=lms) {
+export function deleteSelection(store, lms) {
   return new Promise(resolve => {
     function remove(items) {
       if (!items.length) {
@@ -353,7 +353,7 @@ const PLAYLIST_ITEMS = "playlist items"
 export class Playlist extends React.Component {
   deleteSelectedItems() {
     const store = this.props.store
-    deleteSelection(store).then(() => {
+    deleteSelection(store, lms).then(() => {
       const loadPlayer = require("./player").loadPlayer
       const playerid = this.props.playerid
       loadPlayer(playerid, true).then(action => store.dispatch(action))

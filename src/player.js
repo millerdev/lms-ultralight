@@ -133,7 +133,7 @@ export function reducer(state_=defaultState, action) {
 }
 
 function onDeleteKey(store) {
-  playlist.deleteSelection(store).then(() => {
+  playlist.deleteSelection(store, lms).then(() => {
     const playerid = store.getState().get("playerid")
     loadPlayer(playerid, true).then(action => store.dispatch(action))
   })
