@@ -1,24 +1,44 @@
+import { Map } from 'immutable'
 import React from 'react'
 import { connect, Provider } from 'react-redux'
 //import 'semantic-ui-css/semantic.min.css'
 
 //import DevTools from './devtools'
 import './semantic.css'
+import { combine, split } from './effects'
+import * as menu from './menu'
 import * as player from './player'
+import * as players from './playerselect'
 import { makeStore } from './store'
 
-const store = makeStore(player.reducer, player.defaultState)
+const defaultState = Map({
+  players: players.defaultState,
+  player: player.defaultState,
+})
 
-const Player = connect(state => state.toObject())(player.Player)
+function reducer(state=defaultState, action) {
+  const [playerState, effects] =
+    split(player.reducer(state.get("player"), action))
+  return combine(Map({
+    players: players.reducer(state.get("players"), action),
+    player: playerState,
+  }), effects)
+}
+
+const store = makeStore(reducer, defaultState)
+const MainMenu = connect(state => state.toObject())(menu.MainMenu)
+const Player = connect(state => state.get("player").toObject())(player.Player)
 
 const App = () => (
   <Provider store={store}>
-    <div className="ui padded grid">
-      <div className="sixteen wide column">
-        <Player store={store} dispatch={store.dispatch} />
-        {/* <DevTools /> */}
+    <MainMenu dispatch={store.dispatch}>
+      <div className="ui padded grid">
+        <div className="sixteen wide column">
+          <Player store={store} dispatch={store.dispatch} />
+          {/* <DevTools /> */}
+        </div>
       </div>
-    </div>
+    </MainMenu>
   </Provider>
 )
 

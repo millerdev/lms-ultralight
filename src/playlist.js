@@ -208,7 +208,7 @@ export function moveItems(fromIndex, toIndex, store, lms) {
       return selected.map(i => i < toIndex ? [i, min--] : [i, max++])
     }
     const isValidMove = (from, to) => from !== to && from + 1 !== to
-    const state = store.getState()
+    const state = store.getState().get("player")
     const playerid = state.get("playerid")
     const selection = state.getIn(["playlist", "selection"])
     let items
@@ -251,7 +251,7 @@ export function deleteSelection(store, lms) {
           resolve()
         })
     }
-    const state = store.getState()
+    const state = store.getState().get("player")
     const playerid = state.get("playerid")
     const selection = state.getIn(["playlist", "selection"])
     const items = selection

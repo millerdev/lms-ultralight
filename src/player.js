@@ -6,7 +6,6 @@ import { effect, combine, split, IGNORE_ACTION } from './effects'
 import makeReducer from './store'
 import * as lms from './lmsclient'
 import { PlayerUI, SeekBar } from './playerui'
-import * as players from './playerselect'
 import * as playlist from './playlist'
 import { backoff, isNumeric, timer } from './util'
 
@@ -15,7 +14,6 @@ export const REPEAT_ONE = 1
 export const REPEAT_ALL = 2
 
 export const defaultState = Map({
-  players: players.defaultState,
   playlist: playlist.defaultState,
   playerid: null,
   isPowerOn: false,
@@ -70,13 +68,7 @@ export const playerReducer = makeReducer({
     }
     return combine(state, effects)
   },
-}, defaultState.remove("players"))
-
-export function loadPlayer(playerid, fetchPlaylist=false) {
-  const args = fetchPlaylist ? [0, 100] : []
-  return lms.getPlayerStatus(playerid, ...args)
-            .then(data => actions.gotPlayer(data))
-}
+}, defaultState)
 
 /**
  * Return number of seconds to end of song (floating point); null if unknown
@@ -101,6 +93,12 @@ export const advanceToNextTrackAfter = (() => {
   }
 })()
 
+export function loadPlayer(playerid, fetchPlaylist=false) {
+  const args = fetchPlaylist ? [0, 100] : []
+  return lms.getPlayerStatus(playerid, ...args)
+            .then(data => actions.gotPlayer(data))
+}
+
 export const loadPlayerAfter = (() => {
   const fetchBackoff =  backoff(30000)
   const time = timer()
@@ -124,17 +122,14 @@ export function reducer(state_=defaultState, action) {
   const [playlistState, playlistEffects] =
     split(playlist.reducer(state.get("playlist"), action))
   return combine(
-    state.merge({
-      players: players.reducer(state.get("players"), action),
-      playlist: playlistState,
-    }),
+    state.set("playlist", playlistState),
     effects.concat(playlistEffects)
   )
 }
 
 function onDeleteKey(store) {
   playlist.deleteSelection(store, lms).then(() => {
-    const playerid = store.getState().get("playerid")
+    const playerid = store.getState().getIn(["player", "playerid"])
     loadPlayer(playerid, true).then(action => store.dispatch(action))
   })
 }
@@ -146,19 +141,6 @@ const KEY_HANDLERS = {
 
 export class Player extends React.Component {
   componentDidMount() {
-    lms.getPlayers().then(data => {
-      this.props.dispatch(players.gotPlayers(data))
-      // HACK currently all Players will use the same localStorage key
-      let playerid = localStorage.currentPlayer
-      if (!playerid || !_.some(data, item => item.playerid === playerid)) {
-        if (!data.length) {
-          return
-        }
-        playerid = data[0].playerid
-      }
-      this.loadPlayer(playerid, true)
-    })
-    // TODO convey failure to view somehow
     document.addEventListener("keydown", event => this.onKeyDown(event))
   }
   onKeyDown(event) {
@@ -166,26 +148,21 @@ export class Player extends React.Component {
       KEY_HANDLERS[event.keyCode](this.props.store)
     }
   }
-  onPlayerSelected(playerid) {
-    localStorage.currentPlayer = playerid
-    this.loadPlayer(playerid, true)
-  }
   onMoveItems(fromIndex, toIndex) {
     const store = this.props.store
     playlist.moveItems(fromIndex, toIndex, store, lms).then(() => {
-      const playerid = store.getState().get("playerid")
+      const playerid = store.getState().getIn(["player", "playerid"])
       loadPlayer(playerid, true).then(action => store.dispatch(action))
     }).catch(err => {
       // TODO convey failure to view somehow
       window.console.log(err)
     })
   }
-  loadPlayer(...args) {
-    loadPlayer(...args).then(action => this.props.dispatch(action))
-    // TODO convey failure to view somehow
-  }
   command(playerid, ...args) {
-    lms.command(playerid, ...args).then(this.loadPlayer(playerid))
+    lms.command(playerid, ...args).then(() => {
+      loadPlayer(playerid).then(action => this.props.dispatch(action))
+      // TODO convey failure to view somehow
+    })
     // TODO convey failure to view somehow
   }
   onSeek(playerid, value) {
@@ -198,7 +175,6 @@ export class Player extends React.Component {
     return <div>
       <PlayerUI
         command={command}
-        onPlayerSelected={this.onPlayerSelected.bind(this)}
         {...props}>
         <LiveSeekBar
           isPlaying={props.isPlaying}

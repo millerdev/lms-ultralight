@@ -5,7 +5,6 @@ import { Button, Item } from 'semantic-ui-react'
 import 'rc-slider/assets/index.css'
 
 import * as lms from './lmsclient'
-import * as players from './playerselect'
 import { formatTime } from './util'
 import 'font-awesome/css/font-awesome.css'
 import './player.styl'
@@ -100,24 +99,6 @@ export class VolumeSlider extends React.Component {
 
 export const PlayerUI = props => (
   <div className="player">
-    <div className="ui grid">
-      <div className="twelve wide column">
-        <players.SelectPlayer
-          playerid={props.playerid}
-          onPlayerSelected={props.onPlayerSelected}
-          {...props.players.toObject()} />
-      </div>
-      <div className="right aligned four wide column">
-        <Button.Group basic size="small">
-          <Button basic toggle
-            active={props.isPowerOn}
-            onClick={() =>
-              props.command("power", props.isPowerOn ? 0 : 1)}
-            icon="power"
-            disabled={!props.playerid} />
-        </Button.Group>
-      </div>
-    </div>
     <div className="ui grid">
       <div className="middle aligned row">
         <div className="left floated eight wide mobile four wide tablet two wide computer column">

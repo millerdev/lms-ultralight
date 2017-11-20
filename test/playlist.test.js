@@ -245,10 +245,10 @@ describe('playlist', function () {
   describe('moveItems', function () {
     function fakeStore(selection=Set()) {
       const dispatched = []
-      const state = Map({
+      const state = Map({player: Map({
         playerid: PLAYERID,
         playlist: STATE.set("selection", selection)
-      })
+      })})
       return {
         dispatch: action => dispatched.push(action),
         getState: () => state,
@@ -432,7 +432,9 @@ describe('playlist', function () {
   describe('deleteSelection', function () {
     function fakeStore(state) {
       const dispatched = []
-      state = Map({playerid: state.get("playerid"), playlist: state})
+      state = Map({
+        player: Map({playerid: state.get("playerid"), playlist: state})
+      })
       return {
         dispatch: action => dispatched.push(action),
         getState: () => state,
