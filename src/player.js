@@ -127,10 +127,11 @@ export function reducer(state_=defaultState, action) {
   )
 }
 
-function onDeleteKey(store) {
-  playlist.deleteSelection(store, lms).then(() => {
-    const playerid = store.getState().getIn(["player", "playerid"])
-    loadPlayer(playerid, true).then(action => store.dispatch(action))
+function onDeleteKey(props) {
+  const { playerid, dispatch } = props
+  const selection = props.playlist.get("selection")
+  playlist.deleteSelection(playerid, selection, dispatch, lms).then(() => {
+    loadPlayer(playerid, true).then(dispatch)
   })
 }
 
@@ -145,14 +146,16 @@ export class Player extends React.Component {
   }
   onKeyDown(event) {
     if (KEY_HANDLERS.hasOwnProperty(event.keyCode)) {
-      KEY_HANDLERS[event.keyCode](this.props.store)
+      KEY_HANDLERS[event.keyCode](this.props)
     }
   }
   onMoveItems(fromIndex, toIndex) {
-    const store = this.props.store
-    playlist.moveItems(fromIndex, toIndex, store, lms).then(() => {
-      const playerid = store.getState().getIn(["player", "playerid"])
-      loadPlayer(playerid, true).then(action => store.dispatch(action))
+    const { playerid, dispatch } = this.props
+    const selection = this.props.playlist.get("selection")
+    playlist.moveItems(
+      fromIndex, toIndex, playerid, selection, dispatch, lms
+    ).then(() => {
+      loadPlayer(playerid, true).then(action => dispatch(action))
     }).catch(err => {
       // TODO convey failure to view somehow
       window.console.log(err)
@@ -185,7 +188,7 @@ export class Player extends React.Component {
           disabled={!props.playerid} />
       </PlayerUI>
       <playlist.Playlist
-        store={props.store}
+        playerid={props.playerid}
         command={command}
         onMoveItems={this.onMoveItems.bind(this)}
         dispatch={props.dispatch}

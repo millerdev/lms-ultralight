@@ -173,7 +173,7 @@ export function advanceToNextTrack(state) {
   return combine(state, effects)
 }
 
-export function moveItems(fromIndex, toIndex, store, lms) {
+export function moveItems(fromIndex, toIndex, playerid, selection, dispatch, lms) {
   return new Promise(resolve => {
     function move(items) {
       if (!items.length) {
@@ -182,8 +182,8 @@ export function moveItems(fromIndex, toIndex, store, lms) {
       const [from, to] = items.shift()
       lms.command(playerid, "playlist", "move", from, to > from ? to - 1 : to)
         .then(() => {
-          // TODO abort if selection changed
-          store.dispatch(actions.playlistItemMoved(from, to))
+          // TODO abort if playerid or selection changed
+          dispatch(actions.playlistItemMoved(from, to))
           move(items)
         })
         .catch(err => {
@@ -208,9 +208,6 @@ export function moveItems(fromIndex, toIndex, store, lms) {
       return selected.map(i => i < toIndex ? [i, min--] : [i, max++])
     }
     const isValidMove = (from, to) => from !== to && from + 1 !== to
-    const state = store.getState().get("player")
-    const playerid = state.get("playerid")
-    const selection = state.getIn(["playlist", "selection"])
     let items
     if (selection.has(fromIndex)) {
       const selected = selection.toSeq().sort()
@@ -231,7 +228,7 @@ export function moveItems(fromIndex, toIndex, store, lms) {
   })
 }
 
-export function deleteSelection(store, lms) {
+export function deleteSelection(playerid, selection, dispatch, lms) {
   return new Promise(resolve => {
     function remove(items) {
       if (!items.length) {
@@ -240,8 +237,8 @@ export function deleteSelection(store, lms) {
       const index = items.shift()
       lms.command(playerid, "playlist", "delete", index)
         .then(() => {
-          // TODO abort if selection changed
-          store.dispatch(actions.playlistItemDeleted(index))
+          // TODO abort if playerid or selection changed
+          dispatch(actions.playlistItemDeleted(index))
           remove(items)
         })
         .catch(err => {
@@ -251,9 +248,6 @@ export function deleteSelection(store, lms) {
           resolve()
         })
     }
-    const state = store.getState().get("player")
-    const playerid = state.get("playerid")
-    const selection = state.getIn(["playlist", "selection"])
     const items = selection
       .toSeq()
       .sortBy(index => -index)
@@ -352,11 +346,10 @@ const PLAYLIST_ITEMS = "playlist items"
 
 export class Playlist extends React.Component {
   deleteSelectedItems() {
-    const store = this.props.store
-    deleteSelection(store, lms).then(() => {
-      const loadPlayer = require("./player").loadPlayer
-      const playerid = this.props.playerid
-      loadPlayer(playerid, true).then(action => store.dispatch(action))
+    const loadPlayer = require("./player").loadPlayer
+    const { playerid, selection, dispatch } = this.props
+    deleteSelection(playerid, selection, dispatch, lms).then(() => {
+      loadPlayer(playerid, true).then(dispatch)
     })
   }
   render() {

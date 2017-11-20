@@ -31,10 +31,10 @@ const Player = connect(state => state.get("player").toObject())(player.Player)
 
 const App = () => (
   <Provider store={store}>
-    <MainMenu dispatch={store.dispatch}>
+    <MainMenu>
       <div className="ui padded grid">
         <div className="sixteen wide column">
-          <Player store={store} dispatch={store.dispatch} />
+          <Player />
           {/* <DevTools /> */}
         </div>
       </div>

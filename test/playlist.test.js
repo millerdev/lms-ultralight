@@ -243,15 +243,11 @@ describe('playlist', function () {
   })
 
   describe('moveItems', function () {
-    function fakeStore(selection=Set()) {
+    function setup(selection=Set(), altLMS) {
       const dispatched = []
-      const state = Map({player: Map({
-        playerid: PLAYERID,
-        playlist: STATE.set("selection", selection)
-      })})
+      const dispatch = action => dispatched.push(action)
       return {
-        dispatch: action => dispatched.push(action),
-        getState: () => state,
+        args: [PLAYERID, selection, dispatch, altLMS || lms],
         dispatched,
       }
     }
@@ -263,9 +259,9 @@ describe('playlist', function () {
     const actions = mod.reducer.actions
 
     it('should move single item down', function () {
-      const store = fakeStore()
-      return mod.moveItems(1, 0, store, lms).then(moved => {
-        assert.deepEqual(store.dispatched, [
+      const foo = setup()
+      return mod.moveItems(1, 0, ...foo.args).then(moved => {
+        assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(1, 0),
         ])
         assert(moved, "should signal move")
@@ -273,9 +269,9 @@ describe('playlist', function () {
     })
 
     it('should move single item up', function () {
-      const store = fakeStore()
-      return mod.moveItems(0, 2, store, lms).then(moved => {
-        assert.deepEqual(store.dispatched, [
+      const foo = setup()
+      return mod.moveItems(0, 2, ...foo.args).then(moved => {
+        assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(0, 2),
         ])
         assert(moved, "should signal move")
@@ -283,33 +279,33 @@ describe('playlist', function () {
     })
 
     it('should not move single item to own index', function () {
-      const store = fakeStore()
-      return mod.moveItems(1, 1, store, lms).then(moved => {
-        assert.deepEqual(store.dispatched, [])
+      const foo = setup()
+      return mod.moveItems(1, 1, ...foo.args).then(moved => {
+        assert.deepEqual(foo.dispatched, [])
         assert(!moved, "should not have any moves")
       })
     })
 
     it('should not move single item to next index', function () {
-      const store = fakeStore()
-      return mod.moveItems(1, 2, store, lms).then(moved => {
-        assert.deepEqual(store.dispatched, [])
+      const foo = setup()
+      return mod.moveItems(1, 2, ...foo.args).then(moved => {
+        assert.deepEqual(foo.dispatched, [])
         assert(!moved, "should not have any moves")
       })
     })
 
     it('should not move selected items up to next', function () {
-      const store = fakeStore(Set([2, 3]))
-      return mod.moveItems(3, 4, store, lms).then(moved => {
-        assert.deepEqual(store.dispatched, [])
+      const foo = setup(Set([2, 3]))
+      return mod.moveItems(3, 4, ...foo.args).then(moved => {
+        assert.deepEqual(foo.dispatched, [])
         assert(!moved, "should not have any moves")
       })
     })
 
     it('should move unselected item above selection', function () {
-      const store = fakeStore(Set([2, 3]))
-      return mod.moveItems(2, 1, store, lms).then(moved => {
-        assert.deepEqual(store.dispatched, [
+      const foo = setup(Set([2, 3]))
+      return mod.moveItems(2, 1, ...foo.args).then(moved => {
+        assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(1, 4),
         ])
         assert(moved, "should signal move")
@@ -317,9 +313,9 @@ describe('playlist', function () {
     })
 
     it('should move unselected item below selection', function () {
-      const store = fakeStore(Set([2, 3]))
-      return mod.moveItems(3, 5, store, lms).then(moved => {
-        assert.deepEqual(store.dispatched, [
+      const foo = setup(Set([2, 3]))
+      return mod.moveItems(3, 5, ...foo.args).then(moved => {
+        assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(4, 2),
         ])
         assert(moved, "should signal move")
@@ -327,9 +323,9 @@ describe('playlist', function () {
     })
 
     it('should move (2) selected items down', function () {
-      const store = fakeStore(Set([2, 3]))
-      return mod.moveItems(2, 0, store, lms).then(moved => {
-        assert.deepEqual(store.dispatched, [
+      const foo = setup(Set([2, 3]))
+      return mod.moveItems(2, 0, ...foo.args).then(moved => {
+        assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(2, 0),
           actions.playlistItemMoved(3, 1),
         ])
@@ -338,9 +334,9 @@ describe('playlist', function () {
     })
 
     it('should move (2) selected items up', function () {
-      const store = fakeStore(Set([2, 3]))
-      return mod.moveItems(3, 6, store, lms).then(moved => {
-        assert.deepEqual(store.dispatched, [
+      const foo = setup(Set([2, 3]))
+      return mod.moveItems(3, 6, ...foo.args).then(moved => {
+        assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(3, 6),
           actions.playlistItemMoved(2, 5),
         ])
@@ -349,9 +345,9 @@ describe('playlist', function () {
     })
 
     it('should move (2) unselected items below (3) selected', function () {
-      const store = fakeStore(Set([2, 3, 5]))
-      return mod.moveItems(3, 7, store, lms).then(moved => {
-        assert.deepEqual(store.dispatched, [
+      const foo = setup(Set([2, 3, 5]))
+      return mod.moveItems(3, 7, ...foo.args).then(moved => {
+        assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(4, 2),
           actions.playlistItemMoved(6, 3),
         ])
@@ -360,9 +356,9 @@ describe('playlist', function () {
     })
 
     it('should move (2) unselected items down and up', function () {
-      const store = fakeStore(Set([2, 3, 6, 7]))
-      return mod.moveItems(2, 5, store, lms).then(moved => {
-        assert.deepEqual(store.dispatched, [
+      const foo = setup(Set([2, 3, 6, 7]))
+      return mod.moveItems(2, 5, ...foo.args).then(moved => {
+        assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(4, 2),
           actions.playlistItemMoved(5, 8),
         ])
@@ -371,9 +367,9 @@ describe('playlist', function () {
     })
 
     it('should move (1) unselected item down and (2) selected items down', function () {
-      const store = fakeStore(Set([2, 3, 8, 9]))
-      return mod.moveItems(2, 5, store, lms).then(moved => {
-        assert.deepEqual(store.dispatched, [
+      const foo = setup(Set([2, 3, 8, 9]))
+      return mod.moveItems(2, 5, ...foo.args).then(moved => {
+        assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(4, 2),
           actions.playlistItemMoved(8, 5),
           actions.playlistItemMoved(9, 6),
@@ -383,9 +379,9 @@ describe('playlist', function () {
     })
 
     it('should move (2) selected items up and (1) unselected item down', function () {
-      const store = fakeStore(Set([2, 3, 8, 9]))
-      return mod.moveItems(2, 7, store, lms).then(moved => {
-        assert.deepEqual(store.dispatched, [
+      const foo = setup(Set([2, 3, 8, 9]))
+      return mod.moveItems(2, 7, ...foo.args).then(moved => {
+        assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(3, 7),
           actions.playlistItemMoved(2, 6),
           actions.playlistItemMoved(7, 10),
@@ -395,9 +391,9 @@ describe('playlist', function () {
     })
 
     it('should move selected items down and up (with unmoved index)', function () {
-      const store = fakeStore(Set([0, 1, 3, 9]))
-      return mod.moveItems(1, 3, store, lms).then(() => {
-        assert.deepEqual(store.dispatched, [
+      const foo = setup(Set([0, 1, 3, 9]))
+      return mod.moveItems(1, 3, ...foo.args).then(() => {
+        assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(2, 0),
           actions.playlistItemMoved(9, 4),
         ])
@@ -405,9 +401,9 @@ describe('playlist', function () {
     })
 
     it('should move selected items down and up (with unmoved indices)', function () {
-      const store = fakeStore(Set([0, 1, 3, 4, 9]))
-      return mod.moveItems(1, 3, store, lms).then(() => {
-        assert.deepEqual(store.dispatched, [
+      const foo = setup(Set([0, 1, 3, 4, 9]))
+      return mod.moveItems(1, 3, ...foo.args).then(() => {
+        assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(2, 0),
           actions.playlistItemMoved(9, 5),
         ])
@@ -420,9 +416,9 @@ describe('playlist', function () {
           "lms.command args")
         return args[3] === 1 ? Promise.resolve() : Promise.reject()
       }}
-      const store = fakeStore(Set([0, 1]))
-      return mod.moveItems(1, 6, store, lms).then(() => {
-        assert.deepEqual(store.dispatched, [
+      const foo = setup(Set([0, 1]), lms)
+      return mod.moveItems(1, 6, ...foo.args).then(() => {
+        assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(1, 6),
         ])
       })
@@ -430,14 +426,16 @@ describe('playlist', function () {
   })
 
   describe('deleteSelection', function () {
-    function fakeStore(state) {
+    function setup(state, altLMS) {
       const dispatched = []
-      state = Map({
-        player: Map({playerid: state.get("playerid"), playlist: state})
-      })
+      const dispatch = action => dispatched.push(action)
       return {
-        dispatch: action => dispatched.push(action),
-        getState: () => state,
+        args: [
+          state.get("playerid"),
+          state.get("selection"),
+          dispatch,
+          altLMS || lms,
+        ],
         dispatched,
       }
     }
@@ -449,33 +447,33 @@ describe('playlist', function () {
     const actions = mod.reducer.actions
 
     it('should not delete items if nothing is selected', function () {
-      const store = fakeStore(STATE.set("items", PLAYLIST_1))
-      return mod.deleteSelection(store, lms).then(() => {
-        assert.deepEqual(store.dispatched, [])
+      const foo = setup(STATE.set("items", PLAYLIST_1))
+      return mod.deleteSelection(...foo.args).then(() => {
+        assert.deepEqual(foo.dispatched, [])
       })
     })
 
     it('should delete selected item', function () {
-      const store = fakeStore(STATE.merge({
+      const foo = setup(STATE.merge({
         items: PLAYLIST_1,
         selection: Set([1]),
         lastSelected: List([1]),
       }))
-      return mod.deleteSelection(store, lms).then(() => {
-        assert.deepEqual(store.dispatched, [
+      return mod.deleteSelection(...foo.args).then(() => {
+        assert.deepEqual(foo.dispatched, [
           actions.playlistItemDeleted(1)
         ])
       })
     })
 
     it('should delete multiple selected items', function () {
-      const store = fakeStore(STATE.merge({
+      const foo = setup(STATE.merge({
         items: PLAYLIST_1,
         selection: Set([3, 1]),
         lastSelected: List([1, 3]),
       }))
-      return mod.deleteSelection(store, lms).then(() => {
-        assert.deepEqual(store.dispatched, [
+      return mod.deleteSelection(...foo.args).then(() => {
+        assert.deepEqual(foo.dispatched, [
           actions.playlistItemDeleted(3),
           actions.playlistItemDeleted(1),
         ])
@@ -488,13 +486,13 @@ describe('playlist', function () {
           "lms.command args")
         return args[3] === 3 ? Promise.resolve() : Promise.reject()
       }}
-      const store = fakeStore(STATE.merge({
+      const foo = setup(STATE.merge({
         items: PLAYLIST_1,
         selection: Set([3, 1]),
         lastSelected: List([1, 3]),
-      }))
-      return mod.deleteSelection(store, lms).then(() => {
-        assert.deepEqual(store.dispatched, [
+      }), lms)
+      return mod.deleteSelection(...foo.args).then(() => {
+        assert.deepEqual(foo.dispatched, [
           actions.playlistItemDeleted(3),
         ])
       })
