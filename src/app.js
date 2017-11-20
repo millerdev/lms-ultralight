@@ -32,12 +32,8 @@ const Player = connect(state => state.get("player").toObject())(player.Player)
 const App = () => (
   <Provider store={store}>
     <MainMenu>
-      <div className="ui padded grid">
-        <div className="sixteen wide column">
-          <Player />
-          {/* <DevTools /> */}
-        </div>
-      </div>
+      <Player />
+      {/* <DevTools /> */}
     </MainMenu>
   </Provider>
 )

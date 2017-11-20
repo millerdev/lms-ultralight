@@ -6,7 +6,11 @@ import * as players from './playerselect'
 export const MainMenuUI = props => (
   <div className="mainmenu">
     <PowerBar {...props} />
-    {props.children}
+    <div className="ui padded grid">
+      <div className="sixteen wide column">
+        {props.children}
+      </div>
+    </div>
   </div>
 )
 
