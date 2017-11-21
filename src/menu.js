@@ -7,6 +7,10 @@ import * as player from './player'
 import * as players from './playerselect'
 
 export class MainMenu extends React.Component {
+  constructor() {
+    super()
+    this.state = {sidebarOpen: false}
+  }
   componentDidMount() {
     lms.getPlayers().then(data => {
       this.props.dispatch(players.gotPlayers(data))
@@ -28,6 +32,9 @@ export class MainMenu extends React.Component {
     localStorage.currentPlayer = playerid
     this.loadPlayer(playerid, true)
   }
+  onToggleSidebar() {
+    this.setState({sidebarOpen: !this.state.sidebarOpen})
+  }
   command(playerid, ...args) {
     lms.command(playerid, ...args).then(() => { this.loadPlayer(playerid) })
     // TODO convey failure to view somehow
@@ -36,6 +43,8 @@ export class MainMenu extends React.Component {
     const props = this.props
     return <MainMenuUI
         onPlayerSelected={this.onPlayerSelected.bind(this)}
+        onToggleSidebar={this.onToggleSidebar.bind(this)}
+        sidebarOpen={this.state.sidebarOpen}
         command={this.command.bind(this)}
         {...props}>
       {props.children}
