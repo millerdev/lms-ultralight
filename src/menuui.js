@@ -1,7 +1,8 @@
 import React from 'react'
-import { Button } from 'semantic-ui-react'
+import { Icon, Menu } from 'semantic-ui-react'
 
 import * as players from './playerselect'
+import './menu.styl'
 
 export const MainMenuUI = props => (
   <div className="mainmenu">
@@ -19,21 +20,23 @@ const PowerBar = props => {
     props.command(player.playerid, "power", player.isPowerOn ? 0 : 1)
   }
   const player = props.player.toObject()
-  return <div className="powerbar ui padded grid">
-    <div className="twelve wide column">
-      <players.SelectPlayer
-        playerid={player.playerid}
-        onPlayerSelected={props.onPlayerSelected}
-        {...props.players.toObject()} />
-    </div>
-    <div className="right aligned four wide column">
-      <Button.Group basic size="small">
-        <Button basic toggle
-          active={player.isPowerOn}
-          onClick={togglePlayerPower}
-          icon="power"
-          disabled={!player.playerid} />
-      </Button.Group>
-    </div>
-  </div>
+  return (
+    <Menu size="small" attached="top" borderless>
+      <Menu.Item fitted>
+        <players.SelectPlayer
+          playerid={player.playerid}
+          onPlayerSelected={props.onPlayerSelected}
+          {...props.players.toObject()} />
+      </Menu.Item>
+      <Menu.Menu position="right">
+        <Menu.Item
+            fitted="vertically"
+            active={player.isPowerOn}
+            onClick={togglePlayerPower}
+            disabled={!player.playerid}>
+          <Icon name="power" size="large" />
+        </Menu.Item>
+      </Menu.Menu>
+    </Menu>
+  )
 }
