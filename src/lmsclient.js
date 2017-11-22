@@ -10,7 +10,7 @@ export function getPlayers(index=0, qty=999) {
 
 export function getPlayerStatus(playerid, index="-", qty=1) {
   const before = Date.now()
-  return exec(playerid, ["status", index, qty, "tags:aludJ"]).then(({data}) => {
+  return exec(playerid, ["status", index, qty, "tags:aludcJK"]).then(({data}) => {
     const after = Date.now()
     return _.extend(data.result, {
       playerid,
@@ -24,20 +24,27 @@ export function command(playerid, ...command) {
   return exec(playerid, command)
 }
 
-export function getImageUrl(playerid, tags, current=false) {
-  const trackid = current ? "current" : tags.artwork_track_id
-  let cachebuster = ""
-  if (current && tags) {
-    if (tags.artwork_track_id) {
-      cachebuster = "&artwork_track_id=" + tags.artwork_track_id
-    } else {
-      cachebuster = "&cachebuster=" + encodeURIComponent(
-        tags.artist + "-" + tags.album + "-" + tags.title)
-    }
+export function getImageUrl(tags, playerid) {
+  if (tags.artwork_url) {
+    return tags.artwork_url
+  }
+  let coverid = "unknown"
+  let querystring = ""
+  if (tags.coverid) {
+    coverid = tags.coverid
+  } else if (tags.artwork_track_id) {
+    coverid = tags.artwork_track_id
+  } else if (tags.artwork) {
+    coverid = tags.artwork
+  }
+  if (playerid) {
+    querystring = "?player=" + playerid + "&cachebuster=" +
+      (coverid !== "unknown" ? coverid :
+        encodeURIComponent(tags.artist + "-" + tags.album + "-" + tags.title))
+    coverid = "current"
   }
   return axios.defaults.baseURL +
-    "/music/" + trackid + "/cover.jpg" +
-    "?player=" + playerid + cachebuster
+    "/music/" + coverid + "/cover.jpg" + querystring
 }
 
 /**

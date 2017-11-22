@@ -467,7 +467,7 @@ export const PlaylistItem = props => (
             height="18px"
             width="18px"
             className="track-art gap-right"
-            src={lms.getImageUrl(props.playerid, props)} /> }
+            src={lms.getImageUrl(props)} /> }
         {songTitle(props)}
       </List.Description>
     </List.Content>

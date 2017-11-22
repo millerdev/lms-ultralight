@@ -28,7 +28,7 @@ const NWayButton = props => {
 const CurrentTrackInfo = props => (
   <Item.Group>
     <Item>
-      <Item.Image size="tiny" src={lms.getImageUrl(props.playerid, props.tags)} />
+      <Item.Image size="tiny" src={lms.getImageUrl(props.tags, props.playerid)} />
       <Item.Content>
         <Item.Header>{props.tags.title}</Item.Header>
         <Item.Meta>{props.tags.artist}</Item.Meta>
