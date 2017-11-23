@@ -14,6 +14,7 @@
     "font-awesome": "^4.7.0",
     "immutable": "^3.8.1",
     "lodash": "^4.17.2",
+    "prop-types": "^15.6.0",
     "rc-slider": "^5.4.0",
     "react": "^15.4.1",
     "react-dom": "^15.4.1",
@@ -21,7 +22,7 @@
     "redux": "^3.6.0",
     "sanitize.css": "latest",
     "semantic-ui-css": "^2.2.4",
-    "semantic-ui-react": "^0.63.1"
+    "semantic-ui-react": "^0.76.0"
   },
   "devDependencies": {
     "autoprefixer": "^6.3.6",

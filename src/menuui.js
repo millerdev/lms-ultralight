@@ -1,7 +1,8 @@
 import React from 'react'
-import { Icon, Input, Menu, Sidebar } from 'semantic-ui-react'
+import { Icon, Menu, Sidebar } from 'semantic-ui-react'
 
 import * as players from './playerselect'
+import { MediaSearch } from './search'
 import './menu.styl'
 
 export const MainMenuUI = props => (
@@ -19,7 +20,7 @@ export const MainMenuUI = props => (
           <Icon name="close" /> Ultralight
         </Menu.Item>
         <Menu.Item name="search">
-          <Input className="icon" icon="search" placeholder="Search..." />
+          <MediaSearch {...props} />
         </Menu.Item>
       </Sidebar>
       <Sidebar.Pusher>

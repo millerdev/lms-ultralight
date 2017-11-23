@@ -3,6 +3,8 @@
 /coverage
 /dist
 /node_modules
+/notes.txt
 /npm-debug.log
+/package-lock.json
 /UltralightSkin-v*.zip
 /ztemp

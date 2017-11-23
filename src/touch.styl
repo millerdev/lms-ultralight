@@ -1,0 +1,15 @@
+.ui.list.touchlist>.touchlist-item,
+.ui.list.touchlist>.touchlist-item
+  padding: 0.4em 0
+  border-radius: 0
+  &:hover
+    background-color: inherit
+  &.selected
+    background: rgba(0,0,0,.03)
+    color: rgba(0,0,0,.8)
+  &.dropBefore
+    border-top: 1px solid black
+  &.dropAfter
+    border-bottom: 1px solid black
+  .drag-handle
+    touch-action: none

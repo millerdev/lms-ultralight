@@ -463,7 +463,6 @@ export const PlaylistItem = props => (
           <Image
             ui
             inline
-            shape="rounded"
             height="18px"
             width="18px"
             className="track-art gap-right"

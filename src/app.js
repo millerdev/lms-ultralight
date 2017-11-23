@@ -8,21 +8,22 @@ import './semantic.css'
 import { combine, split } from './effects'
 import * as menu from './menu'
 import * as player from './player'
-import * as players from './playerselect'
 import { makeStore } from './store'
 
 const defaultState = Map({
-  players: players.defaultState,
+  menu: menu.defaultState,
   player: player.defaultState,
 })
 
 function reducer(state=defaultState, action) {
-  const [playerState, effects] =
+  const [menuState, menuEffects] =
+    split(menu.reducer(state.get("menu"), action))
+  const [playerState, playerEffects] =
     split(player.reducer(state.get("player"), action))
   return combine(Map({
-    players: players.reducer(state.get("players"), action),
+    menu: menuState,
     player: playerState,
-  }), effects)
+  }), menuEffects.concat(playerEffects))
 }
 
 const store = makeStore(reducer, defaultState)
