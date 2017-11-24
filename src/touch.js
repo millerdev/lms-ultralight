@@ -17,6 +17,8 @@ export const TO_LAST = "to last"
  * - items: `List` of items, which will be serialized in drag/drop
  *   operations. Each item in this list should correspond to a
  *   `TouchList.Item` with the same `index`.
+ * - selection: `Set` of selected indexes. If not provided the selection
+ *   will be maintained internally.
  * - dropTypes: Array of data types that can be dropped in this list.
  *   Dropping is not supported if this prop is not provided.
  * - onDrop: Callback function for handling dropped content.
@@ -27,6 +29,8 @@ export const TO_LAST = "to last"
  *   (sorting) of items within the list. Sorting will be disabled if
  *   this prop is not provided.
  *   Signature: `onMoveItems(indexSet, toIndex)`
+ * - onSelectionChanged: Callback function to handle selection changes.
+ *   Signature: `onSelectionChanged(selection)`
  */
 export class TouchList extends React.Component {
   constructor(props) {
@@ -35,7 +39,7 @@ export class TouchList extends React.Component {
     this.state = {
       dropIndex: -1,
       dropTypes: {},
-      selection: Set(),
+      selection: props.selection || Set(),
       lastSelected: IList(),
     }
     this.slide = makeSlider(this)
@@ -54,7 +58,14 @@ export class TouchList extends React.Component {
     if (!this.props.items || !this.props.items.equals(props.items)) {
       // TODO option to preserve selection if items have been rearranged
       // This will be necessary for the playlist.
-      this.setState({selection: Set(), lastSelected: IList()})
+      this.selectionChanged(Set(), IList())
+    }
+    if (props.selection && !props.selection.equals(this.state.selection)) {
+      this.setState({
+        selection: props.selection,
+        lastSelected: this.state.lastSelected
+          .filter(index => props.selection.has(index))
+      })
     }
   }
   componentWillUnmount() {
@@ -87,7 +98,7 @@ export class TouchList extends React.Component {
     return _.find(possibleTypes, value => dropTypes.hasOwnProperty(value))
   }
   onItemSelected(index, modifier) {
-    this.setState(({selection, lastSelected}) => {
+    this.selectionChanged(({selection, lastSelected}) => {
       if (!modifier) {
         return {selection: Set([index]), lastSelected: IList([index])}
       }
@@ -122,7 +133,30 @@ export class TouchList extends React.Component {
     this.onItemSelected(index, SINGLE)
   }
   clearSelection() {
-    this.setState({selection: Set(), lastSelected: IList()})
+    this.selectionChanged(Set(), IList())
+  }
+  selectionChanged(selection, lastSelected) {
+    if (_.isFunction(selection)) {
+      this.setState((state, props) => {
+        const func = props.onSelectionChanged
+        const newState = selection(state)
+        if (func && !newState.selection.equals(props.selection)) {
+          func(newState.selection)
+        }
+        // maybe broken: setState completes after onSelectionChanged
+        return newState
+      })
+    } else {
+      if (!selection.equals(this.state.selection)) {
+        const func = this.props.onSelectionChanged
+        this.setState({selection, lastSelected})
+        if (func && !selection.equals(this.props.selection)) {
+          func(selection)
+        }
+      } else if (!lastSelected.equals(this.state.lastSelected)) {
+        this.setState({lastSelected})
+      }
+    }
   }
   render() {
     const props = this.props
@@ -144,12 +178,14 @@ TouchList.childContextTypes = {
 
 const TOUCHLIST_PROPS = {
   items: true,
+  selection: true,
   children: true,
   dataType: true,
   dropTypes: true,
   onDrop: true,
   onLongTouch: true,
   onMoveItems: true,
+  onSelectionChanged: true,
 }
 
 /**

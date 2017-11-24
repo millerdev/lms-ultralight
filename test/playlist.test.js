@@ -1,4 +1,4 @@
-import { fromJS, List, Map, Seq, Set } from 'immutable'
+import { fromJS, Map, Seq, Set } from 'immutable'
 
 import { effect, getEffects, getState, split } from '../src/effects'
 import * as mod from '../src/playlist'
@@ -41,15 +41,11 @@ describe('playlist', function () {
 
       it('should clear selection on playerid change', function () {
         const data = STATUS.set("playerid", PLAYERID + "1").toJS()
-        const state = STATE.merge({
-          selection:  Set([1]),
-          lastSelected: List([1])
-        })
+        const state = STATE.set("selection", Set([1]))
         const result = getState(reduce(state, gotPlayer(data)))
         assert.equal(result, state.merge({
           playerid: PLAYERID + "1",
           selection: Set(),
-          lastSelected: List(),
         }))
       })
 
@@ -145,11 +141,19 @@ describe('playlist', function () {
       })
     })
 
+    function stripLastSelected(config) {
+      return config.replace(/ \| .*/, "")
+    }
+
     function reducerTest(name, action, startConfig, endConfig) {
       it(startConfig + " [" + name + "] -> " + endConfig, function () {
         const state = makeState(startConfig)
         const [result, effects] = split(getState(reduce(state, action)))
-        assert.equal(makeConfig(result), endConfig)
+        assert.equal(
+          // ingore lastSelected since it's now maintained by TouchList
+          stripLastSelected(makeConfig(result)),
+          stripLastSelected(endConfig)
+        )
         assert.equal(result, makeState(endConfig))
         assert.equal(result.getIn(["currentTrack", "playlist index"]),
                      result.get("currentIndex"))
@@ -431,7 +435,6 @@ describe('playlist', function () {
       const foo = setup(STATE.merge({
         items: PLAYLIST_1,
         selection: Set([1]),
-        lastSelected: List([1]),
       }))
       return mod.deleteSelection(...foo.args).then(() => {
         assert.deepEqual(foo.dispatched, [
@@ -444,7 +447,6 @@ describe('playlist', function () {
       const foo = setup(STATE.merge({
         items: PLAYLIST_1,
         selection: Set([3, 1]),
-        lastSelected: List([1, 3]),
       }))
       return mod.deleteSelection(...foo.args).then(() => {
         assert.deepEqual(foo.dispatched, [
@@ -463,7 +465,6 @@ describe('playlist', function () {
       const foo = setup(STATE.merge({
         items: PLAYLIST_1,
         selection: Set([3, 1]),
-        lastSelected: List([1, 3]),
       }), lms)
       return mod.deleteSelection(...foo.args).then(() => {
         assert.deepEqual(foo.dispatched, [
@@ -504,7 +505,7 @@ function makeState(config) {
     currentTrack: items.get(current),
     numTracks: playchars.size,
   }
-  return STATE.merge(data)
+  return STATE.merge(data).remove("lastSelected")
 }
 
 function makeConfig(state) {
@@ -516,9 +517,10 @@ function makeConfig(state) {
     const c = i === current ? "(" + t + ")" : t
     return selection.has(i) ? c.toUpperCase() : c
   }).join("")
-  const last = state.get("lastSelected").map(i =>
-    state.getIn(["items", i, "title"])
-  ).join("")
+//  const last = state.get("lastSelected").map(i =>
+//    state.getIn(["items", i, "title"])
+//  ).join("")
+  const last = "ignored"
   return playchars + (last ? " | " + last : "")
 }
 

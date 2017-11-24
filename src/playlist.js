@@ -23,7 +23,6 @@ export const defaultState = Map({
   currentIndex: null,
   currentTrack: Map(),
   selection: Set(),
-  lastSelected: IList(),
 })
 
 export const reducer = makeReducer({
@@ -60,13 +59,11 @@ export const reducer = makeReducer({
     }
     if (!list || state.get("playerid") !== data.playerid) {
       data.selection = Set()
-      data.lastSelected = IList()
     }
     return combine(state.merge(data), effects)
   },
   playlistItemMoved: (state, action, fromIndex, toIndex) => {
     const selection = state.get("selection")
-    const lastSelected = state.get("lastSelected")
     let currentIndex = state.get("currentIndex")
     let between, stop, step
     if (fromIndex < toIndex) {
@@ -90,11 +87,6 @@ export const reducer = makeReducer({
     return state.merge({
       items: moveItem(state.get("items"), fromIndex, toIndex),
       selection: selection.subtract(deselect).map(reindex).toSet(),
-      lastSelected: lastSelected
-        .toSeq()
-        .filter(x => !deselect.has(x))
-        .map(reindex)
-        .toList(),
       currentIndex: currentIndex,
       currentTrack: state.get("currentTrack").set(IX, currentIndex),
     })
@@ -110,7 +102,6 @@ export const reducer = makeReducer({
       items,
       numTracks: state.get("numTracks") - 1,
       selection: state.get("selection").remove(index).map(reindex),
-      lastSelected: state.get("lastSelected").filter(x => x != index).map(reindex),
     }
     const currentIndex = state.get("currentIndex")
     if (index <= currentIndex) {
@@ -118,6 +109,9 @@ export const reducer = makeReducer({
       data.currentTrack = state.get("currentTrack").set(IX, currentIndex - 1)
     }
     return state.merge(data)
+  },
+  selectionChanged: (state, action, selection) => {
+    return state.set("selection", selection)
   },
 }, defaultState)
 
@@ -340,14 +334,19 @@ export class Playlist extends React.Component {
       loadPlayer(playerid, true).then(dispatch)
     })
   }
+  onSelectionChanged(selection) {
+    this.props.dispatch(actions.selectionChanged(selection))
+  }
   render() {
     const props = this.props
     return <div>
       <TouchList
           className="playlist"
           items={props.items}
+          selection={props.selection}
           dropTypes={[SEARCH_RESULTS]}
-          onMoveItems={this.onMoveItems.bind(this)}>
+          onMoveItems={this.onMoveItems.bind(this)}
+          onSelectionChanged={this.onSelectionChanged.bind(this)}>
         {props.items.toSeq().filter(item => item).map((item, index) => {
           item = item.toObject()
           return <PlaylistItem
