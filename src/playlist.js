@@ -1,12 +1,13 @@
 import { List as IList, Map, Range, Set, fromJS } from 'immutable'
 import _ from 'lodash'
 import React from 'react'
-import ReactDOM from 'react-dom'
 import { Button, List, Icon, Image } from 'semantic-ui-react'
 
 import { effect, combine } from './effects'
 import * as lms from './lmsclient'
+import { SEARCH_RESULTS } from './search'
 import makeReducer from './store'
+import { TouchList } from './touch'
 import { formatTime } from './util'
 import './playlist.styl'
 
@@ -61,36 +62,6 @@ export const reducer = makeReducer({
       data.lastSelected = IList()
     }
     return combine(state.merge(data), effects)
-  },
-  playlistItemSelected: (state, action, index, modifier) => {
-    if (!modifier) {
-      return state.merge({
-        selection: Set([index]),
-        lastSelected: IList([index]),
-      })
-    }
-    let selection = state.get("selection")
-    let last = state.get("lastSelected")
-    if (modifier === SINGLE) {
-      if (!selection.has(index)) {
-        selection = selection.add(index)
-        last = last.push(index)
-      } else {
-        selection = selection.remove(index)
-        if (last.last() === index) {
-          last = last.pop()
-        }
-      }
-    } else if (modifier === TO_LAST) {
-      const from = last.last() || 0
-      const step = from <= index ? 1 : -1
-      selection = selection.union(Range(from, index + step, step))
-      last = last.push(index)
-    }
-    return state.merge({selection: selection, lastSelected: last})
-  },
-  clearPlaylistSelection: state => {
-    return state.merge({selection: Set(), lastSelected: IList()})
   },
   playlistItemMoved: (state, action, fromIndex, toIndex) => {
     const selection = state.get("selection")
@@ -340,9 +311,10 @@ export function moveItem(list, fromIndex, toIndex) {
     .toList()
 }
 
-const PLAYLIST_ITEMS = "playlist items"
-
 export class Playlist extends React.Component {
+  playTrackAtIndex(index) {
+    this.props.command("playlist", "index", index)
+  }
   onMoveItems(selection, toIndex) {
     const loadPlayer = require("./player").loadPlayer
     const { playerid, dispatch } = this.props
@@ -353,7 +325,8 @@ export class Playlist extends React.Component {
       window.console.log(err)
     })
   }
-  deleteSelectedItems() {
+  onDeleteItems() {
+    // TODO get selection from touchlist
     const loadPlayer = require("./player").loadPlayer
     const { playerid, selection, dispatch } = this.props
     deleteSelection(playerid, selection, dispatch, lms).then(() => {
@@ -363,101 +336,39 @@ export class Playlist extends React.Component {
   render() {
     const props = this.props
     return <div>
-      <PlaylistItems onMoveItems={this.onMoveItems.bind(this)} {...props} />
+      <TouchList
+          className="playlist"
+          items={props.items}
+          dropTypes={[SEARCH_RESULTS]}
+          onMoveItems={this.onMoveItems.bind(this)}>
+        {props.items.toSeq().filter(item => item).map((item, index) => {
+          item = item.toObject()
+          return <PlaylistItem
+            {...item}
+            playTrackAtIndex={this.playTrackAtIndex.bind(this)}
+            index={index}
+            playlistIndex={item[IX]}
+            active={props.currentIndex === item[IX]}
+            key={index + "-" + item.id} />
+        }).toArray()}
+      </TouchList>
       <Button.Group basic size="small">
         <Button
           icon="remove"
           content="Delete"
           labelPosition="left"
-          onClick={() => this.deleteSelectedItems()}
+          onClick={() => this.onDeleteItems()}
           disabled={!props.selection.size} />
       </Button.Group>
     </div>
   }
 }
 
-class PlaylistItems extends React.Component {
-  constructor() {
-    super()
-    this.state = {dropIndex: -1, selecting: false}
-    this.slide = makeSlider(this)
-  }
-  componentDidMount() {
-    this.slide.setTouchHandlers(ReactDOM.findDOMNode(this))
-  }
-  componentWillUnmount() {
-    this.slide.setTouchHandlers(null)
-  }
-  playTrackAtIndex(index) {
-    this.props.dispatch(actions.clearPlaylistSelection())
-    this.props.command("playlist", "index", index)
-  }
-  touchToggleSelection(index) {
-    this.props.dispatch(actions.playlistItemSelected(index, SINGLE))
-    // BUG since this is never unset, it will cause drag handles to appear
-    // on any selection after the touch toggle selection event, even when
-    // touch events did not trigger the selection. (rare? edge case with
-    // touch and pointing device present at same time)
-    // TODO unset this on exit selection mode
-    this.setState({selecting: true})
-  }
-  touchClearSelection() {
-    this.props.dispatch(actions.clearPlaylistSelection())
-    this.setState({selecting: false})
-  }
-  render() {
-    const props = this.props
-    const state = this.state
-    function itemSelected(index, event) {
-      const modifier = event.metaKey || event.ctrlKey ? SINGLE :
-        (event.shiftKey ? TO_LAST : null)
-      props.dispatch(actions.playlistItemSelected(index, modifier))
-    }
-    return <List className="playlist" selection>
-      {props.items.toSeq().filter(item => item).map(item => {
-        item = item.toJS()
-        const index = item[IX]
-        const dropClass = index === state.dropIndex - 1 ? "dropAfter" :
-                          index === state.dropIndex ? "dropBefore" : null
-        return <PlaylistItem
-          {...item}
-          command={props.command}
-          itemSelected={itemSelected}
-          slide={this.slide}
-          dropClass={dropClass}
-          playTrackAtIndex={this.playTrackAtIndex.bind(this)}
-          index={index}
-          selected={props.selection.has(index)}
-          selecting={props.selection.size && this.state.selecting}
-          active={props.currentIndex === index}
-          key={index} />
-      }).toArray()}
-    </List>
-  }
-}
-
-function songTitle({artist, title}) {
-  if (artist && title) {
-    return artist + " - " + title
-  }
-  return artist || title || "..."
-}
-
 export const PlaylistItem = props => (
-  <List.Item
-      onClick={event => props.itemSelected(props.index, event)}
-      onDoubleClick={() => props.playTrackAtIndex(props.index)}
-      onDragStart={event => props.slide.dragStart(event, props.index)}
-      onDragOver={event => props.slide.dragOver(event, props.index)}
-      onDrop={event => props.slide.drop(event, props.index)}
-      onDragEnd={props.slide.dragEnd}
-      onContextMenu={event => event.preventDefault()}
-      data-index={props.index}
-      className={_.filter([
-        props.selected ? "selected" : null,
-        props.dropClass,
-      ]).join(" ")}
-      draggable="true">
+  <TouchList.Item
+      index={props.index}
+      onDoubleClick={() => props.playTrackAtIndex(props.playlistIndex)}
+      draggable>
     <List.Content floated="right">
       <List.Description className={props.selecting ? "drag-handle" : ""}>
         {formatTime(props.duration || 0)}
@@ -478,9 +389,15 @@ export const PlaylistItem = props => (
         {songTitle(props)}
       </List.Description>
     </List.Content>
-  </List.Item>
+  </TouchList.Item>
 )
 
+function songTitle({artist, title}) {
+  if (artist && title) {
+    return artist + " - " + title
+  }
+  return artist || title || "..."
+}
 
 const CurrentTrackIcon = () => (
   <span className="gap-right">
@@ -494,213 +411,3 @@ const DragHandle = () => (
     <i className="fa fa-reorder"></i>
   </span>
 )
-
-
-/**
- * Playlist touch interaction and drag/drop manager
- *
- * Mouse interaction
- *  - click to select
- *  - ctrl/shift+click to select/deselect multiple tracks
- *  - drag/drop to rearrange tracks in playlist
- *  - double-click to play track
- *
- * Touch interaction:
- *  - tap track art to play
- *  - tap to select and enter selection/reorder mode
- *    - tap to select/deselect tracks
- *    - drag on drag handle to rearrange tracks in playlist
- *    - long-press+drag to select and rearrange track(s) in playlist
- *    - long-press selected track to exit selection mode
- *    - tap/deselect last selected track to exit selection mode
- *  - TODO swipe to enter delete mode
- *    - click delete icon on right to confirm deletion
- *  - TODO long-press to view track details
- */
-function makeSlider(playlist) {
-  let listeners = []
-  let fromIndex = -1
-  let holdTimer = null
-  let isHolding = false
-  let startPosition = null
-  let latestPosition = null
-
-  function setTouchHandlers(el) {
-    if (el) {
-      listeners = [
-        addEventListener(el, 'touchstart', touchStart),
-        addEventListener(el, 'touchmove', touchMove, {passive: false}),
-        addEventListener(el, 'touchend', touchEnd),
-      ]
-    } else {
-      while (listeners.length) { listeners.pop()() }
-    }
-  }
-  function addEventListener(el, name, handler, options) {
-    el.addEventListener(name, handler, options)
-    return () => el.removeEventListener(name, handler, options)
-  } 
-
-  function touchStart(event) {
-    if (event.touches.length > 1) {
-      return
-    }
-    const pos = startPosition = latestPosition = {
-      x: event.touches[0].clientX,
-      y: event.touches[0].clientY,
-      time: event.timeStamp,
-    }
-    const target = getTarget(pos)
-    fromIndex = getIndex(target)
-    const isDragHandle = hasClass(target, "drag-handle")
-    const isSelected = playlist.props.selection.has(fromIndex)
-    isHolding = false
-    holdTimer = setTimeout(() => {
-      isHolding = true
-      if (startPosition === latestPosition && !isDragHandle) {
-        if (isSelected && playlist.props.selection.size) {
-          playlist.touchClearSelection()
-          isHolding = false
-          latestPosition = null  // do nothing on touchEnd
-        } else {
-          // TODO show track info instead of select
-          toggleSelection(fromIndex)
-        }
-      }
-    }, 300)
-  }
-  function touchMove(event) {
-    cancelHold()
-    const pos = latestPosition = {
-      x: event.touches[0].clientX,
-      y: event.touches[0].clientY,
-      time: event.timeStamp,
-    }
-    const target = getTarget(pos)
-    if (isHolding || hasClass(target, "drag-handle")) {
-      event.preventDefault()
-      if (pos.time - startPosition.time > 330) {
-        const hoverIndex = getIndex(target)
-        if (hoverIndex !== null) {
-          proposeDrop(allowedDropIndex(getDropIndex(event, hoverIndex, target)))
-        }
-      }
-    }
-  }
-  function touchEnd(event) {
-    if (!latestPosition) {
-      return  // hold selected -> clear selection
-    }
-    const target = getTarget(latestPosition)
-    if (!isHolding && startPosition === latestPosition) {
-      event.preventDefault()
-      if (hasClass(target, "track-art")) {
-        playlist.playTrackAtIndex(fromIndex)
-      } else {
-        toggleSelection(fromIndex)
-      }
-    } else if (playlist.props.selection.size) {
-      const hoverIndex = getIndex(target)
-      if (hoverIndex !== null) {
-        const toIndex = allowedDropIndex(getDropIndex(event, hoverIndex, target))
-        if (toIndex >= 0) {
-          event.preventDefault()
-          let selection = playlist.props.selection
-          if (!selection.has(fromIndex)) {
-            selection = Set([fromIndex])
-          }
-          playlist.props.onMoveItems(selection, toIndex)
-        }
-      }
-    }
-    dragEnd()
-    cancelHold()
-  }
-  function cancelHold() {
-    if (holdTimer) {
-      clearTimeout(holdTimer)
-      holdTimer = null
-    }
-  }
-  function toggleSelection(index) {
-    playlist.touchToggleSelection(index)
-  }
-  function getTarget(pos) {
-    return document.elementFromPoint(pos.x, pos.y)
-  }
-  function getIndex(el) {
-    while (el) {
-      if ("index" in el.dataset) {
-        return parseInt(el.dataset.index)
-      }
-      if (el.classList.contains("playlist")) {
-        break // TODO get index (0 or last index) depending on pos.y
-      }
-      el = el.parentNode
-    }
-    return null
-  }
-  function hasClass(el, className) {
-    while (el) {
-      if (el.classList && el.classList.contains(className)) {
-        return true
-      }
-      el = el.parentNode
-    }
-    return false
-  }
-  function proposeDrop(dropIndex) {
-    if (playlist.state.dropIndex !== dropIndex) {
-      playlist.setState({dropIndex})
-    }
-  }
-  function allowedDropIndex(index) {
-    const sel = playlist.props.selection
-    if (sel.has(fromIndex)) {
-      if (!(sel.has(index) || sel.has(index - 1))) {
-        return index
-      }
-    } else if (index !== fromIndex && index !== fromIndex + 1) {
-      return index
-    }
-    return -1
-  }
-  function getDropIndex(event, index, target=event.currentTarget) {
-    const a = event.clientY - target.offsetTop
-    const b = target.offsetHeight / 2
-    return a > b ? index + 1 : index
-  }
-  function dragStart(event, index) {
-    event.dataTransfer.effectAllowed = "move"
-    event.dataTransfer.setData(PLAYLIST_ITEMS, String(index))
-    fromIndex = index
-  }
-  function dragOver(event, index) {
-    const isMove = Set(event.dataTransfer.types).has(PLAYLIST_ITEMS)
-    const dropIndex = isMove ? allowedDropIndex(getDropIndex(event, index)) : -1
-    if (dropIndex >= 0) {
-      event.preventDefault()
-    }
-    proposeDrop(dropIndex)
-  }
-  function dragEnd() {
-    fromIndex = -1
-    playlist.setState({dropIndex: -1})
-  }
-  function drop(event, index) {
-    const fromIndex = parseInt(event.dataTransfer.getData(PLAYLIST_ITEMS))
-    let selection = playlist.props.selection
-    if (!selection.has(fromIndex)) {
-      selection = Set([fromIndex])
-    }
-    playlist.props.onMoveItems(selection, getDropIndex(event, index))
-  }
-
-  return {
-    setTouchHandlers,
-    dragStart,
-    dragOver,
-    dragEnd,
-    drop,
-  }
-}

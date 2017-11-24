@@ -157,32 +157,6 @@ describe('playlist', function () {
       })
     }
 
-    describe("playlistItemSelected", function () {
-      function test(startConfig, ix, endConfig, modifier) {
-        const action = reduce.actions.playlistItemSelected(ix, modifier)
-        reducerTest("sel " + ix, action, startConfig, endConfig)
-      }
-
-      test("ab(c)defg", 1, "aB(c)defg | b")
-      test("ab(c)defg", 3, "ab(c)Defg | d")
-      test("aB(c)defg | b", 3, "ab(c)Defg | d")
-      test("aB(c)defg | b", 3, "aB(c)Defg | bd", mod.SINGLE)
-      test("aB(c)defg | b", 1, "ab(c)defg", mod.SINGLE)
-      test("aB(c)defg | b", 3, "aB(C)Defg | bd", mod.TO_LAST)
-    })
-
-    describe("clearPlaylistSelection", function () {
-      const clear = reduce.actions.clearPlaylistSelection
-
-      function test(startConfig, endConfig) {
-        reducerTest("clear", clear(), startConfig, endConfig)
-      }
-
-      test("aB(c)defg | b", "ab(c)defg")
-      test("ab(C)defg | c", "ab(c)defg")
-      test("aB(C)Defg | bd", "ab(c)defg")
-    })
-
     describe("playlistItemMoved", function () {
       function test(startConfig, fromIndex, toIndex, endConfig) {
         const action = reduce.actions.playlistItemMoved(fromIndex, toIndex)
