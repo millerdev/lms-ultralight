@@ -1,5 +1,6 @@
 import { List as IList, Map, Range, Set, fromJS } from 'immutable'
 import _ from 'lodash'
+import PropTypes from 'prop-types'
 import React from 'react'
 import { Button, List, Icon, Image } from 'semantic-ui-react'
 
@@ -312,6 +313,12 @@ export function moveItem(list, fromIndex, toIndex) {
 }
 
 export class Playlist extends React.Component {
+  constructor(props, context) {
+    super(props)
+    const onDelete = this.onDeleteItems.bind(this)
+    context.addKeydownHandler(8 /* backspace */, onDelete)
+    context.addKeydownHandler(46 /* delete */, onDelete)
+  }
   playTrackAtIndex(index) {
     this.props.command("playlist", "index", index)
   }
@@ -362,6 +369,10 @@ export class Playlist extends React.Component {
       </Button.Group>
     </div>
   }
+}
+
+Playlist.contextTypes = {
+  addKeydownHandler: PropTypes.func.isRequired,
 }
 
 export const PlaylistItem = props => (

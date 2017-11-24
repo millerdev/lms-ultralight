@@ -127,28 +127,7 @@ export function reducer(state_=defaultState, action) {
   )
 }
 
-function onDeleteKey(props) {
-  const { playerid, dispatch } = props
-  const selection = props.playlist.get("selection")
-  playlist.deleteSelection(playerid, selection, dispatch, lms).then(() => {
-    loadPlayer(playerid, true).then(dispatch)
-  })
-}
-
-const KEY_HANDLERS = {
-  /* backspace */ 8: onDeleteKey,
-  /* delete */ 46: onDeleteKey,
-}
-
 export class Player extends React.Component {
-  componentDidMount() {
-    document.addEventListener("keydown", event => this.onKeyDown(event))
-  }
-  onKeyDown(event) {
-    if (KEY_HANDLERS.hasOwnProperty(event.keyCode)) {
-      KEY_HANDLERS[event.keyCode](this.props)
-    }
-  }
   command(playerid, ...args) {
     lms.command(playerid, ...args).then(() => {
       loadPlayer(playerid).then(action => this.props.dispatch(action))

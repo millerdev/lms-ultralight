@@ -1,5 +1,6 @@
 import { Map } from 'immutable'
 import _ from 'lodash'
+import PropTypes from 'prop-types'
 import React from 'react'
 
 import { combine, split } from './effects'
@@ -27,8 +28,10 @@ export class MainMenu extends React.Component {
   constructor() {
     super()
     this.state = {sidebarOpen: false}
+    this.keydownHandlers = {}
   }
   componentDidMount() {
+    document.addEventListener("keydown", event => this.onKeyDown(event))
     lms.getPlayers().then(data => {
       this.props.dispatch(players.gotPlayers(data))
       let playerid = localStorage.currentPlayer
@@ -41,6 +44,19 @@ export class MainMenu extends React.Component {
       this.loadPlayer(playerid, true)
     })
     // TODO convey failure to view somehow
+  }
+  getChildContext() {
+    return {
+      addKeydownHandler: this.addKeydownHandler.bind(this),
+    }
+  }
+  addKeydownHandler(code, handler) {
+    this.keydownHandlers[code] = handler
+  }
+  onKeyDown(event) {
+    if (this.keydownHandlers.hasOwnProperty(event.keyCode)) {
+      this.keydownHandlers[event.keyCode]()
+    }
   }
   loadPlayer(...args) {
     player.loadPlayer(...args).then(action => this.props.dispatch(action))
@@ -79,4 +95,8 @@ export class MainMenu extends React.Component {
       {props.children}
     </MainMenuUI>
   }
+}
+
+MainMenu.childContextTypes = {
+  addKeydownHandler: PropTypes.func.isRequired,
 }
