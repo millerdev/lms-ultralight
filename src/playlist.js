@@ -173,7 +173,7 @@ export function advanceToNextTrack(state) {
   return combine(state, effects)
 }
 
-export function moveItems(fromIndex, toIndex, playerid, selection, dispatch, lms) {
+export function moveItems(selection, toIndex, playerid, dispatch, lms) {
   return new Promise(resolve => {
     function move(items) {
       if (!items.length) {
@@ -209,7 +209,7 @@ export function moveItems(fromIndex, toIndex, playerid, selection, dispatch, lms
     }
     const isValidMove = (from, to) => from !== to && from + 1 !== to
     let items
-    if (selection.has(fromIndex)) {
+    if (selection.size) {
       const selected = selection.toSeq().sort()
       const botMoves = getMoves(selected.filter(i => i < toIndex).reverse())
       const topMoves = getMoves(selected.filter(i => i >= toIndex))
@@ -219,8 +219,6 @@ export function moveItems(fromIndex, toIndex, playerid, selection, dispatch, lms
       if (!items.length) {
         return resolve(false)
       }
-    } else if (isValidMove(fromIndex, toIndex)) {
-      items = [[fromIndex, toIndex]]
     } else {
       return resolve(false)
     }
@@ -345,6 +343,16 @@ export function moveItem(list, fromIndex, toIndex) {
 const PLAYLIST_ITEMS = "playlist items"
 
 export class Playlist extends React.Component {
+  onMoveItems(selection, toIndex) {
+    const loadPlayer = require("./player").loadPlayer
+    const { playerid, dispatch } = this.props
+    moveItems(selection, toIndex, playerid, dispatch, lms).then(() => {
+      loadPlayer(playerid, true).then(action => dispatch(action))
+    }).catch(err => {
+      // TODO convey failure to view somehow
+      window.console.log(err)
+    })
+  }
   deleteSelectedItems() {
     const loadPlayer = require("./player").loadPlayer
     const { playerid, selection, dispatch } = this.props
@@ -355,7 +363,7 @@ export class Playlist extends React.Component {
   render() {
     const props = this.props
     return <div>
-      <PlaylistItems {...props} />
+      <PlaylistItems onMoveItems={this.onMoveItems.bind(this)} {...props} />
       <Button.Group basic size="small">
         <Button
           icon="remove"
@@ -597,7 +605,11 @@ function makeSlider(playlist) {
         const toIndex = allowedDropIndex(getDropIndex(event, hoverIndex, target))
         if (toIndex >= 0) {
           event.preventDefault()
-          playlist.props.onMoveItems(fromIndex, toIndex)
+          let selection = playlist.props.selection
+          if (!selection.has(fromIndex)) {
+            selection = Set([fromIndex])
+          }
+          playlist.props.onMoveItems(selection, toIndex)
         }
       }
     }
@@ -677,7 +689,11 @@ function makeSlider(playlist) {
   }
   function drop(event, index) {
     const fromIndex = parseInt(event.dataTransfer.getData(PLAYLIST_ITEMS))
-    playlist.props.onMoveItems(fromIndex, getDropIndex(event, index))
+    let selection = playlist.props.selection
+    if (!selection.has(fromIndex)) {
+      selection = Set([fromIndex])
+    }
+    playlist.props.onMoveItems(selection, getDropIndex(event, index))
   }
 
   return {

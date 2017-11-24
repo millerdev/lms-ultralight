@@ -243,11 +243,11 @@ describe('playlist', function () {
   })
 
   describe('moveItems', function () {
-    function setup(selection=Set(), altLMS) {
+    function setup(altLMS) {
       const dispatched = []
       const dispatch = action => dispatched.push(action)
       return {
-        args: [PLAYERID, selection, dispatch, altLMS || lms],
+        args: [PLAYERID, dispatch, altLMS || lms],
         dispatched,
       }
     }
@@ -260,7 +260,7 @@ describe('playlist', function () {
 
     it('should move single item down', function () {
       const foo = setup()
-      return mod.moveItems(1, 0, ...foo.args).then(moved => {
+      return mod.moveItems(Set([1]), 0, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(1, 0),
         ])
@@ -270,7 +270,7 @@ describe('playlist', function () {
 
     it('should move single item up', function () {
       const foo = setup()
-      return mod.moveItems(0, 2, ...foo.args).then(moved => {
+      return mod.moveItems(Set([0]), 2, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(0, 2),
         ])
@@ -280,7 +280,7 @@ describe('playlist', function () {
 
     it('should not move single item to own index', function () {
       const foo = setup()
-      return mod.moveItems(1, 1, ...foo.args).then(moved => {
+      return mod.moveItems(Set([1]), 1, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [])
         assert(!moved, "should not have any moves")
       })
@@ -288,23 +288,23 @@ describe('playlist', function () {
 
     it('should not move single item to next index', function () {
       const foo = setup()
-      return mod.moveItems(1, 2, ...foo.args).then(moved => {
+      return mod.moveItems(Set([1]), 2, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [])
         assert(!moved, "should not have any moves")
       })
     })
 
     it('should not move selected items up to next', function () {
-      const foo = setup(Set([2, 3]))
-      return mod.moveItems(3, 4, ...foo.args).then(moved => {
+      const foo = setup()
+      return mod.moveItems(Set([2, 3]), 4, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [])
         assert(!moved, "should not have any moves")
       })
     })
 
     it('should move unselected item above selection', function () {
-      const foo = setup(Set([2, 3]))
-      return mod.moveItems(2, 1, ...foo.args).then(moved => {
+      const foo = setup()
+      return mod.moveItems(Set([2, 3]), 1, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(1, 4),
         ])
@@ -313,8 +313,8 @@ describe('playlist', function () {
     })
 
     it('should move unselected item below selection', function () {
-      const foo = setup(Set([2, 3]))
-      return mod.moveItems(3, 5, ...foo.args).then(moved => {
+      const foo = setup()
+      return mod.moveItems(Set([2, 3]), 5, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(4, 2),
         ])
@@ -323,8 +323,8 @@ describe('playlist', function () {
     })
 
     it('should move (2) selected items down', function () {
-      const foo = setup(Set([2, 3]))
-      return mod.moveItems(2, 0, ...foo.args).then(moved => {
+      const foo = setup()
+      return mod.moveItems(Set([2, 3]), 0, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(2, 0),
           actions.playlistItemMoved(3, 1),
@@ -334,8 +334,8 @@ describe('playlist', function () {
     })
 
     it('should move (2) selected items up', function () {
-      const foo = setup(Set([2, 3]))
-      return mod.moveItems(3, 6, ...foo.args).then(moved => {
+      const foo = setup()
+      return mod.moveItems(Set([2, 3]), 6, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(3, 6),
           actions.playlistItemMoved(2, 5),
@@ -345,8 +345,8 @@ describe('playlist', function () {
     })
 
     it('should move (2) unselected items below (3) selected', function () {
-      const foo = setup(Set([2, 3, 5]))
-      return mod.moveItems(3, 7, ...foo.args).then(moved => {
+      const foo = setup()
+      return mod.moveItems(Set([2, 3, 5]), 7, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(4, 2),
           actions.playlistItemMoved(6, 3),
@@ -356,8 +356,8 @@ describe('playlist', function () {
     })
 
     it('should move (2) unselected items down and up', function () {
-      const foo = setup(Set([2, 3, 6, 7]))
-      return mod.moveItems(2, 5, ...foo.args).then(moved => {
+      const foo = setup()
+      return mod.moveItems(Set([2, 3, 6, 7]), 5, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(4, 2),
           actions.playlistItemMoved(5, 8),
@@ -367,8 +367,8 @@ describe('playlist', function () {
     })
 
     it('should move (1) unselected item down and (2) selected items down', function () {
-      const foo = setup(Set([2, 3, 8, 9]))
-      return mod.moveItems(2, 5, ...foo.args).then(moved => {
+      const foo = setup()
+      return mod.moveItems(Set([2, 3, 8, 9]), 5, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(4, 2),
           actions.playlistItemMoved(8, 5),
@@ -379,8 +379,8 @@ describe('playlist', function () {
     })
 
     it('should move (2) selected items up and (1) unselected item down', function () {
-      const foo = setup(Set([2, 3, 8, 9]))
-      return mod.moveItems(2, 7, ...foo.args).then(moved => {
+      const foo = setup()
+      return mod.moveItems(Set([2, 3, 8, 9]), 7, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(3, 7),
           actions.playlistItemMoved(2, 6),
@@ -391,8 +391,8 @@ describe('playlist', function () {
     })
 
     it('should move selected items down and up (with unmoved index)', function () {
-      const foo = setup(Set([0, 1, 3, 9]))
-      return mod.moveItems(1, 3, ...foo.args).then(() => {
+      const foo = setup()
+      return mod.moveItems(Set([0, 1, 3, 9]), 3, ...foo.args).then(() => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(2, 0),
           actions.playlistItemMoved(9, 4),
@@ -401,8 +401,8 @@ describe('playlist', function () {
     })
 
     it('should move selected items down and up (with unmoved indices)', function () {
-      const foo = setup(Set([0, 1, 3, 4, 9]))
-      return mod.moveItems(1, 3, ...foo.args).then(() => {
+      const foo = setup()
+      return mod.moveItems(Set([0, 1, 3, 4, 9]), 3, ...foo.args).then(() => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(2, 0),
           actions.playlistItemMoved(9, 5),
@@ -416,8 +416,8 @@ describe('playlist', function () {
           "lms.command args")
         return args[3] === 1 ? Promise.resolve() : Promise.reject()
       }}
-      const foo = setup(Set([0, 1]), lms)
-      return mod.moveItems(1, 6, ...foo.args).then(() => {
+      const foo = setup(lms)
+      return mod.moveItems(Set([0, 1]), 6, ...foo.args).then(() => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(1, 6),
         ])

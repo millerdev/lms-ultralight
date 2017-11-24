@@ -149,18 +149,6 @@ export class Player extends React.Component {
       KEY_HANDLERS[event.keyCode](this.props)
     }
   }
-  onMoveItems(fromIndex, toIndex) {
-    const { playerid, dispatch } = this.props
-    const selection = this.props.playlist.get("selection")
-    playlist.moveItems(
-      fromIndex, toIndex, playerid, selection, dispatch, lms
-    ).then(() => {
-      loadPlayer(playerid, true).then(action => dispatch(action))
-    }).catch(err => {
-      // TODO convey failure to view somehow
-      window.console.log(err)
-    })
-  }
   command(playerid, ...args) {
     lms.command(playerid, ...args).then(() => {
       loadPlayer(playerid).then(action => this.props.dispatch(action))
@@ -190,7 +178,6 @@ export class Player extends React.Component {
       <playlist.Playlist
         playerid={props.playerid}
         command={command}
-        onMoveItems={this.onMoveItems.bind(this)}
         dispatch={props.dispatch}
         {...props.playlist.toObject()} />
     </div>

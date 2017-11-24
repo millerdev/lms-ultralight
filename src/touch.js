@@ -26,7 +26,7 @@ export const TO_LAST = "to last"
  * - onMoveItems: Callback function for handling drag/drop movement
  *   (sorting) of items within the list. Sorting will be disabled if
  *   this prop is not provided.
- *   Signature: `onMoveItems(fromIndex, toIndex, selectedIndexesArray)`
+ *   Signature: `onMoveItems(indexSet, toIndex)`
  */
 export class TouchList extends React.Component {
   constructor(props) {
@@ -438,8 +438,11 @@ function makeSlider(touchlist) {
       Set(event.dataTransfer.types).has(touchlist.id)
     if (isMove) {
       const fromIndex = parseInt(event.dataTransfer.getData(touchlist.id))
-      const sel = touchlist.state.selection.toJS()
-      touchlist.props.onMoveItems(fromIndex, getDropIndex(event, index), sel)
+      let sel = touchlist.state.selection
+      if (!sel.has(fromIndex)) {
+        sel = Set([fromIndex])
+      }
+      touchlist.props.onMoveItems(sel.toJS(), getDropIndex(event, index))
     } else if (touchlist.props.onDrop) {
       touchlist.props.onDrop(event, index)
     }
