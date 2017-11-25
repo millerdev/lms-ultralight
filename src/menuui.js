@@ -49,6 +49,7 @@ const PowerBar = props => {
         <players.SelectPlayer
           playerid={player.playerid}
           onPlayerSelected={props.onPlayerSelected}
+          dispatch={props.dispatch}
           {...props.players.toObject()} />
       </Menu.Item>
       <Menu.Menu position="right">

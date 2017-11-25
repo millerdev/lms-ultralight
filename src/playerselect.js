@@ -13,17 +13,8 @@ export const defaultState = Map({
   error: false,
 })
 
-export function gotPlayers(players) {
-  return actions.gotPlayers(players)
-}
-
 export const reducer = makeReducer({
-  loadPlayers: state => {
-    lms.getPlayers().then(({data}) => {
-      actions.gotPlayers(data)
-    }).catch(() => {
-      actions.gotPlayers()
-    })
+  loadingPlayers: state => {
     return state.set('loading', true)
   },
   gotPlayers: (state, action, players) => (
@@ -39,14 +30,26 @@ export const reducer = makeReducer({
   ),
 }, defaultState)
 
-const actions = reducer.actions
+export const actions = reducer.actions
 
-const loadPlayers = _.throttle(actions.loadPlayers, 30000, {trailing: false})
+export function loadPlayers(dispatch) {
+  dispatch(actions.loadingPlayers())
+  return lms.getPlayers().then(data => {
+    dispatch(actions.gotPlayers(data))
+    return data
+  }).catch(error => {
+    window.console.log(error)
+    dispatch(actions.gotPlayers())
+    return []
+  })
+}
+
+const maybeLoadPlayers = _.throttle(loadPlayers, 30000, {trailing: false})
 
 export const SelectPlayer = props => (
   <Dropdown
     placeholder="Select Player"
-    onClick={loadPlayers}
+    onClick={() => maybeLoadPlayers(props.dispatch)}
     onChange={(e, { value }) => props.onPlayerSelected(value)}
     options={props.players.map(item => ({
       text: item.get("name"),

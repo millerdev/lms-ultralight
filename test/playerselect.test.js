@@ -10,7 +10,7 @@ const players = [
 ]
 
 describe('playerselect', function () {
-  const actions = mod.reducer.actions
+  const actions = mod.actions
 
   describe('reducer', function () {
     describe('gotPlayers', function () {

@@ -32,8 +32,7 @@ export class MainMenu extends React.Component {
   }
   componentDidMount() {
     document.addEventListener("keydown", event => this.onKeyDown(event))
-    lms.getPlayers().then(data => {
-      this.props.dispatch(players.gotPlayers(data))
+    players.loadPlayers(this.props.dispatch).then(data => {
       let playerid = localStorage.currentPlayer
       if (!playerid || !_.some(data, item => item.playerid === playerid)) {
         if (!data.length) {
@@ -43,7 +42,6 @@ export class MainMenu extends React.Component {
       }
       this.loadPlayer(playerid, true)
     })
-    // TODO convey failure to view somehow
   }
   getChildContext() {
     return {
@@ -59,7 +57,7 @@ export class MainMenu extends React.Component {
     }
   }
   loadPlayer(...args) {
-    player.loadPlayer(...args).then(action => this.props.dispatch(action))
+    player.loadPlayer(...args).then(this.props.dispatch)
   }
   setSearchInput(input) {
     this.searchInput = input
