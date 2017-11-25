@@ -59,7 +59,7 @@ export class MediaSearch extends React.Component {
   }
   onSearch(query) {
     this.timer.clear()
-    this.timer.after(200, () => {
+    this.timer.after(350, () => {
       this.props.dispatch(actions.mediaSearch(query))
     }).catch(() => { /* ignore error on clear */ })
   }

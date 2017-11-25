@@ -26,7 +26,7 @@ export const defaultState = Map({
 })
 
 export const reducer = makeReducer({
-  gotPlayer: (state, action, status) => {
+  gotPlayer: (state, action, status, ignoreChange=false) => {
     const effects = []
     const list = status.playlist_loop
     const data = {
@@ -36,7 +36,7 @@ export const reducer = makeReducer({
     }
     if (list) {
       const index = parseInt(status.playlist_cur_index)
-      const changed = isPlaylistChanged(state.toObject(), data)
+      const changed = !ignoreChange && isPlaylistChanged(state.toObject(), data)
       const gotCurrent = index >= list[0][IX] && index <= list[list.length - 1][IX]
       data.currentIndex = index
       if (status.isPlaylistUpdate || changed) {
@@ -137,6 +137,57 @@ export function advanceToNextTrack(state) {
     ))
   }
   return combine(state, effects)
+}
+
+function insertPlaylistItems(playerid, items, index, dispatch, numTracks) {
+  const insert = (items, index, numTracks) => {
+    if (!items.length) {
+      return
+    }
+    const item = items.shift()
+    const key = item.type + "_id"
+    if (PLAYLISTCONTROL_TAGS.hasOwnProperty(key) && item[key] !== undefined) {
+      const param = PLAYLISTCONTROL_TAGS[key] + ":" + item[key]
+      lms.command(playerid, "playlistcontrol", "cmd:add", param)
+        // TODO do not hard-code playlist range
+        .then(() => lms.getPlayerStatus(playerid, 0, 100))
+        .then(data => {
+          // HACK will new items be in the playlist when moveItems is called?
+          dispatch(actions.gotPlayer(data))
+          if (index < numTracks) {
+            const selection = Range(numTracks, data.playlist_tracks)
+            return moveItems(selection, index, playerid, dispatch, lms)
+          }
+        })
+        .then(() => lms.getPlayerStatus(playerid))
+        .then(data => {
+          dispatch(actions.gotPlayer(data, true))
+          const length = data.playlist_tracks
+          const inserted = length - numTracks
+          if (inserted >= 0) {
+            insert(items, index + inserted, length)
+          }
+        })
+    } else {
+      window.console.log("unknown item", item)
+      insert(items, index, numTracks)
+    }
+  }
+  insert(items, index, numTracks)
+}
+
+const PLAYLISTCONTROL_TAGS = {
+  "album_id": "album_id",
+  "artist_id": "artist_id",
+  "contributor_id": "artist_id",  // this one is different
+  "folder_id": "folder_id",
+  "genre_id": "genre_id",
+  "playlist_id": "playlist_id",
+  "playlist_index": "playlist_index",
+  "playlist_name": "playlist_name",
+  "track_id": "track_id",
+  "year": "year",
+  "year_id": "year_id",
 }
 
 export function moveItems(selection, toIndex, playerid, dispatch, lms) {
@@ -313,6 +364,9 @@ export class Playlist extends React.Component {
     context.addKeydownHandler(8 /* backspace */, onDelete)
     context.addKeydownHandler(46 /* delete */, onDelete)
   }
+  toPlaylistIndex(touchlistIndex) {
+    return this.props.items.getIn([touchlistIndex, IX])
+  }
   playTrackAtIndex(index) {
     this.props.command("playlist", "index", index)
   }
@@ -320,7 +374,7 @@ export class Playlist extends React.Component {
     const loadPlayer = require("./player").loadPlayer
     const { playerid, dispatch } = this.props
     moveItems(selection, toIndex, playerid, dispatch, lms).then(() => {
-      loadPlayer(playerid, true).then(action => dispatch(action))
+      loadPlayer(playerid, true).then(dispatch)
     }).catch(err => {
       // TODO convey failure to view somehow
       window.console.log(err)
@@ -334,6 +388,13 @@ export class Playlist extends React.Component {
       loadPlayer(playerid, true).then(dispatch)
     })
   }
+  onDrop(data, dataType, index) {
+    if (dataType === SEARCH_RESULTS) {
+      const plindex = this.toPlaylistIndex(index)
+      const {playerid, dispatch, numTracks} = this.props
+      insertPlaylistItems(playerid, data, plindex, dispatch, numTracks)
+    }
+  }
   onSelectionChanged(selection) {
     this.props.dispatch(actions.selectionChanged(selection))
   }
@@ -345,9 +406,10 @@ export class Playlist extends React.Component {
           items={props.items}
           selection={props.selection}
           dropTypes={[SEARCH_RESULTS]}
+          onDrop={this.onDrop.bind(this)}
           onMoveItems={this.onMoveItems.bind(this)}
           onSelectionChanged={this.onSelectionChanged.bind(this)}>
-        {props.items.toSeq().filter(item => item).map((item, index) => {
+        {props.items.toSeq().map((item, index) => {
           item = item.toObject()
           return <PlaylistItem
             {...item}
