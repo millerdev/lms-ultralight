@@ -367,12 +367,14 @@ export class Playlist extends React.Component {
   toPlaylistIndex(touchlistIndex) {
     return this.props.items.getIn([touchlistIndex, IX])
   }
-  playTrackAtIndex(index) {
-    this.props.command("playlist", "index", index)
+  playTrackAtIndex(playlistIndex) {
+    this.props.command("playlist", "index", playlistIndex)
   }
   onMoveItems(selection, toIndex) {
     const loadPlayer = require("./player").loadPlayer
     const { playerid, dispatch } = this.props
+    selection = selection.map(i => this.toPlaylistIndex(i))
+    toIndex = this.toPlaylistIndex(toIndex)
     moveItems(selection, toIndex, playerid, dispatch, lms).then(() => {
       loadPlayer(playerid, true).then(dispatch)
     }).catch(err => {
@@ -381,18 +383,18 @@ export class Playlist extends React.Component {
     })
   }
   onDeleteItems() {
-    // TODO get selection from touchlist
     const loadPlayer = require("./player").loadPlayer
-    const { playerid, selection, dispatch } = this.props
+    const { playerid, dispatch } = this.props
+    const selection = this.props.selection.map(i => this.toPlaylistIndex(i))
     deleteSelection(playerid, selection, dispatch, lms).then(() => {
       loadPlayer(playerid, true).then(dispatch)
     })
   }
   onDrop(data, dataType, index) {
     if (dataType === SEARCH_RESULTS) {
-      const plindex = this.toPlaylistIndex(index)
       const {playerid, dispatch, numTracks} = this.props
-      insertPlaylistItems(playerid, data, plindex, dispatch, numTracks)
+      index = this.toPlaylistIndex(index)
+      insertPlaylistItems(playerid, data, index, dispatch, numTracks)
     }
   }
   onSelectionChanged(selection) {
@@ -413,10 +415,10 @@ export class Playlist extends React.Component {
           item = item.toObject()
           return <PlaylistItem
             {...item}
-            playTrackAtIndex={this.playTrackAtIndex.bind(this)}
+            playTrack={this.playTrackAtIndex.bind(this, item[IX])}
             index={index}
-            playlistIndex={item[IX]}
             active={props.currentIndex === item[IX]}
+            selecting={props.selection.size}
             key={index + "-" + item.id} />
         }).toArray()}
       </TouchList>
@@ -439,7 +441,7 @@ Playlist.contextTypes = {
 export const PlaylistItem = props => (
   <TouchList.Item
       index={props.index}
-      onDoubleClick={() => props.playTrackAtIndex(props.playlistIndex)}
+      onDoubleClick={props.playTrack}
       draggable>
     <List.Content floated="right">
       <List.Description className={props.selecting ? "drag-handle" : ""}>
