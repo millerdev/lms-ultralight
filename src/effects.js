@@ -33,10 +33,10 @@ export function installEffects() {
     function runEffect(parentActionType, effect) {
       Promise.resolve(effect.factory(...effect.args))
         .then(action => {
-          if (debug) {
-            window.console.log(parentActionType, action)
-          }
           if (action !== IGNORE_ACTION) {
+            if (debug) {
+              window.console.log(parentActionType, action)
+            }
             dispatch(action)
           }
         })

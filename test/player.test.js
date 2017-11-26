@@ -7,8 +7,8 @@ import { effect, getEffects, getState, split, IGNORE_ACTION } from '../src/effec
 import * as mod from '../src/player'
 
 describe('player', function () {
-  describe('playerReducer', function () {
-    const reduce = mod.playerReducer
+  describe('reducer', function () {
+    const reduce = mod.reducer
     const defaultState = mod.defaultState.remove("players")
 
     describe('gotPlayer', function () {
@@ -64,10 +64,7 @@ describe('player', function () {
           "time": 350,
           "localTime": null,
         }).toJS()
-        const state = defaultState.merge({
-          playlist: STATE.get("playlist").set("items", PLAYLIST_1),
-        })
-        const effects = getEffects(reduce(state, gotPlayer(data)))
+        const effects = getEffects(reduce(defaultState, gotPlayer(data)))
         assert.deepEqual(effects, [
           effect(
             mod.advanceToNextTrackAfter,
@@ -162,7 +159,6 @@ describe('player', function () {
           playerid: PLAYERID,
           elapsedTime: 200,
           localTime: Date.now() - 100,
-          playlist: mod.defaultState.get("playlist").set("playerid", PLAYERID),
         })
         const now = Date.now()
         const [state, effects] = split(
@@ -171,13 +167,8 @@ describe('player', function () {
           playerid: PLAYERID,
           elapsedTime: 0,
           localTime: now,
-          playlist: mod.defaultState.get("playlist").set("playerid", PLAYERID),
         }))
-        assert.deepEqual(effects, [effect(
-          mod.loadPlayer,
-          PLAYERID,
-          true,
-        )])
+        assert.deepEqual(effects, [])
       })
 
       it('should not advance on repeat one', function () {
@@ -198,8 +189,6 @@ describe('player', function () {
         }))
         assert.deepEqual(effects, [])
       })
-
-      noOtherPlayerStateChange(advanceToNextTrack)
     })
 
     function noOtherPlayerStateChange(action) {
@@ -364,7 +353,7 @@ const PLAYLIST_1 = fromJS([
   }
 ])
 
-const STATE = mod.defaultState.remove("players").merge({
+const STATE = mod.defaultState.merge({
   playerid: PLAYERID,
   repeatMode: 2,
   shuffleMode: 1,

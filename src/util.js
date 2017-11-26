@@ -26,10 +26,10 @@ export function isNumeric(n) {
 export function timer() {
   let timers = []
   return {
-    after: (ms, func) => {
+    after: (ms, func, ...args) => {
       let clear = null
       const promise = new Promise((resolve, reject) => {
-        const id = setTimeout(() => resolve(func()), ms)
+        const id = setTimeout(() => resolve(func(...args)), ms)
         clear = resolution => {
           clearTimeout(id)
           if (resolution !== undefined) {

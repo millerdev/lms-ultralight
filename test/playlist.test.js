@@ -141,6 +141,26 @@ describe('playlist', function () {
       })
     })
 
+    describe('advanceToNextTrack', function () {
+      const advanceToNextTrack = reduce.actions.advanceToNextTrack
+      it('should load player status when next is unknown', function () {
+        const state1 = STATE.merge({
+          currentIndex: 3,
+          items: PLAYLIST_1.slice(2),
+        })
+        const [state2, effects] =
+          split(reduce(state1, advanceToNextTrack(PLAYERID)))
+        assert.equal(state1, state2)
+        assert.deepEqual(effects, [
+          effect(
+            require("../src/player").loadPlayer,
+            PLAYERID,
+            true,
+          )
+        ])
+      })
+    })
+
     function stripLastSelected(config) {
       return config.replace(/ \| .*/, "")
     }
@@ -199,24 +219,6 @@ describe('playlist', function () {
       //test("aB(c)Defg | bd", 2, "a(B)Defg | bd")
       test("aB(c)Defg | bd", 3, "aB(c)efg | b")
       test("aB(c)Defg | bd", 7, "aB(c)Defg | bd") // index out of bounds
-    })
-  })
-
-  describe('advanceToNextTrack', function () {
-    it('should load player status when next is unknown', function () {
-      const state1 = STATE.merge({
-        currentIndex: 3,
-        items: PLAYLIST_1.slice(2),
-      })
-      const [state2, effects] = split(mod.advanceToNextTrack(state1))
-      assert.equal(state1, state2)
-      assert.deepEqual(effects, [
-        effect(
-          require("../src/player").loadPlayer,
-          PLAYERID,
-          true,
-        )
-      ])
     })
   })
 

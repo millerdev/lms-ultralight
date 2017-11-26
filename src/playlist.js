@@ -17,6 +17,7 @@ export const SINGLE = "single"
 export const TO_LAST = "to last"
 
 export const defaultState = Map({
+  playerid: null,
   items: IList(),
   timestamp: null,
   numTracks: 0,
@@ -26,7 +27,7 @@ export const defaultState = Map({
 })
 
 export const reducer = makeReducer({
-  gotPlayer: (state, action, status, ignoreChange=false) => {
+  "ref:gotPlayer": (state, action, status, {ignoreChange=false}={}) => {
     const effects = []
     const list = status.playlist_loop
     const data = {
@@ -61,6 +62,27 @@ export const reducer = makeReducer({
       data.selection = Set()
     }
     return combine(state.merge(data), effects)
+  },
+  "ref:advanceToNextTrack": (state, action, playerid) => {
+    const items = state.get("items")
+    const index = state.get("currentIndex")
+    const nextIndex = index === null ? null : (index + 1)
+    const nextTrack = nextIndex === null ? null :
+      items.find(item => item.get(IX) === nextIndex)
+    const effects = []
+    if (nextIndex !== null && nextTrack) {
+      state = state.merge({
+        currentTrack: nextTrack,
+        currentIndex: nextIndex,
+      })
+    } else {
+      effects.push(effect(
+        require("./player").loadPlayer,
+        playerid,
+        true,
+      ))
+    }
+    return combine(state, effects)
   },
   playlistItemMoved: (state, action, fromIndex, toIndex) => {
     const selection = state.get("selection")
@@ -113,31 +135,10 @@ export const reducer = makeReducer({
   selectionChanged: (state, action, selection) => {
     return state.set("selection", selection)
   },
+  clearSelection: state => state.set("selection", Set()),
 }, defaultState)
 
 const actions = reducer.actions
-
-export function advanceToNextTrack(state) {
-  const items = state.get("items")
-  const index = state.get("currentIndex")
-  const nextIndex = index === null ? null : (index + 1)
-  const nextTrack = nextIndex === null ? null :
-    items.find(item => item.get(IX) === nextIndex)
-  const effects = []
-  if (nextIndex !== null && nextTrack) {
-    state = state.merge({
-      currentTrack: nextTrack,
-      currentIndex: nextIndex,
-    })
-  } else {
-    effects.push(effect(
-      require("./player").loadPlayer,
-      state.get("playerid"),
-      true,
-    ))
-  }
-  return combine(state, effects)
-}
 
 function insertPlaylistItems(playerid, items, index, dispatch, numTracks) {
   const insert = (items, index, numTracks) => {
@@ -161,7 +162,7 @@ function insertPlaylistItems(playerid, items, index, dispatch, numTracks) {
         })
         .then(() => lms.getPlayerStatus(playerid))
         .then(data => {
-          dispatch(actions.gotPlayer(data, true))
+          dispatch(actions.gotPlayer(data, {ignoreChange: true}))
           const length = data.playlist_tracks
           const inserted = length - numTracks
           if (inserted >= 0) {
@@ -368,27 +369,33 @@ export class Playlist extends React.Component {
     return this.props.items.getIn([touchlistIndex, IX])
   }
   playTrackAtIndex(playlistIndex) {
-    this.props.command("playlist", "index", playlistIndex)
+    const loadPlayer = require("./player").loadPlayer
+    const { playerid, dispatch } = this.props
+    lms.command(playerid, "playlist", "index", playlistIndex)
+      .then(() => dispatch(actions.clearSelection()))
+      // HACK load again after 1 second because LMS sometimes returns
+      // the wrong "time" on loadPlayer immediately after a command.
+      .then(() => loadPlayer(playerid, true, {statusInterval: 1}))
+      .then(this.props.dispatch)
   }
   onMoveItems(selection, toIndex) {
     const loadPlayer = require("./player").loadPlayer
     const { playerid, dispatch } = this.props
     selection = selection.map(i => this.toPlaylistIndex(i))
     toIndex = this.toPlaylistIndex(toIndex)
-    moveItems(selection, toIndex, playerid, dispatch, lms).then(() => {
-      loadPlayer(playerid, true).then(dispatch)
-    }).catch(err => {
+    moveItems(selection, toIndex, playerid, dispatch, lms)
+      .then(() => loadPlayer(playerid, true))
+      .then(dispatch)
       // TODO convey failure to view somehow
-      window.console.log(err)
-    })
+      .catch(error => window.console.log(error))
   }
   onDeleteItems() {
     const loadPlayer = require("./player").loadPlayer
     const { playerid, dispatch } = this.props
     const selection = this.props.selection.map(i => this.toPlaylistIndex(i))
-    deleteSelection(playerid, selection, dispatch, lms).then(() => {
-      loadPlayer(playerid, true).then(dispatch)
-    })
+    deleteSelection(playerid, selection, dispatch, lms)
+      .then(() => loadPlayer(playerid, true))
+      .then(dispatch)
   }
   onDrop(data, dataType, index) {
     if (dataType === SEARCH_RESULTS) {

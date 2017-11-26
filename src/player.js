@@ -2,11 +2,10 @@ import { Map } from 'immutable'
 import _ from 'lodash'
 import React from 'react'
 
-import { effect, combine, split, IGNORE_ACTION } from './effects'
+import { effect, combine, IGNORE_ACTION } from './effects'
 import makeReducer from './store'
 import * as lms from './lmsclient'
 import { PlayerUI, SeekBar } from './playerui'
-import * as playlist from './playlist'
 import { backoff, isNumeric, timer } from './util'
 
 export const STATUS_INTERVAL = 30  // seconds
@@ -14,7 +13,6 @@ export const REPEAT_ONE = 1
 export const REPEAT_ALL = 2
 
 export const defaultState = Map({
-  playlist: playlist.defaultState,
   playerid: null,
   isPowerOn: false,
   isPlaying: false,
@@ -26,8 +24,8 @@ export const defaultState = Map({
   localTime: null,
 })
 
-export const playerReducer = makeReducer({
-  "ref:gotPlayer": (state, action, status) => {
+export const reducer = makeReducer({
+  gotPlayer: (state, action, status, {statusInterval=STATUS_INTERVAL}={}) => {
     const data = {
       playerid: status.playerid,
       isPowerOn: status.power === 1,
@@ -41,7 +39,7 @@ export const playerReducer = makeReducer({
     }
     return combine(state.merge(data), [
       effect(advanceToNextTrackAfter, secondsToEndOfTrack(data), data.playerid),
-      effect(loadPlayerAfter, STATUS_INTERVAL * 1000, data.playerid),
+      effect(loadPlayerAfter, statusInterval * 1000, data.playerid),
     ])
   },
   seek: (state, action, {playerid, value}, now=Date.now()) => {
@@ -54,21 +52,14 @@ export const playerReducer = makeReducer({
     return state
   },
   advanceToNextTrack: (state, action, playerid, now=Date.now()) => {
-    let effects = []
-    if (state.get("playerid") === playerid) {
-      const data = {
-        elapsedTime: 0,
-        localTime: now,
-      }
-      if (state.get("repeatMode") !== REPEAT_ONE) {
-        [data.playlist, effects] =
-          playlist.advanceToNextTrack(state.get("playlist"))
-      }
-      state = state.merge(data)
-    }
-    return combine(state, effects)
+    return state.merge({
+      elapsedTime: 0,
+      localTime: now,
+    })
   },
 }, defaultState)
+
+const actions = reducer.actions
 
 /**
  * Return number of seconds to end of song (floating point); null if unknown
@@ -87,16 +78,16 @@ export const advanceToNextTrackAfter = (() => {
   return (end, ...args) => {
     time.clear(IGNORE_ACTION)
     if (end !== null && end <= STATUS_INTERVAL) {
-      return time.after(end * 1000, () => actions.advanceToNextTrack(...args))
+      return time.after(end * 1000, actions.advanceToNextTrack, ...args)
     }
     return IGNORE_ACTION
   }
 })()
 
-export function loadPlayer(playerid, fetchPlaylist=false) {
+export function loadPlayer(playerid, fetchPlaylist=false, options={}) {
   const args = fetchPlaylist ? [0, 100] : []
   return lms.getPlayerStatus(playerid, ...args)
-            .then(data => actions.gotPlayer(data))
+            .then(data => actions.gotPlayer(data, options))
 }
 
 export const loadPlayerAfter = (() => {
@@ -115,24 +106,15 @@ export function seek(playerid, value) {
   return lms.command(playerid, "time", value).then(() => loadPlayer(playerid))
 }
 
-const actions = playerReducer.actions
-
-export function reducer(state_=defaultState, action) {
-  const [state, effects] = split(playerReducer(state_, action))
-  const [playlistState, playlistEffects] =
-    split(playlist.reducer(state.get("playlist"), action))
-  return combine(
-    state.set("playlist", playlistState),
-    effects.concat(playlistEffects)
-  )
-}
-
 export class Player extends React.Component {
   command(playerid, ...args) {
-    lms.command(playerid, ...args).then(() => {
-      loadPlayer(playerid).then(action => this.props.dispatch(action))
-      // TODO convey failure to view somehow
-    })
+    lms.command(playerid, ...args)
+      // HACK load again after 1 second because LMS sometimes returns
+      // the wrong "time" on loadPlayer immediately after a command.
+      // statusInterval is convoluted, and should ideally be removed.
+      // The correct fix for this is probably player status subscription.
+      .then(() => loadPlayer(playerid, false, {statusInterval: 1}))
+      .then(action => this.props.dispatch(action))
     // TODO convey failure to view somehow
   }
   onSeek(playerid, value) {
@@ -142,10 +124,8 @@ export class Player extends React.Component {
   render() {
     const props = this.props
     const command = this.command.bind(this, props.playerid)
-    return <div>
-      <PlayerUI
-        command={command}
-        {...props}>
+    return (
+      <PlayerUI command={command} {...props}>
         <LiveSeekBar
           isPlaying={props.isPlaying}
           localTime={props.localTime}
@@ -154,12 +134,7 @@ export class Player extends React.Component {
           onSeek={this.onSeek.bind(this, props.playerid)}
           disabled={!props.playerid} />
       </PlayerUI>
-      <playlist.Playlist
-        playerid={props.playerid}
-        command={command}
-        dispatch={props.dispatch}
-        {...props.playlist.toObject()} />
-    </div>
+    )
   }
 }
 
