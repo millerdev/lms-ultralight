@@ -368,10 +368,10 @@ export class Playlist extends React.Component {
   toPlaylistIndex(touchlistIndex) {
     return this.props.items.getIn([touchlistIndex, IX])
   }
-  playTrackAtIndex(playlistIndex) {
+  playTrackAtIndex(index) {
     const loadPlayer = require("./player").loadPlayer
     const { playerid, dispatch } = this.props
-    lms.command(playerid, "playlist", "index", playlistIndex)
+    lms.command(playerid, "playlist", "index", this.toPlaylistIndex(index))
       .then(() => dispatch(actions.clearSelection()))
       // HACK load again after 1 second because LMS sometimes returns
       // the wrong "time" on loadPlayer immediately after a command.
@@ -417,12 +417,13 @@ export class Playlist extends React.Component {
           dropTypes={[SEARCH_RESULTS]}
           onDrop={this.onDrop.bind(this)}
           onMoveItems={this.onMoveItems.bind(this)}
-          onSelectionChanged={this.onSelectionChanged.bind(this)}>
+          onSelectionChanged={this.onSelectionChanged.bind(this)}
+          onTap={this.playTrackAtIndex.bind(this)}>
         {props.items.toSeq().map((item, index) => {
           item = item.toObject()
           return <PlaylistItem
             {...item}
-            playTrack={this.playTrackAtIndex.bind(this, item[IX])}
+            playTrack={this.playTrackAtIndex.bind(this, index)}
             index={index}
             active={props.currentIndex === item[IX]}
             selecting={props.selection.size}
@@ -465,7 +466,7 @@ export const PlaylistItem = props => (
             inline
             height="18px"
             width="18px"
-            className="track-art gap-right"
+            className="tap-zone gap-right"
             src={lms.getImageUrl(props)} /> }
         {songTitle(props)}
       </List.Description>

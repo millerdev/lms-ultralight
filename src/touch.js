@@ -21,6 +21,9 @@ export const TO_LAST = "to last"
  *   will be maintained internally.
  * - dropTypes: Array of data types that can be dropped in this list.
  *   Dropping is not supported if this prop is not provided.
+ * - onTap: Callback function handling tap on list item element
+ *   with the class "tap-zone".
+ *   Signature: `onTap(index, event)`
  * - onDrop: Callback function for handling dropped content.
  *   Signature: `onDrop(data, dataType, index, event)`
  * - onLongTouch: Callback function for handling long-touch event.
@@ -96,6 +99,11 @@ export class TouchList extends React.Component {
   getAllowedDropType(possibleTypes) {
     const dropTypes = this.state.dropTypes
     return _.find(possibleTypes, value => dropTypes.hasOwnProperty(value))
+  }
+  onTap(index, event) {
+    if (this.props.onTap) {
+      this.props.onTap(index, event)
+    }
   }
   onItemSelected(index, modifier) {
     this.selectionChanged(({selection, lastSelected}) => {
@@ -186,6 +194,7 @@ const TOUCHLIST_PROPS = {
   onLongTouch: true,
   onMoveItems: true,
   onSelectionChanged: true,
+  onTap: true,
 }
 
 /**
@@ -276,7 +285,7 @@ const excludeKeys = (src, keys, for_) => _.pickBy(src, (value, key) => {
  *  - drag/drop to rearrange items in list (if onMoveItems provided)
  *
  * Touch interaction:
- *  - tappable reigions (class="tappable")
+ *  - tappable reigions (class="tap-zone")
  *    - event prop: onTap={callback}
  *  - tap to select and enter selection/reorder mode
  *    - tap to select/deselect items
@@ -373,8 +382,8 @@ function makeSlider(touchlist) {
     const target = getTarget(latestPosition)
     if (!isHolding && startPosition === latestPosition) {
       event.preventDefault()
-      if (hasClass(target, "track-art")) {
-        touchlist.playTrackAtIndex(fromIndex)
+      if (hasClass(target, "tap-zone")) {
+        touchlist.onTap(fromIndex, event)
       } else {
         touchlist.toggleSelection(fromIndex)
       }
