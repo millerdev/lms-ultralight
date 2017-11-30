@@ -2,7 +2,7 @@ import { List as IList, Map, Range, Set, fromJS } from 'immutable'
 import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import { Button, List, Icon, Image } from 'semantic-ui-react'
+import { Button, List, Icon, Image, Item, Popup } from 'semantic-ui-react'
 
 import { effect, combine } from './effects'
 import * as lms from './lmsclient'
@@ -364,14 +364,15 @@ export class Playlist extends React.Component {
     const onDelete = this.onDeleteItems.bind(this)
     context.addKeydownHandler(8 /* backspace */, onDelete)
     context.addKeydownHandler(46 /* delete */, onDelete)
+    this.selectionChangedListener = null
   }
   toPlaylistIndex(touchlistIndex) {
     return this.props.items.getIn([touchlistIndex, IX])
   }
-  playTrackAtIndex(index) {
+  playTrackAtIndex(playlistIndex) {
     const loadPlayer = require("./player").loadPlayer
     const { playerid, dispatch } = this.props
-    lms.command(playerid, "playlist", "index", this.toPlaylistIndex(index))
+    lms.command(playerid, "playlist", "index", playlistIndex)
       .then(() => dispatch(actions.clearSelection()))
       // HACK load again after 1 second because LMS sometimes returns
       // the wrong "time" on loadPlayer immediately after a command.
@@ -406,9 +407,14 @@ export class Playlist extends React.Component {
   }
   onSelectionChanged(selection) {
     this.props.dispatch(actions.selectionChanged(selection))
+    this.selectionChangedListener && this.selectionChangedListener()
+  }
+  setSelectionChangedListener(callback) {
+    this.selectionChangedListener = callback
   }
   render() {
     const props = this.props
+    const selchange = this.setSelectionChangedListener.bind(this)
     return <div>
       <TouchList
           className="playlist"
@@ -417,16 +423,16 @@ export class Playlist extends React.Component {
           dropTypes={[SEARCH_RESULTS]}
           onDrop={this.onDrop.bind(this)}
           onMoveItems={this.onMoveItems.bind(this)}
-          onSelectionChanged={this.onSelectionChanged.bind(this)}
-          onTap={this.playTrackAtIndex.bind(this)}>
+          onSelectionChanged={this.onSelectionChanged.bind(this)}>
         {props.items.toSeq().map((item, index) => {
           item = item.toObject()
           return <PlaylistItem
             {...item}
-            playTrack={this.playTrackAtIndex.bind(this, index)}
+            playTrack={this.playTrackAtIndex.bind(this, item[IX])}
             index={index}
             active={props.currentIndex === item[IX]}
             selecting={props.selection.size}
+            setSelectionChangedListener={selchange}
             key={index + "-" + item.id} />
         }).toArray()}
       </TouchList>
@@ -459,20 +465,69 @@ export const PlaylistItem = props => (
     </List.Content>
     <List.Content>
       <List.Description className="title">
-        {props.active ?
-          <CurrentTrackIcon /> :
-          <Image
-            ui
-            inline
-            height="18px"
-            width="18px"
-            className="tap-zone gap-right"
-            src={lms.getImageUrl(props)} /> }
+        <TrackIcon {...props} />
         {songTitle(props)}
       </List.Description>
     </List.Content>
   </TouchList.Item>
 )
+
+export class TrackIcon extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {isPopped: false}
+  }
+  onPop() {
+    !this.state.isPopped && this.setState({isPopped: true})
+  }
+  onHide() {
+    this.state.isPopped && this.setState({isPopped: false})
+  }
+  playTrack() {
+    this.props.playTrack()
+    this.onHide()
+  }
+  render() {
+    const props = this.props
+    const imageUrl = lms.getImageUrl(props)
+    const playTrack = this.playTrack.bind(this)
+    if (this.state.isPopped) {
+      props.setSelectionChangedListener(this.onHide.bind(this))
+    }
+    return <span className="gap-right">
+      <Popup
+          trigger={props.active ?
+            <Icon className="tap-zone" name="video play" size="large" fitted /> :
+            <Image src={imageUrl} ui inline height="18px" width="18px"
+              className="tap-zone" />
+          }
+          open={this.state.isPopped}
+          onOpen={this.onPop.bind(this)}
+          onClose={this.onHide.bind(this)}
+          position="right center"
+          on="click"
+          wide="very">
+        <Item.Group>
+          <Item>
+            <Item.Image size="small" src={imageUrl} />
+            <Item.Content>
+              <Button icon="play" floated="right" onClick={playTrack}
+                style={{"margin": "0 0 1em 1em"}} />
+              <Item.Header>{props.title}</Item.Header>
+              {_.map([props.artist, props.composer, props.album], text => (
+                text ? <Item.Meta key={text}>{text}</Item.Meta> : ""
+              ))}
+              <Item.Meta>
+                {_.filter([props.genre, props.year]).join(" | ")}
+              </Item.Meta>
+              {""/*<Item.Description>...</Item.Description>*/}
+            </Item.Content>
+          </Item>
+        </Item.Group>
+      </Popup>
+    </span>
+  }
+}
 
 function songTitle({artist, title}) {
   if (artist && title) {
@@ -480,13 +535,6 @@ function songTitle({artist, title}) {
   }
   return artist || title || "..."
 }
-
-const CurrentTrackIcon = () => (
-  <span className="gap-right">
-    <Icon name="video play" size="large" fitted />
-  </span>
-)
-
 
 const DragHandle = () => (
   <span className="gap-left">

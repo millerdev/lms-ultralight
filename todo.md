@@ -16,29 +16,34 @@ x        songs
         playlists?
         folders/files?
       - interactions
-        - mouse over item: art turns to info button
-        - click art: show info (drill down)
-        - click: select, show play button (on first item only)
-        - touch: select, show play button (on first item only)
+        - mouse over or item: art turns to info button, play/+ button on right
+        - click: select, show play/+ button (on first item only)
+        - click art/info button: show info (drill down)
+        - double-click: play or enqueue
+        - touch: select, show play/+ button (on first item only)
         - long touch: show info
         - show info
           - back controls
+          - play/+ control on right
           - show item details
-        - click/touch section header
-          - back controls
-          - show more results in that section
         - back controls
           - click/touch: go back
           - bread crumbs?
-        - drag: collapse menu to 15%, allow drop in playlist
+        - drag: collapse sidebar to 15%, allow drop in playlist
 x        - drop in playlist: do the obvious
         - drop in sidebar: cancel drag/drop, show full sidebar again
 
+- fix move handles showing on click selection (should only show on touch)
 - fix click next skips two tracks (display only, intermittent)
   likely caused by scheduled advanceToNextTrackAfter action
 - fix update player state on double-click playlist item
 - fix cannot drag first item in playlist on mobile
 - fix cannot drop item at index 0 in playlist
+- fix touch icon in playlist -> onClick() selects single item (clears existing
+  selection) instead of toggle selection
+  possible solution:
+    onTap() -> event.preventDefault()
+    could allow this by showing popup with open={...} rather than with trigger
 - swipe to delete track(s) (delete multiple if selected)
 - get better slider controls
 - playlist
