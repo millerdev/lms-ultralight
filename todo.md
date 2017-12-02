@@ -37,6 +37,24 @@ x            - difficult to control position
 x            - triggering didn't just work (looked flaky/hard to get right)
 x            - browser context menu appeared on long press, might be tricky
 
+- playlist
+  - track info popup
+    - clickable track details
+    - show plugin actions (walk with me, youtube, etc.)
+    - load track details asynchronously (ID3 tags, file path, etc.)
+      Disc: 2/2
+      Track Number: 8
+      File Format: MPEG-4
+      Duration: 4:55
+      Volume Adjustment: -10.83 dB
+      Bitrate: 256kbps CBR
+      Sample Rate: 44.1 kHz
+      Sample Size: 16Bits
+      File Length: 10,305,938
+      Location: /Volumes/Work/Shared/Media/Music/2010/Sunlounger/...Lorilee].m4a
+      Date Modified: Wednesday, June 10, 2015, 6:43 AM
+
+
 - fix lag on change selection in large playlist
 - fix move handles showing on click selection (should only show on touch)
 - fix click next skips two tracks (display only, intermittent)

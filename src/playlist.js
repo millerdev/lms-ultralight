@@ -2,8 +2,9 @@ import { List as IList, Map, Range, Set, fromJS } from 'immutable'
 import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import { Button, List, Icon, Image, Item, Popup } from 'semantic-ui-react'
+import { Button, List, Item } from 'semantic-ui-react'
 
+import { TrackInfoPopup } from './components'
 import { effect, combine } from './effects'
 import * as lms from './lmsclient'
 import { SEARCH_RESULTS } from './search'
@@ -366,6 +367,7 @@ export class Playlist extends React.Component {
     context.addKeydownHandler(8 /* backspace */, onDelete)
     context.addKeydownHandler(46 /* delete */, onDelete)
     this.selectionChangedListener = null
+    this.hideTrackInfo = () => {}
   }
   toPlaylistIndex(touchlistIndex) {
     return this.props.items.getIn([touchlistIndex, IX])
@@ -379,6 +381,7 @@ export class Playlist extends React.Component {
       // the wrong "time" on loadPlayer immediately after a command.
       .then(() => loadPlayer(playerid, true, {statusInterval: 1}))
       .then(this.props.dispatch)
+    this.hideTrackInfo()
   }
   onLongTouch(item, index) {
     // show info icon after selection changes
@@ -421,14 +424,14 @@ export class Playlist extends React.Component {
   onSelectionChanged(selection) {
     this.props.dispatch(actions.selectionChanged(selection))
     this.setInfoIndex(-1)
-    this.selectionChangedListener && this.selectionChangedListener()
+    this.hideTrackInfo()
   }
-  setSelectionChangedListener(callback) {
-    this.selectionChangedListener = callback
+  setHideTrackInfoCallback(callback) {
+    this.hideTrackInfo = callback
   }
   render() {
     const props = this.props
-    const selchange = this.setSelectionChangedListener.bind(this)
+    const hideInfo = this.setHideTrackInfoCallback.bind(this)
     return <div>
       <TouchList
           className="playlist"
@@ -442,12 +445,12 @@ export class Playlist extends React.Component {
         {props.items.toSeq().map((item, index) => {
           item = item.toObject()
           return <PlaylistItem
-            {...item}
+            item={item}
             playTrack={this.playTrackAtIndex.bind(this, item[IX])}
             index={index}
-            active={props.currentIndex === item[IX]}
+            activeIcon={props.currentIndex === item[IX] ? "video play" : ""}
             selecting={props.selection.size}
-            setSelectionChangedListener={selchange}
+            setHideTrackInfoCallback={hideInfo}
             showInfoIcon={index === this.state.infoIndex}
             key={index + "-" + item.id} />
         }).toArray()}
@@ -468,88 +471,36 @@ Playlist.contextTypes = {
   addKeydownHandler: PropTypes.func.isRequired,
 }
 
-export const PlaylistItem = props => (
-  <TouchList.Item
+export const PlaylistItem = props => {
+  const item = props.item
+  return <TouchList.Item
       index={props.index}
       onDoubleClick={props.playTrack}
       draggable>
     <List.Content floated="right">
       <List.Description className={props.selecting ? "drag-handle" : ""}>
-        {formatTime(props.duration || 0)}
+        {formatTime(item.duration || 0)}
         {props.selecting ? <DragHandle /> : ""}
       </List.Description>
     </List.Content>
     <List.Content>
       <List.Description className="title">
-        <TrackIcon {...props} />
-        {songTitle(props)}
+        <TrackInfoPopup {...props}>
+          <Button icon="play" floated="right" onClick={props.playTrack}
+            style={{"margin": "0 0 1em 1em"}} />
+          <Item.Header>{item.title}</Item.Header>
+          {_.map([item.artist, item.composer, item.album], text => (
+            text ? <Item.Meta key={text}>{text}</Item.Meta> : ""
+          ))}
+          <Item.Meta>
+            {_.filter([item.genre, item.year]).join(" | ")}
+          </Item.Meta>
+          {""/*<Item.Description>...</Item.Description>*/}
+        </TrackInfoPopup>
+        {songTitle(item)}
       </List.Description>
     </List.Content>
   </TouchList.Item>
-)
-
-export class TrackIcon extends React.Component {
-  constructor(props) {
-    super(props)
-    this.state = {isPopped: false}
-  }
-  onPop() {
-    !this.state.isPopped && this.setState({isPopped: true})
-  }
-  onHide() {
-    this.state.isPopped && this.setState({isPopped: false})
-  }
-  playTrack() {
-    this.props.playTrack()
-    this.onHide()
-  }
-  render() {
-    const props = this.props
-    const imageUrl = lms.getImageUrl(props)
-    const playTrack = this.playTrack.bind(this)
-    if (this.state.isPopped) {
-      props.setSelectionChangedListener(this.onHide.bind(this))
-    }
-    return <span className="gap-right">
-      <Popup
-          trigger={props.showInfoIcon ?
-            <Icon className="tap-zone" name="info circle" size="large" fitted /> :
-            props.active ?
-              <Icon className="tap-zone" name="video play" size="large" fitted /> :
-              <div className="hover-icon-container">
-                <Image src={imageUrl} ui inline height="18px" width="18px"
-                  className="tap-zone hover-icon" />
-                <div className="middle">
-                  <Icon className="tap-zone" name="info circle" size="large" fitted />
-                </div>
-              </div>
-          }
-          open={this.state.isPopped}
-          onOpen={this.onPop.bind(this)}
-          onClose={this.onHide.bind(this)}
-          position="right center"
-          on="click"
-          wide="very">
-        <Item.Group>
-          <Item>
-            <Item.Image size="small" src={imageUrl} />
-            <Item.Content>
-              <Button icon="play" floated="right" onClick={playTrack}
-                style={{"margin": "0 0 1em 1em"}} />
-              <Item.Header>{props.title}</Item.Header>
-              {_.map([props.artist, props.composer, props.album], text => (
-                text ? <Item.Meta key={text}>{text}</Item.Meta> : ""
-              ))}
-              <Item.Meta>
-                {_.filter([props.genre, props.year]).join(" | ")}
-              </Item.Meta>
-              {""/*<Item.Description>...</Item.Description>*/}
-            </Item.Content>
-          </Item>
-        </Item.Group>
-      </Popup>
-    </span>
-  }
 }
 
 function songTitle({artist, title}) {

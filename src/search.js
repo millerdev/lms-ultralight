@@ -1,8 +1,9 @@
 import { List as IList, Map, Range, fromJS } from 'immutable'
 import _ from 'lodash'
 import React from 'react'
-import { Image, Input, List } from 'semantic-ui-react'
+import { Input, List } from 'semantic-ui-react'
 
+import { TrackInfoPopup } from './components'
 import { effect, combine } from './effects'
 import * as lms from './lmsclient'
 import makeReducer from './store'
@@ -98,6 +99,7 @@ export class SearchResults extends React.Component {
   constructor(props) {
     super(props)
     this.state = this.getItems(props.results)
+    this.hideTrackInfo = () => {}
   }
   componentWillReceiveProps(props) {
     if (this.props.results !== props.results) {
@@ -122,10 +124,20 @@ export class SearchResults extends React.Component {
       itemsBySection: bySection.asImmutable(),
     }
   }
+  onSelectionChanged() {
+    this.hideTrackInfo()
+  }
+  setHideTrackInfoCallback(callback) {
+    this.hideTrackInfo = callback
+  }
   render() {
     const bySection = this.state.itemsBySection
+    const hideInfo = this.setHideTrackInfoCallback.bind(this)
     return (
-      <TouchList dataType={SEARCH_RESULTS} items={this.state.items}>
+      <TouchList
+          dataType={SEARCH_RESULTS}
+          items={this.state.items}
+          onSelectionChanged={this.onSelectionChanged.bind(this)}>
         {_.map(SECTIONS, section => {
           const items = bySection.get(section)
           if (items) {
@@ -135,8 +147,8 @@ export class SearchResults extends React.Component {
               </List.Item>
             ].concat(items.map(item => 
               <SearchResult
-                item={item.toObject()}
-                hovering={false} />
+                setHideTrackInfoCallback={hideInfo}
+                item={item.toObject()} />
             ).toArray())
           }
         })}
@@ -145,27 +157,15 @@ export class SearchResults extends React.Component {
   }
 }
 
-const SearchResult = ({item, hovering}) => (
-  <TouchList.Item index={item.index} draggable>
+const SearchResult = props => {
+  const item = props.item
+  return <TouchList.Item index={item.index} draggable>
     <List.Content>
       <List.Description className="title">
-        {hovering ? // TODO use css to show info icon
-          <InfoIcon /> :
-          <Image
-            ui
-            inline
-            height="18px"
-            width="18px"
-            className="track-art gap-right"
-            src={lms.getImageUrl(item)} /> }
+        <TrackInfoPopup {...props}>
+        </TrackInfoPopup>
         {item[item.type]}
       </List.Description>
     </List.Content>
   </TouchList.Item>
-)
-
-const InfoIcon = () => (
-  <span className="gap-right">
-    <Icon name="info" size="large" fitted />
-  </span>
-)
+}
