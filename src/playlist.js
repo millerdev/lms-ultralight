@@ -516,8 +516,13 @@ export class TrackIcon extends React.Component {
             <Icon className="tap-zone" name="info circle" size="large" fitted /> :
             props.active ?
               <Icon className="tap-zone" name="video play" size="large" fitted /> :
-              <Image src={imageUrl} ui inline height="18px" width="18px"
-                className="tap-zone" />
+              <div className="hover-icon-container">
+                <Image src={imageUrl} ui inline height="18px" width="18px"
+                  className="tap-zone hover-icon" />
+                <div className="middle">
+                  <Icon className="tap-zone" name="info circle" size="large" fitted />
+                </div>
+              </div>
           }
           open={this.state.isPopped}
           onOpen={this.onPop.bind(this)}
