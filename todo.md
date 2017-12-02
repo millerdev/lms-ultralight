@@ -21,7 +21,6 @@ x        songs
         - click art/info button: show info (drill down)
         - double-click: play or enqueue
         - touch: select, show play/+ button (on first item only)
-        - long touch: show info
         - show info
           - back controls
           - play/+ control on right
@@ -32,7 +31,13 @@ x        songs
         - drag: collapse sidebar to 15%, allow drop in playlist
 x        - drop in playlist: do the obvious
         - drop in sidebar: cancel drag/drop, show full sidebar again
+xx        - long touch: show info - tried it, and it looks unrealistic
+x          - problems:
+x            - difficult to control position
+x            - triggering didn't just work (looked flaky/hard to get right)
+x            - browser context menu appeared on long press, might be tricky
 
+- fix lag on change selection in large playlist
 - fix move handles showing on click selection (should only show on touch)
 - fix click next skips two tracks (display only, intermittent)
   likely caused by scheduled advanceToNextTrackAfter action

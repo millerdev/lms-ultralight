@@ -361,6 +361,7 @@ export function moveItem(list, fromIndex, toIndex) {
 export class Playlist extends React.Component {
   constructor(props, context) {
     super(props)
+    this.state = {infoIndex: -1}
     const onDelete = this.onDeleteItems.bind(this)
     context.addKeydownHandler(8 /* backspace */, onDelete)
     context.addKeydownHandler(46 /* delete */, onDelete)
@@ -378,6 +379,18 @@ export class Playlist extends React.Component {
       // the wrong "time" on loadPlayer immediately after a command.
       .then(() => loadPlayer(playerid, true, {statusInterval: 1}))
       .then(this.props.dispatch)
+  }
+  onLongTouch(item, index) {
+    // show info icon after selection changes
+    setTimeout(() => this.setInfoIndex(index), 0)
+    // hide info icon after short delay
+    setTimeout(() => this.setInfoIndex(-1), 3000)
+    return true
+  }
+  setInfoIndex(index) {
+    if (this.state.infoIndex !== index) {
+      this.setState({infoIndex: index})
+    }
   }
   onMoveItems(selection, toIndex) {
     const loadPlayer = require("./player").loadPlayer
@@ -407,6 +420,7 @@ export class Playlist extends React.Component {
   }
   onSelectionChanged(selection) {
     this.props.dispatch(actions.selectionChanged(selection))
+    this.setInfoIndex(-1)
     this.selectionChangedListener && this.selectionChangedListener()
   }
   setSelectionChangedListener(callback) {
@@ -422,6 +436,7 @@ export class Playlist extends React.Component {
           selection={props.selection}
           dropTypes={[SEARCH_RESULTS]}
           onDrop={this.onDrop.bind(this)}
+          onLongTouch={this.onLongTouch.bind(this)}
           onMoveItems={this.onMoveItems.bind(this)}
           onSelectionChanged={this.onSelectionChanged.bind(this)}>
         {props.items.toSeq().map((item, index) => {
@@ -433,6 +448,7 @@ export class Playlist extends React.Component {
             active={props.currentIndex === item[IX]}
             selecting={props.selection.size}
             setSelectionChangedListener={selchange}
+            showInfoIcon={index === this.state.infoIndex}
             key={index + "-" + item.id} />
         }).toArray()}
       </TouchList>
@@ -496,10 +512,12 @@ export class TrackIcon extends React.Component {
     }
     return <span className="gap-right">
       <Popup
-          trigger={props.active ?
-            <Icon className="tap-zone" name="video play" size="large" fitted /> :
-            <Image src={imageUrl} ui inline height="18px" width="18px"
-              className="tap-zone" />
+          trigger={props.showInfoIcon ?
+            <Icon className="tap-zone" name="info circle" size="large" fitted /> :
+            props.active ?
+              <Icon className="tap-zone" name="video play" size="large" fitted /> :
+              <Image src={imageUrl} ui inline height="18px" width="18px"
+                className="tap-zone" />
           }
           open={this.state.isPopped}
           onOpen={this.onPop.bind(this)}

@@ -27,7 +27,8 @@ export const TO_LAST = "to last"
  * - onDrop: Callback function for handling dropped content.
  *   Signature: `onDrop(data, dataType, index, event)`
  * - onLongTouch: Callback function for handling long-touch event.
- *   Signature: `onLongTouch(item, index)`
+ *   Return `true` to also toggle item selection (the default action).
+ *   Signature: `onLongTouch(item, index) -> bool`
  * - onMoveItems: Callback function for handling drag/drop movement
  *   (sorting) of items within the list. Sorting will be disabled if
  *   this prop is not provided.
@@ -130,7 +131,9 @@ export class TouchList extends React.Component {
   onLongTouch(index) {
     if (this.props.onLongTouch) {
       const item = this.props.items.get(index)
-      this.props.onLongTouch(item && item.toObject(), index)
+      if (this.props.onLongTouch(item && item.toObject(), index)) {
+        this.toggleSelection(index)
+      }
     } else {
       this.toggleSelection(index)
     }
