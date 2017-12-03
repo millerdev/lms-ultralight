@@ -2,6 +2,8 @@
 import axios from 'axios'
 import _ from 'lodash'
 
+import { operationError } from './util'
+
 export function getPlayers(index=0, qty=999) {
   return exec("", ["serverstatus", index, qty]).then(({data}) => {
     return data && data.result ? data.result.players_loop : []
@@ -89,4 +91,59 @@ function exec(playerid, command) {
     window.console.error(err)
     throw err
   })
+}
+
+/**
+ * Execute playlist control command
+ *
+ * @param playerid
+ * @param cmd - One of "load", "insert", or "add".
+ * @param item - Search result object with "type".
+ * @param dispatch - Redux dispatch function.
+ * @returns A promise that resolves with a result of `true` if the
+ *  action succeeded, else `false`.
+ */
+export function playlistControl(playerid, cmd, item, dispatch) {
+  const loadPlayer = require("./player").loadPlayer
+  const error = operationError("Cannot " + cmd + " " + item[item.type])
+  const param = getControlParam(item)
+  if (param) {
+    return command(playerid, "playlistcontrol", "cmd:" + cmd, param)
+      // HACK load again after 1 second because LMS sometimes returns
+      // the wrong "time" on loadPlayer immediately after a command.
+      // statusInterval is convoluted, and should ideally be removed.
+      // The correct fix for this is probably player status subscription.
+      .then(() => loadPlayer(playerid, true, {statusInterval: 1}))
+      .catch(() => error)
+      .then(action => {
+        dispatch(action)
+        return action !== error
+      })
+  } else {
+    return new Promise(resolve => {
+      dispatch(error)
+      resolve(false)
+    })
+  }
+}
+
+export function getControlParam(item) {
+  const key = item.type + "_id"
+  return PLAYLISTCONTROL_TAGS.hasOwnProperty(key) && item[key] !== undefined ?
+    PLAYLISTCONTROL_TAGS[key] + ":" + item[key] :
+    null
+}
+
+const PLAYLISTCONTROL_TAGS = {
+  "album_id": "album_id",
+  "artist_id": "artist_id",
+  "contributor_id": "artist_id",  // this one is different
+  "folder_id": "folder_id",
+  "genre_id": "genre_id",
+  "playlist_id": "playlist_id",
+  "playlist_index": "playlist_index",
+  "playlist_name": "playlist_name",
+  "track_id": "track_id",
+  "year": "year",
+  "year_id": "year_id",
 }

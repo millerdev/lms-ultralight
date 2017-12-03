@@ -68,3 +68,7 @@ export function backoff(maxMs, minMs=0) {
     return _.min([wait, maxMs])
   }
 }
+
+export function operationError(message, context, showFor=5 /* seconds */) {
+  return require("./menu").actions.operationError(message, context, showFor)
+}

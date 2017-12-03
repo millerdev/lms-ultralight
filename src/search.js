@@ -1,7 +1,7 @@
 import { List as IList, Map, Range, fromJS } from 'immutable'
 import _ from 'lodash'
 import React from 'react'
-import { Input, List } from 'semantic-ui-react'
+import { Button, Input, Item, List, Popup } from 'semantic-ui-react'
 
 import { TrackInfoPopup } from './components'
 import { effect, combine } from './effects'
@@ -67,6 +67,7 @@ export class MediaSearch extends React.Component {
   render() {
     const props = this.props
     return <MediaSearchUI
+      {...props}
       onSearch={this.onSearch.bind(this)}
       setSearchInput={props.setSearchInput}
       isSearching={props.search.get("isSearching")}
@@ -84,7 +85,7 @@ const MediaSearchUI = props => (
       loading={props.isSearching}
       placeholder="Search..."
       fluid />
-    { props.results.get("count") ? <SearchResults results={props.results} /> : null }
+    { props.results.get("count") ? <SearchResults {...props} /> : null }
   </div>
 )
 
@@ -124,6 +125,43 @@ export class SearchResults extends React.Component {
       itemsBySection: bySection.asImmutable(),
     }
   }
+  playItem(item) {
+    const {playerid, dispatch} = this.props
+    lms.playlistControl(playerid, "load", item, dispatch)
+    this.hideTrackInfo()
+  }
+  playNext(item) {
+    const {player, playerid, dispatch} = this.props
+    lms.playlistControl(playerid, "insert", item, dispatch)
+      .then(success => {
+        if (success && !player.get("isPlaying")) {
+          const loadPlayer = require("./player").loadPlayer
+          lms.command(playerid, "playlist", "index", "+1")
+            // HACK load again after 1 second because LMS sometimes returns
+            // the wrong "time" on loadPlayer immediately after a command.
+            // statusInterval is convoluted, and should ideally be removed.
+            // The correct fix for this is probably player status subscription.
+            .then(() => loadPlayer(playerid, false, {statusInterval: 1}))
+            .then(dispatch)
+        }
+      })
+    this.hideTrackInfo()
+  }
+  addToPlaylist(item) {
+    const {playerid, dispatch} = this.props
+    lms.playlistControl(playerid, "add", item, dispatch)
+    this.hideTrackInfo()
+  }
+  playOrEnqueue(item) {
+    const props = this.props
+    if (!props.playlist.get("numTracks")) {
+      this.playItem(item)
+    } else if (!props.player.get("isPlaying")) {
+      this.playNext(item)
+    } else {
+      this.addToPlaylist(item)
+    }
+  }
   onSelectionChanged() {
     this.hideTrackInfo()
   }
@@ -147,6 +185,10 @@ export class SearchResults extends React.Component {
               </List.Item>
             ].concat(items.map(item => 
               <SearchResult
+                playItem={this.playItem.bind(this)}
+                playNext={this.playNext.bind(this)}
+                addToPlaylist={this.addToPlaylist.bind(this)}
+                playOrEnqueue={this.playOrEnqueue.bind(this)}
                 setHideTrackInfoCallback={hideInfo}
                 item={item.toObject()} />
             ).toArray())
@@ -159,13 +201,43 @@ export class SearchResults extends React.Component {
 
 const SearchResult = props => {
   const item = props.item
-  return <TouchList.Item index={item.index} draggable>
+  return <TouchList.Item
+      onDoubleClick={() => props.playOrEnqueue(item)}
+      index={item.index}
+      draggable>
     <List.Content>
       <List.Description className="title">
         <TrackInfoPopup {...props}>
+          <Item.Header>{item[item.type]}</Item.Header>
+          <Item.Extra>
+            <Button.Group>
+              <IconButton
+                icon="play"
+                tooltip="Play"
+                onClick={() => props.playItem(item)} />
+              <IconButton
+                icon="step forward"
+                tooltip="Play Next"
+                onClick={() => props.playNext(item)} />
+              <IconButton
+                icon="plus"
+                tooltip="Add to Playlist"
+                onClick={() => props.addToPlaylist(item)} />
+            </Button.Group>
+          </Item.Extra>
         </TrackInfoPopup>
         {item[item.type]}
       </List.Description>
     </List.Content>
   </TouchList.Item>
 }
+
+const IconButton = ({icon, onClick, tooltip}) => (
+  <Popup
+    trigger={<Button icon={icon} onClick={onClick} />}
+    content={tooltip}
+    position="bottom center"
+    size="tiny"
+    inverted
+    basic />
+)

@@ -2,27 +2,58 @@ import { Map } from 'immutable'
 import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
+import { Segment } from 'semantic-ui-react'
 
-import { combine, split } from './effects'
+import { combine, effect, split, IGNORE_ACTION } from './effects'
 import * as lms from './lmsclient'
 import { MainMenuUI } from './menuui'
 import * as player from './player'
 import * as players from './playerselect'
 import * as search from './search'
+import makeReducer from './store'
+import { timer } from './util'
 
 export const defaultState = Map({
+  messages: Map(),
   players: players.defaultState,
   search: search.defaultState,
 })
 
+const messagesReducer = makeReducer({
+  operationError: (state, action, message, context, showFor /* seconds */) => {
+    window.console.log(message, context)  // HACK side effect
+    return combine(
+      state.set("error", message),
+      [effect(hideOperationErrorAfter, showFor)],
+    )
+  },
+  hideOperationError: state => {
+    return state.remove("error")
+  },
+})
+
+export const actions = messagesReducer.actions
+
 export function reducer(state=defaultState, action) {
+  const [msgState, msgEffects] =
+    split(messagesReducer(state.get("messages"), action))
   const [searchState, searchEffects] =
     split(search.reducer(state.get("search"), action))
   return combine(Map({
+    messages: msgState,
     players: players.reducer(state.get("players"), action),
     search: searchState,
-  }), searchEffects)
+  }), searchEffects.concat(msgEffects))
 }
+
+export const hideOperationErrorAfter = (() => {
+  const time = timer()
+  return wait => {
+    time.clear(IGNORE_ACTION)
+    return time.after(wait * 1000, actions.hideOperationError)
+  }
+})()
+
 
 export class MainMenu extends React.Component {
   constructor() {
@@ -81,6 +112,7 @@ export class MainMenu extends React.Component {
   }
   render() {
     const props = this.props
+    const msg = props.menu.get("messages").toObject()
     return <MainMenuUI
         setSearchInput={this.setSearchInput.bind(this)}
         onPlayerSelected={this.onPlayerSelected.bind(this)}
@@ -89,8 +121,14 @@ export class MainMenu extends React.Component {
         command={this.command.bind(this)}
         players={props.menu.get("players")}
         search={props.menu.get("search")}
+        playerid={props.player.get("playerid")}
         {...props}>
       {props.children}
+      { msg.error ?
+        <Segment color="red" size="small" inverted tertiary>
+          {msg.error}
+        </Segment> :
+        null }
     </MainMenuUI>
   }
 }

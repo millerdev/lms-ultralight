@@ -147,9 +147,8 @@ function insertPlaylistItems(playerid, items, index, dispatch, numTracks) {
       return
     }
     const item = items.shift()
-    const key = item.type + "_id"
-    if (PLAYLISTCONTROL_TAGS.hasOwnProperty(key) && item[key] !== undefined) {
-      const param = PLAYLISTCONTROL_TAGS[key] + ":" + item[key]
+    const param = lms.getControlParam(item)
+    if (param) {
       lms.command(playerid, "playlistcontrol", "cmd:add", param)
         // TODO do not hard-code playlist range
         .then(() => lms.getPlayerStatus(playerid, 0, 100))
@@ -176,20 +175,6 @@ function insertPlaylistItems(playerid, items, index, dispatch, numTracks) {
     }
   }
   insert(items, index, numTracks)
-}
-
-const PLAYLISTCONTROL_TAGS = {
-  "album_id": "album_id",
-  "artist_id": "artist_id",
-  "contributor_id": "artist_id",  // this one is different
-  "folder_id": "folder_id",
-  "genre_id": "genre_id",
-  "playlist_id": "playlist_id",
-  "playlist_index": "playlist_index",
-  "playlist_name": "playlist_name",
-  "track_id": "track_id",
-  "year": "year",
-  "year_id": "year_id",
 }
 
 export function moveItems(selection, toIndex, playerid, dispatch, lms) {

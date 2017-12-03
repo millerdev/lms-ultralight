@@ -54,6 +54,8 @@ x            - browser context menu appeared on long press, might be tricky
       Location: /Volumes/Work/Shared/Media/Music/2010/Sunlounger/...Lorilee].m4a
       Date Modified: Wednesday, June 10, 2015, 6:43 AM
 
+  - delete button should be enabled when no items are selected
+    prompt first, then clear playlist
 
 - fix lag on change selection in large playlist
 - fix move handles showing on click selection (should only show on touch)
