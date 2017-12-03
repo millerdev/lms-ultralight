@@ -347,7 +347,7 @@ export function moveItem(list, fromIndex, toIndex) {
 export class Playlist extends React.Component {
   constructor(props, context) {
     super(props)
-    this.state = {infoIndex: -1, isClearingPlaylist: false}
+    this.state = {infoIndex: -1, promptForDelete: ""}
     const onDelete = this.onDeleteItems.bind(this)
     context.addKeydownHandler(8 /* backspace */, onDelete)
     context.addKeydownHandler(46 /* delete */, onDelete)
@@ -392,25 +392,29 @@ export class Playlist extends React.Component {
       .catch(error => window.console.log(error))
   }
   onDeleteItems() {
+    const number = this.props.selection.size
+    if (number) {
+      prompt = "Delete " + number + " song" + (number > 1 ? "s" : "")
+    } else {
+      prompt = "Clear playlist"
+    }
+    this.setState({promptForDelete: prompt})
+  }
+  deleteItems() {
     const loadPlayer = require("./player").loadPlayer
-    const { playerid, dispatch } = this.props
     const selection = this.props.selection.map(i => this.toPlaylistIndex(i))
+    const { playerid, dispatch } = this.props
+    this.setState({promptForDelete: ""})
     if (selection.size) {
       deleteSelection(playerid, selection, dispatch, lms)
         .then(() => loadPlayer(playerid, true))
         .then(dispatch)
     } else {
-      this.setState({isClearingPlaylist: true})
+      lms.command(playerid, "playlist", "clear")
+        .then(() => loadPlayer(playerid, true))
+        .catch(err => operationError("Cannot clear playlist", err))
+        .then(dispatch)
     }
-  }
-  clearPlaylist() {
-    const loadPlayer = require("./player").loadPlayer
-    this.setState({isClearingPlaylist: false})
-    const { playerid, dispatch } = this.props
-    lms.command(playerid, "playlist", "clear")
-      .then(() => loadPlayer(playerid, true))
-      .catch(err => operationError("Cannot clear playlist", err))
-      .then(dispatch)
   }
   onDrop(data, dataType, index) {
     if (dataType === SEARCH_RESULTS) {
@@ -456,15 +460,16 @@ export class Playlist extends React.Component {
       <Button.Group basic size="small">
         <Button
           icon="remove"
-          content="Delete"
+          content={props.selection.size ? "Delete" : "Clear Playlist"}
           labelPosition="left"
           onClick={() => this.onDeleteItems()} />
       </Button.Group>
       <Confirm
-        open={this.state.isClearingPlaylist}
-        confirmButton="Clear Playlist"
-        onCancel={() => this.setState({isClearingPlaylist: false})}
-        onConfirm={this.clearPlaylist.bind(this)} />
+        open={Boolean(this.state.promptForDelete)}
+        content={this.state.promptForDelete + "?"}
+        confirmButton={(this.state.promptForDelete || "").replace(/ .*$/, "")}
+        onCancel={() => this.setState({promptForDelete: ""})}
+        onConfirm={this.deleteItems.bind(this)} />
     </div>
   }
 }
