@@ -6,6 +6,7 @@ x    - when at lesat one track is selected, single touch selects/deselects
 x  - persistent drag/drop handle
   - ? show info icon (in place of album art) on long-press
 x- hamburger button at top/left to open side menu
+  - sticky top menu and sidebar
   - search input
       X button in search input to clear
     - auto-expand search content below after typing

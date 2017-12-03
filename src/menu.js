@@ -2,7 +2,6 @@ import { Map } from 'immutable'
 import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import { Segment } from 'semantic-ui-react'
 
 import { combine, effect, split, IGNORE_ACTION } from './effects'
 import * as lms from './lmsclient'
@@ -112,7 +111,6 @@ export class MainMenu extends React.Component {
   }
   render() {
     const props = this.props
-    const msg = props.menu.get("messages").toObject()
     return <MainMenuUI
         setSearchInput={this.setSearchInput.bind(this)}
         onPlayerSelected={this.onPlayerSelected.bind(this)}
@@ -122,13 +120,9 @@ export class MainMenu extends React.Component {
         players={props.menu.get("players")}
         search={props.menu.get("search")}
         playerid={props.player.get("playerid")}
+        messages={props.menu.get("messages").toObject()}
         {...props}>
       {props.children}
-      { msg.error ?
-        <Segment color="red" size="small" inverted tertiary>
-          {msg.error}
-        </Segment> :
-        null }
     </MainMenuUI>
   }
 }

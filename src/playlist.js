@@ -393,6 +393,7 @@ export class Playlist extends React.Component {
   }
   onDeleteItems() {
     const number = this.props.selection.size
+    let prompt
     if (number) {
       prompt = "Delete " + number + " song" + (number > 1 ? "s" : "")
     } else {
