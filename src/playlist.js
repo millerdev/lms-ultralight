@@ -2,7 +2,7 @@ import { List as IList, Map, Range, Set, fromJS } from 'immutable'
 import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import { Button, List, Item } from 'semantic-ui-react'
+import { Button, Confirm, List, Item } from 'semantic-ui-react'
 
 import { TrackInfoPopup } from './components'
 import { effect, combine } from './effects'
@@ -10,7 +10,7 @@ import * as lms from './lmsclient'
 import { SEARCH_RESULTS } from './search'
 import makeReducer from './store'
 import { TouchList } from './touch'
-import { formatTime } from './util'
+import { formatTime, operationError } from './util'
 import './playlist.styl'
 
 const IX = "playlist index"
@@ -347,7 +347,7 @@ export function moveItem(list, fromIndex, toIndex) {
 export class Playlist extends React.Component {
   constructor(props, context) {
     super(props)
-    this.state = {infoIndex: -1}
+    this.state = {infoIndex: -1, isClearingPlaylist: false}
     const onDelete = this.onDeleteItems.bind(this)
     context.addKeydownHandler(8 /* backspace */, onDelete)
     context.addKeydownHandler(46 /* delete */, onDelete)
@@ -395,8 +395,21 @@ export class Playlist extends React.Component {
     const loadPlayer = require("./player").loadPlayer
     const { playerid, dispatch } = this.props
     const selection = this.props.selection.map(i => this.toPlaylistIndex(i))
-    deleteSelection(playerid, selection, dispatch, lms)
+    if (selection.size) {
+      deleteSelection(playerid, selection, dispatch, lms)
+        .then(() => loadPlayer(playerid, true))
+        .then(dispatch)
+    } else {
+      this.setState({isClearingPlaylist: true})
+    }
+  }
+  clearPlaylist() {
+    const loadPlayer = require("./player").loadPlayer
+    this.setState({isClearingPlaylist: false})
+    const { playerid, dispatch } = this.props
+    lms.command(playerid, "playlist", "clear")
       .then(() => loadPlayer(playerid, true))
+      .catch(err => operationError("Cannot clear playlist", err))
       .then(dispatch)
   }
   onDrop(data, dataType, index) {
@@ -445,9 +458,13 @@ export class Playlist extends React.Component {
           icon="remove"
           content="Delete"
           labelPosition="left"
-          onClick={() => this.onDeleteItems()}
-          disabled={!props.selection.size} />
+          onClick={() => this.onDeleteItems()} />
       </Button.Group>
+      <Confirm
+        open={this.state.isClearingPlaylist}
+        confirmButton="Clear Playlist"
+        onCancel={() => this.setState({isClearingPlaylist: false})}
+        onConfirm={this.clearPlaylist.bind(this)} />
     </div>
   }
 }
