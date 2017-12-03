@@ -86,14 +86,18 @@ export class TouchList extends React.Component {
   getDragData(index) {
     const items = this.props.items
     let selected
-    if (this.state.selection.has(index)) {
-      selected = this.state.selection
-        .valueSeq()
-        .sort()
-        .map(index => items.get(index).toObject())
-        .toList()
+    if (items.has(index)) {
+      if (this.state.selection.has(index)) {
+        selected = this.state.selection
+          .valueSeq()
+          .sort()
+          .map(index => items.get(index).toObject())
+          .toList()
+      } else {
+        selected = IList([items.get(index).toObject()])
+      }
     } else {
-      selected = IList([items.get(index).toObject()])
+      return []
     }
     return selected.toArray()
   }
