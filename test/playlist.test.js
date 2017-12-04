@@ -2,6 +2,7 @@ import { fromJS, Map, Seq, Set } from 'immutable'
 
 import { effect, getEffects, getState, split } from '../src/effects'
 import * as mod from '../src/playlist'
+import { operationError } from '../src/util'
 
 describe('playlist', function () {
   describe('reducer', function () {
@@ -400,6 +401,7 @@ describe('playlist', function () {
       return mod.moveItems(Set([0, 1]), 6, ...foo.args).then(() => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(1, 6),
+          operationError("Move error"),
         ])
       })
     })
@@ -471,6 +473,7 @@ describe('playlist', function () {
       return mod.deleteSelection(...foo.args).then(() => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemDeleted(3),
+          operationError("Delete error"),
         ])
       })
     })

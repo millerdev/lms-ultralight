@@ -169,6 +169,9 @@ function insertPlaylistItems(playerid, items, index, dispatch, numTracks) {
             insert(items, index + inserted, length)
           }
         })
+        .catch(err => {
+          dispatch(operationError("Move error", err))
+        })
     } else {
       window.console.log("unknown item", item)
       insert(items, index, numTracks)
@@ -191,9 +194,7 @@ export function moveItems(selection, toIndex, playerid, dispatch, lms) {
           move(items)
         })
         .catch(err => {
-          if (err) {
-            window.console.log(err)
-          }
+          dispatch(operationError("Move error", err))
           resolve(true)
         })
     }
@@ -244,9 +245,7 @@ export function deleteSelection(playerid, selection, dispatch, lms) {
           remove(items)
         })
         .catch(err => {
-          if (err) {
-            window.console.log(err)
-          }
+          dispatch(operationError("Delete error", err))
           resolve()
         })
     }
@@ -365,7 +364,8 @@ export class Playlist extends React.Component {
       // HACK load again after 1 second because LMS sometimes returns
       // the wrong "time" on loadPlayer immediately after a command.
       .then(() => loadPlayer(playerid, true, {statusInterval: 1}))
-      .then(this.props.dispatch)
+      .catch(err => operationError("Cannot play", err))
+      .then(dispatch)
     this.hideTrackInfo()
   }
   onLongTouch(item, index) {
@@ -387,9 +387,8 @@ export class Playlist extends React.Component {
     toIndex = this.toPlaylistIndex(toIndex)
     moveItems(selection, toIndex, playerid, dispatch, lms)
       .then(() => loadPlayer(playerid, true))
+      .catch(err => operationError("Move error", err))
       .then(dispatch)
-      // TODO convey failure to view somehow
-      .catch(error => window.console.log(error))
   }
   onDeleteItems() {
     const number = this.props.selection.size
@@ -409,6 +408,7 @@ export class Playlist extends React.Component {
     if (selection.size) {
       deleteSelection(playerid, selection, dispatch, lms)
         .then(() => loadPlayer(playerid, true))
+        .catch(err => operationError("Delete error", err))
         .then(dispatch)
     } else {
       lms.command(playerid, "playlist", "clear")

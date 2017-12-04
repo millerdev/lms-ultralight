@@ -6,7 +6,7 @@ import { effect, combine, IGNORE_ACTION } from './effects'
 import makeReducer from './store'
 import * as lms from './lmsclient'
 import { PlayerUI, SeekBar } from './playerui'
-import { backoff, isNumeric, timer } from './util'
+import { backoff, isNumeric, operationError, timer } from './util'
 
 export const STATUS_INTERVAL = 30  // seconds
 export const REPEAT_ONE = 1
@@ -87,7 +87,8 @@ export const advanceToNextTrackAfter = (() => {
 export function loadPlayer(playerid, fetchPlaylist=false, options={}) {
   const args = fetchPlaylist ? [0, 100] : []
   return lms.getPlayerStatus(playerid, ...args)
-            .then(data => actions.gotPlayer(data, options))
+    .then(data => actions.gotPlayer(data, options))
+    .catch(err => operationError("Cannot load player", err))
 }
 
 export const loadPlayerAfter = (() => {
@@ -103,7 +104,9 @@ export const loadPlayerAfter = (() => {
 })()
 
 export function seek(playerid, value) {
-  return lms.command(playerid, "time", value).then(() => loadPlayer(playerid))
+  return lms.command(playerid, "time", value)
+    .then(() => loadPlayer(playerid))
+    .catch(err => operationError("Cannot seek", {value, err}))
 }
 
 export class Player extends React.Component {
@@ -114,12 +117,11 @@ export class Player extends React.Component {
       // statusInterval is convoluted, and should ideally be removed.
       // The correct fix for this is probably player status subscription.
       .then(() => loadPlayer(playerid, false, {statusInterval: 1}))
-      .then(action => this.props.dispatch(action))
-    // TODO convey failure to view somehow
+      .catch(err => operationError("Command error", {err, args}))
+      .then(this.props.dispatch)
   }
   onSeek(playerid, value) {
     this.props.dispatch(actions.seek({playerid, value}))
-    // TODO convey failure to view somehow
   }
   render() {
     const props = this.props

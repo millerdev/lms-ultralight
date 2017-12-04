@@ -10,7 +10,7 @@ import * as player from './player'
 import * as players from './playerselect'
 import * as search from './search'
 import makeReducer from './store'
-import { timer } from './util'
+import { operationError, timer } from './util'
 
 export const defaultState = Map({
   messages: Map(),
@@ -71,7 +71,9 @@ export class MainMenu extends React.Component {
         playerid = data[0].playerid
       }
       this.loadPlayer(playerid, true)
-    })
+    }).catch(err =>
+      this.props.dispatch(operationError("Cannot load players", err))
+    )
   }
   getChildContext() {
     return {
@@ -87,7 +89,7 @@ export class MainMenu extends React.Component {
     }
   }
   loadPlayer(...args) {
-    player.loadPlayer(...args).then(this.props.dispatch)
+    return player.loadPlayer(...args).then(this.props.dispatch)
   }
   setSearchInput(input) {
     this.searchInput = input
@@ -106,8 +108,10 @@ export class MainMenu extends React.Component {
     })
   }
   command(playerid, ...args) {
-    lms.command(playerid, ...args).then(() => { this.loadPlayer(playerid) })
-    // TODO convey failure to view somehow
+    lms.command(playerid, ...args)
+      .catch(err =>
+        this.props.dispatch(operationError("Command error", {args, err})))
+      .then(() => this.loadPlayer(playerid))
   }
   render() {
     const props = this.props
