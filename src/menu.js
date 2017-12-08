@@ -107,6 +107,9 @@ export class MainMenu extends React.Component {
       }
     })
   }
+  onHideError() {
+    this.props.dispatch(actions.hideOperationError())
+  }
   command(playerid, ...args) {
     lms.command(playerid, ...args)
       .catch(err =>
@@ -125,6 +128,7 @@ export class MainMenu extends React.Component {
         search={props.menu.get("search")}
         playerid={props.player.get("playerid")}
         messages={props.menu.get("messages").toObject()}
+        onHideError={this.onHideError.bind(this)}
         {...props}>
       {props.children}
     </MainMenuUI>

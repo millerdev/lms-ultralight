@@ -1,5 +1,5 @@
 import React from 'react'
-import { Icon, Menu, Message, Sidebar } from 'semantic-ui-react'
+import { Icon, Menu, Message, Sidebar, Transition } from 'semantic-ui-react'
 
 import * as players from './playerselect'
 import { MediaSearch } from './search'
@@ -9,41 +9,43 @@ export const MainMenuUI = props => (
   <div className="mainmenu">
     <Sidebar.Pushable as="div">
       <Sidebar
-          visible={Boolean(props.messages.error)}
-          direction="bottom"
-          animation="overlay"
-          as={Message}
-          negative
-          icon>
-        <Icon name="warning" />
-        <Message.Content>{props.messages.error}</Message.Content>
+          as={Menu}
+          animation="push"
+          width="wide"
+          visible={props.sidebarOpen}
+          borderless
+          style={{border: "none"}}
+          vertical>
+        <Menu.Item header name="ultralight" onClick={props.onToggleSidebar}>
+          <Icon name="close" /> Ultralight
+        </Menu.Item>
+        <Menu.Item name="search">
+          <MediaSearch {...props} />
+        </Menu.Item>
       </Sidebar>
       <Sidebar.Pusher>
-        <Sidebar.Pushable as="div">
-          <Sidebar
-              as={Menu}
-              animation="push"
-              width="wide"
-              visible={props.sidebarOpen}
-              borderless
-              style={{border: "none"}}
-              vertical>
-            <Menu.Item header name="ultralight" onClick={props.onToggleSidebar}>
-              <Icon name="close" /> Ultralight
-            </Menu.Item>
-            <Menu.Item name="search">
-              <MediaSearch {...props} />
-            </Menu.Item>
-          </Sidebar>
-          <Sidebar.Pusher>
-            <PowerBar {...props} />
-            <div className="ui padded grid">
-              <div className="sixteen wide column">
-                {props.children}
-              </div>
-            </div>
-          </Sidebar.Pusher>
-        </Sidebar.Pushable>
+        <PowerBar {...props} />
+        <Transition
+            visible={!!props.messages.error}
+            animation='swing down'
+            duration={500}
+            unmountOnHide>
+          <Message
+              onDismiss={props.onHideError}
+              attached="bottom"
+              size="small"
+              negative>
+            <Message.Content>
+              <Icon name="warning" size="large" />
+              {props.messages.error}
+            </Message.Content>
+          </Message>
+        </Transition>
+        <div className="ui padded grid">
+          <div className="sixteen wide column">
+            {props.children}
+          </div>
+        </div>
       </Sidebar.Pusher>
     </Sidebar.Pushable>
   </div>
