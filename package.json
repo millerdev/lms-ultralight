@@ -62,8 +62,8 @@
     "stylus-loader": "^2.1.0",
     "url-loader": "^0.5.7",
     "webpack": "^1.13.0",
-    "webpack-dev-middleware": "^1.6.1",
-    "webpack-hot-middleware": "^2.10.0"
+    "webpack-dev-middleware": "^1.12.2",
+    "webpack-hot-middleware": "^2.21.0"
   },
   "scripts": {
     "start": "npm run build && http-server dist",
