@@ -1,20 +1,13 @@
 import _ from 'lodash'
 import Slider from 'rc-slider'
 import React from 'react'
-import { Button, Item } from 'semantic-ui-react'
+import { Button, Item, Visibility } from 'semantic-ui-react'
 import 'rc-slider/assets/index.css'
 
 import * as lms from './lmsclient'
 import { formatTime } from './util'
 import 'font-awesome/css/font-awesome.css'
 import './player.styl'
-
-const IconToggleButton = props => (
-  <Button
-    onClick={props.onClick}
-    icon={props.isOn() ? props.iconOff : props.iconOn}
-    disabled={props.disabled} />
-)
 
 const NWayButton = props => {
   const next = props.value + 1 >= props.markup.length ? 0 : props.value + 1
@@ -102,23 +95,25 @@ export const PlayerUI = props => (
     <div className="ui grid">
       <div className="middle aligned row">
         <div className="left floated eight wide mobile four wide tablet two wide computer column">
-          <Button.Group basic size="small">
-            <Button
-              icon="backward"
-              onClick={() => props.command("playlist", "index", "-1")}
-              disabled={!props.playerid} />
-            <IconToggleButton
-              isOn={() => props.isPlaying}
-              onClick={() =>
-                props.command(props.isPlaying ? "pause" : "play")}
-              iconOn="play"
-              iconOff="pause"
-              disabled={!props.playerid} />
-            <Button
-              icon="forward"
-              onClick={() => props.command("playlist", "index", "+1")}
-              disabled={!props.playerid} />
-          </Button.Group>
+          <Visibility
+            onTopPassed={() => props.onControlVisibilityChange(false)}
+            onTopVisible={() => props.onControlVisibilityChange(true)}
+            once={false}>
+            <Button.Group basic size="small">
+              <Button
+                icon="backward"
+                onClick={() => props.command("playlist", "index", "-1")}
+                disabled={!props.playerid} />
+              <Button
+                icon={props.isPlaying ? "pause" : "play"}
+                onClick={() => props.command(props.isPlaying ? "pause" : "play")}
+                disabled={!props.playerid} />
+              <Button
+                icon="forward"
+                onClick={() => props.command("playlist", "index", "+1")}
+                disabled={!props.playerid} />
+            </Button.Group>
+          </Visibility>
         </div>
         <div className="computer tablet only eight wide tablet twelve wide computer column">
           <VolumeSlider {...props} />

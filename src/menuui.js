@@ -52,9 +52,10 @@ export const MainMenuUI = props => (
 
 const PowerBar = props => {
   function togglePlayerPower() {
-    props.command(player.playerid, "power", player.isPowerOn ? 0 : 1)
+    props.command(playerid, "power", player.isPowerOn ? 0 : 1)
   }
   const player = props.player.toObject()
+  const playerid = player.playerid
   return (
     <Menu
         attached={props.sidebarOpen && "top"}
@@ -64,22 +65,51 @@ const PowerBar = props => {
       <Menu.Item fitted="vertically" onClick={props.onToggleSidebar}>
         <Icon name="content" size="large" />
       </Menu.Item>
-      <Menu.Item fitted>
-        <players.SelectPlayer
-          playerid={player.playerid}
-          onPlayerSelected={props.onPlayerSelected}
-          dispatch={props.dispatch}
-          {...props.players.toObject()} />
-      </Menu.Item>
-      <Menu.Menu position="right">
-        <Menu.Item
-            fitted="vertically"
-            active={player.isPowerOn}
-            onClick={togglePlayerPower}
-            disabled={!player.playerid}>
-          <Icon name="power" size="large" />
-        </Menu.Item>
-      </Menu.Menu>
+      {player.isControlVisible ?
+        <Menu.Item fitted>
+          <players.SelectPlayer
+            playerid={player.playerid}
+            onPlayerSelected={props.onPlayerSelected}
+            dispatch={props.dispatch}
+            {...props.players.toObject()} />
+        </Menu.Item> :
+        <Menu.Menu>
+          <Menu.Item
+            icon="backward"
+            onClick={() => props.command(playerid, "playlist", "index", "-1")}
+            disabled={!playerid} />
+          <Menu.Item
+            onClick={() =>
+              props.command(playerid, player.isPlaying ? "pause" : "play")}
+            icon={player.isPlaying ? "pause" : "play"}
+            disabled={!playerid} />
+          <Menu.Item
+            icon="forward"
+            onClick={() => props.command(playerid, "playlist", "index", "+1")}
+            disabled={!playerid} />
+        </Menu.Menu>
+      }
+      {player.isControlVisible ?
+        <Menu.Menu position="right">
+          <Menu.Item
+              fitted="vertically"
+              active={player.isPowerOn}
+              onClick={togglePlayerPower}
+              disabled={!playerid}>
+            <Icon name="power" size="large" />
+          </Menu.Item>
+        </Menu.Menu> :
+        <Menu.Menu position="right">
+          <Menu.Item
+            icon="volume down"
+            onClick={() => props.command(playerid, "mixer", "volume", "-5")}
+            disabled={!playerid} />
+          <Menu.Item
+            icon="volume up"
+            onClick={() => props.command(playerid, "mixer", "volume", "+5")}
+            disabled={!playerid} />
+        </Menu.Menu>
+      }
     </Menu>
   )
 }
