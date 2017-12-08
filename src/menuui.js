@@ -7,7 +7,25 @@ import './menu.styl'
 
 export const MainMenuUI = props => (
   <div className="mainmenu">
-    <Sidebar.Pushable as="div">
+    <PowerBar {...props} />
+    <Transition
+        visible={!!props.messages.error}
+        animation="slide down"
+        duration={500}
+        unmountOnHide>
+      <Message
+          className="messages"
+          onDismiss={props.onHideError}
+          onClick={props.onHideError}
+          size="small"
+          negative>
+        <Message.Content>
+          <Icon name="warning" size="large" />
+          {props.messages.error}
+        </Message.Content>
+      </Message>
+    </Transition>
+    <Sidebar.Pushable as="div" style={{ marginTop: "2.5em" }}>
       <Sidebar
           as={Menu}
           animation="push"
@@ -24,23 +42,6 @@ export const MainMenuUI = props => (
         </Menu.Item>
       </Sidebar>
       <Sidebar.Pusher>
-        <PowerBar {...props} />
-        <Transition
-            visible={!!props.messages.error}
-            animation='swing down'
-            duration={500}
-            unmountOnHide>
-          <Message
-              onDismiss={props.onHideError}
-              attached="bottom"
-              size="small"
-              negative>
-            <Message.Content>
-              <Icon name="warning" size="large" />
-              {props.messages.error}
-            </Message.Content>
-          </Message>
-        </Transition>
         <div className="ui padded grid">
           <div className="sixteen wide column">
             {props.children}
@@ -57,7 +58,7 @@ const PowerBar = props => {
   }
   const player = props.player.toObject()
   return (
-    <Menu size="small" attached="top" borderless>
+    <Menu size="small" fixed="top" borderless>
       <Menu.Item fitted="vertically" onClick={props.onToggleSidebar}>
         <Icon name="content" size="large" />
       </Menu.Item>
