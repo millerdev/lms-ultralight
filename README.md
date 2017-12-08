@@ -20,6 +20,18 @@ your mobile device and/or to rearrange or delete items in the playlist. A media
 library browser will hopefully be developed someday.
 
 
+## Installation
+
+Installation instructions:
+
+- Go to the [releases page](https://github.com/millerdev/lms-ultralight/releases)
+- Download the `UltralightSkin-vX.Y.Z.zip` file under *Downloads* of the latest
+  release.
+- Follow instructions on [LMS Plugins Installation](http://wiki.slimdevices.com/index.php/Logitech_Media_Server_Plugins#Installation)
+  to install the plugin.
+- Go to http://localhost:9000/ultralight to view the skin (adjust host and port
+  if they are different on your system).
+
 ## Development
 
 ```
@@ -33,7 +45,7 @@ npm run dev
 npm test
 ```
 
-## Build/package/install
+### Build/package
 
 ```
 npm run build
@@ -42,5 +54,5 @@ npm package
 
 This creates a packaged version file: `UltralightSkin-vX.Y.Z.zip`
 
-Unzip this file into your [LMS Plugins folder](http://wiki.slimdevices.com/index.php/Logitech_Media_Server_Plugins)
-and restart Logitech Media Server.
+Follow [installation](#installation) instructions above, using this file instead
+of the one downloaded from the releases page.
