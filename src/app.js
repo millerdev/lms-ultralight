@@ -47,8 +47,8 @@ const App = () => (
     <MainMenu>
       <Player />
       <Playlist />
+      {/* <DevTools /> */}
     </MainMenu>
-    {/* <DevTools /> */}
   </Provider>
 )
 

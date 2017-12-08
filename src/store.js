@@ -1,13 +1,15 @@
 import { Map } from 'immutable'
 import _ from 'lodash'
 import { createStore, compose } from 'redux'
+
+//import DevTools from './devtools'
 import { installEffects } from './effects'
 
 const enhancer = compose(
   installEffects(),
   // TODO exclude from production build
   // Required! Enable Redux DevTools with the monitors you chose
-  //require('./devtools').instrument()
+  //DevTools.instrument(),
 )
 
 let allActions = {}
