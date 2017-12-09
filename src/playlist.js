@@ -436,11 +436,12 @@ export class Playlist extends React.Component {
   render() {
     const props = this.props
     const hideInfo = this.setHideTrackInfoCallback.bind(this)
+    const selection = props.selection
     return <div>
       <TouchList
           className="playlist"
           items={props.items}
-          selection={props.selection}
+          selection={selection}
           dropTypes={[SEARCH_RESULTS]}
           onDrop={this.onDrop.bind(this)}
           onLongTouch={this.onLongTouch.bind(this)}
@@ -452,17 +453,19 @@ export class Playlist extends React.Component {
             item={item}
             playTrack={this.playTrackAtIndex.bind(this, item[IX])}
             index={index}
+            selected={selection.has(index)}
             activeIcon={props.currentIndex === item[IX] ? "video play" : ""}
             touching={this.state.touching}
             setHideTrackInfoCallback={hideInfo}
             showInfoIcon={index === this.state.infoIndex}
-            key={index + "-" + item.id} />
+            key={index + ' ' + item.id}
+          />
         }).toArray()}
       </TouchList>
       <Button.Group basic size="small">
         <Button
           icon="remove"
-          content={props.selection.size ? "Delete" : "Clear Playlist"}
+          content={selection.size ? "Delete" : "Clear Playlist"}
           labelPosition="left"
           onClick={() => this.onDeleteItems()} />
       </Button.Group>
@@ -480,36 +483,49 @@ Playlist.contextTypes = {
   addKeydownHandler: PropTypes.func.isRequired,
 }
 
-export const PlaylistItem = props => {
-  const item = props.item
-  return <TouchList.Item
-      index={props.index}
-      onDoubleClick={props.playTrack}
-      draggable>
-    <List.Content floated="right">
-      <List.Description className={props.touching ? "drag-handle" : ""}>
-        {formatTime(item.duration || 0)}
-        {props.touching ? <DragHandle /> : ""}
-      </List.Description>
-    </List.Content>
-    <List.Content>
-      <List.Description className="title">
-        <TrackInfoPopup {...props}>
-          <Button icon="play" floated="right" onClick={props.playTrack}
-            style={{"margin": "0 0 1em 1em"}} />
-          <Item.Header>{item.title}</Item.Header>
-          {_.map([item.artist, item.composer, item.album], text => (
-            text ? <Item.Meta key={text}>{text}</Item.Meta> : ""
-          ))}
-          <Item.Meta>
-            {_.filter([item.genre, item.year]).join(" | ")}
-          </Item.Meta>
-          {""/*<Item.Description>...</Item.Description>*/}
-        </TrackInfoPopup>
-        {songTitle(item)}
-      </List.Description>
-    </List.Content>
-  </TouchList.Item>
+export class PlaylistItem extends React.Component {
+  shouldComponentUpdate(props) {
+    // Need this because props.item is always a new object
+    const old = this.props
+    return (
+      old.index !== props.index ||
+      old.item.id !== props.item.id ||
+      old.selected !== props.selected ||
+      old.activeIcon !== props.activeIcon
+    )
+  }
+  render() {
+    const props = this.props
+    const item = props.item
+    return <TouchList.Item
+        index={props.index}
+        onDoubleClick={props.playTrack}
+        draggable>
+      <List.Content floated="right">
+        <List.Description className={props.touching ? "drag-handle" : ""}>
+          {formatTime(item.duration || 0)}
+          {props.touching ? <DragHandle /> : ""}
+        </List.Description>
+      </List.Content>
+      <List.Content>
+        <List.Description className="title">
+          <TrackInfoPopup {...props}>
+            <Button icon="play" floated="right" onClick={props.playTrack}
+              style={{"margin": "0 0 1em 1em"}} />
+            <Item.Header>{item.title}</Item.Header>
+            {_.map([item.artist, item.composer, item.album], text => (
+              text ? <Item.Meta key={text}>{text}</Item.Meta> : ""
+            ))}
+            <Item.Meta>
+              {_.filter([item.genre, item.year]).join(" | ")}
+            </Item.Meta>
+            {""/*<Item.Description>...</Item.Description>*/}
+          </TrackInfoPopup>
+          {songTitle(item)}
+        </List.Description>
+      </List.Content>
+    </TouchList.Item>
+  }
 }
 
 function songTitle({artist, title}) {

@@ -208,40 +208,55 @@ const TOUCHLIST_PROPS = {
  * Important props:
  * - index: required unique/consecutive index for this item.
  */
-const TouchListItem = (props, context) => {
-  if (!props.hasOwnProperty("index")) {
-    throw new Error("`TouchList.Item` `props.index` is required")
+export class TouchListItem extends React.Component {
+  constructor() {
+    super()
+    this.state = {}
   }
-  const passProps = excludeKeys(props, TOUCHLISTITEM_PROPS, "TouchList.Item")
-  const slide = context.TouchList_slide
-  const index = props.index
-  const dropClass = index === context.TouchList_dropIndex - 1 ? "dropAfter" :
-                    index === context.TouchList_dropIndex ? "dropBefore" : null
-  if (!props.hasOwnProperty("onContextMenu")) {
-    passProps.onContextMenu = event => event.preventDefault()
+  componentWillReceiveProps(props, context) {
+    const index = props.index
+    const selected = context.TouchList_selection.has(index)
+    const dropClass = index === context.TouchList_dropIndex - 1 ? "dropAfter" :
+                      index === context.TouchList_dropIndex ? "dropBefore" : null
+    if (this.state.selected !== selected || this.state.dropClass !== dropClass) {
+      this.setState({selected, dropClass})
+    }
   }
-  return <List.Item
-      onClick={event => {
-        const modifier = event.metaKey || event.ctrlKey ? SINGLE :
-          (event.shiftKey ? TO_LAST : null)
-        context.TouchList_onItemSelected(index, modifier)
-      }}
-      onDragStart={event => slide.dragStart(event, index)}
-      onDragOver={event => slide.dragOver(event, index)}
-      onDrop={event => slide.drop(event, index)}
-      onDragLeave={slide.dragLeave}
-      onDragEnd={slide.dragEnd}
-      data-touchlist-item-index={index}
-      className={_.filter([
-        "touchlist-item",
-        context.TouchList_selection.has(index) ? "selected" : "",
-        dropClass,
-        props.className
-      ]).join(" ")}
-      draggable
-      {...passProps}>
-    {props.children}
-  </List.Item>
+  render() {
+    const props = this.props
+    const context = this.context
+    if (!props.hasOwnProperty("index")) {
+      throw new Error("`TouchList.Item` `props.index` is required")
+    }
+    const passProps = excludeKeys(props, TOUCHLISTITEM_PROPS, "TouchList.Item")
+    const slide = context.TouchList_slide
+    const index = props.index
+    if (!props.hasOwnProperty("onContextMenu")) {
+      passProps.onContextMenu = event => event.preventDefault()
+    }
+    return <List.Item
+        onClick={event => {
+          const modifier = event.metaKey || event.ctrlKey ? SINGLE :
+            (event.shiftKey ? TO_LAST : null)
+          context.TouchList_onItemSelected(index, modifier)
+        }}
+        onDragStart={event => slide.dragStart(event, index)}
+        onDragOver={event => slide.dragOver(event, index)}
+        onDrop={event => slide.drop(event, index)}
+        onDragLeave={slide.dragLeave}
+        onDragEnd={slide.dragEnd}
+        data-touchlist-item-index={index}
+        className={_.filter([
+          "touchlist-item",
+          this.state.selected ? "selected" : "",
+          this.state.dropClass,
+          props.className
+        ]).join(" ")}
+        draggable
+        {...passProps}>
+      {props.children}
+    </List.Item>
+  }
 }
 
 const TOUCHLISTITEM_PROPS = {
