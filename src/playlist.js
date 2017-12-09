@@ -346,7 +346,7 @@ export function moveItem(list, fromIndex, toIndex) {
 export class Playlist extends React.Component {
   constructor(props, context) {
     super(props)
-    this.state = {infoIndex: -1, promptForDelete: ""}
+    this.state = {infoIndex: -1, promptForDelete: "", touching: false}
     const onDelete = this.onDeleteItems.bind(this)
     context.addKeydownHandler(8 /* backspace */, onDelete)
     context.addKeydownHandler(46 /* delete */, onDelete)
@@ -424,10 +424,11 @@ export class Playlist extends React.Component {
       insertPlaylistItems(playerid, data, index, dispatch, numTracks)
     }
   }
-  onSelectionChanged(selection) {
+  onSelectionChanged(selection, isTouch) {
     this.props.dispatch(actions.selectionChanged(selection))
     this.setInfoIndex(-1)
     this.hideTrackInfo()
+    this.setState({touching: selection.size && isTouch})
   }
   setHideTrackInfoCallback(callback) {
     this.hideTrackInfo = callback
@@ -452,7 +453,7 @@ export class Playlist extends React.Component {
             playTrack={this.playTrackAtIndex.bind(this, item[IX])}
             index={index}
             activeIcon={props.currentIndex === item[IX] ? "video play" : ""}
-            selecting={props.selection.size}
+            touching={this.state.touching}
             setHideTrackInfoCallback={hideInfo}
             showInfoIcon={index === this.state.infoIndex}
             key={index + "-" + item.id} />
@@ -486,9 +487,9 @@ export const PlaylistItem = props => {
       onDoubleClick={props.playTrack}
       draggable>
     <List.Content floated="right">
-      <List.Description className={props.selecting ? "drag-handle" : ""}>
+      <List.Description className={props.touching ? "drag-handle" : ""}>
         {formatTime(item.duration || 0)}
-        {props.selecting ? <DragHandle /> : ""}
+        {props.touching ? <DragHandle /> : ""}
       </List.Description>
     </List.Content>
     <List.Content>

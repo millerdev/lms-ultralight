@@ -34,7 +34,7 @@ export const TO_LAST = "to last"
  *   this prop is not provided.
  *   Signature: `onMoveItems(indexSet, toIndex)`
  * - onSelectionChanged: Callback function to handle selection changes.
- *   Signature: `onSelectionChanged(selection)`
+ *   Signature: `onSelectionChanged(selection, isTouch)`
  */
 export class TouchList extends React.Component {
   constructor(props) {
@@ -108,7 +108,7 @@ export class TouchList extends React.Component {
   onTap(index, event) {
     return this.props.onTap ? this.props.onTap(index, event) : null
   }
-  onItemSelected(index, modifier) {
+  onItemSelected(index, modifier, isTouch=false) {
     this.selectionChanged(({selection, lastSelected}) => {
       if (!modifier) {
         return {selection: Set([index]), lastSelected: IList([index])}
@@ -130,31 +130,31 @@ export class TouchList extends React.Component {
         lastSelected = lastSelected.push(index)
       }
       return {selection, lastSelected}
-    })
+    }, undefined, isTouch)
   }
   onLongTouch(index) {
     if (this.props.onLongTouch) {
       const item = this.props.items.get(index)
       if (this.props.onLongTouch(item && item.toObject(), index)) {
-        this.toggleSelection(index)
+        this.toggleSelection(index, true)
       }
     } else {
-      this.toggleSelection(index)
+      this.toggleSelection(index, true)
     }
   }
-  toggleSelection(index) {
-    this.onItemSelected(index, SINGLE)
+  toggleSelection(index, isTouch=false) {
+    this.onItemSelected(index, SINGLE, isTouch)
   }
   clearSelection() {
     this.selectionChanged(Set(), IList())
   }
-  selectionChanged(selection, lastSelected) {
+  selectionChanged(selection, lastSelected, isTouch=false) {
     if (_.isFunction(selection)) {
       this.setState((state, props) => {
         const func = props.onSelectionChanged
         const newState = selection(state)
         if (func && !newState.selection.equals(props.selection)) {
-          func(newState.selection)
+          func(newState.selection, isTouch)
         }
         // maybe broken: setState completes after onSelectionChanged
         return newState
@@ -164,7 +164,7 @@ export class TouchList extends React.Component {
         const func = this.props.onSelectionChanged
         this.setState({selection, lastSelected})
         if (func && !selection.equals(this.props.selection)) {
-          func(selection)
+          func(selection, isTouch)
         }
       } else if (!lastSelected.equals(this.state.lastSelected)) {
         this.setState({lastSelected})
@@ -392,7 +392,7 @@ function makeSlider(touchlist) {
         }
       } else {
         event.preventDefault()
-        touchlist.toggleSelection(fromIndex)
+        touchlist.toggleSelection(fromIndex, true)
       }
     } else if (touchlist.state.selection.size) {
       const hoverIndex = getIndex(target)
