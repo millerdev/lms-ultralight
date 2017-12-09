@@ -9,7 +9,7 @@ x- hamburger button at top/left to open side menu
   - sticky top menu and sidebar
   - search input
       X button in search input to clear
-    - auto-expand search content below after typing
+x    - auto-expand search content below after typing
       - content types/sections
 x        artists
 x        albums

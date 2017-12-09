@@ -84,7 +84,10 @@ export class MainMenu extends React.Component {
     this.keydownHandlers[code] = handler
   }
   onKeyDown(event) {
-    if (this.keydownHandlers.hasOwnProperty(event.keyCode)) {
+    if (
+      this.keydownHandlers.hasOwnProperty(event.keyCode) &&
+      event.target.tagName.toLowerCase() !== "input"  // global events only
+    ) {
       this.keydownHandlers[event.keyCode]()
     }
   }
@@ -92,7 +95,9 @@ export class MainMenu extends React.Component {
     return player.loadPlayer(...args).then(this.props.dispatch)
   }
   setSearchInput(input) {
-    this.searchInput = input
+    if (input && input !== this.searchInput) {
+      this.searchInput = input
+    }
   }
   onPlayerSelected(playerid) {
     localStorage.currentPlayer = playerid
