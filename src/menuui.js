@@ -8,27 +8,26 @@ import './menu.styl'
 export const MainMenuUI = props => (
   <div className="mainmenu">
     <Sidebar
-        as={Menu}
+        as="div"
+        className="sidebarContainer"
         animation="push"
         width="wide"
-        visible={props.sidebarOpen}
-        borderless
-        vertical>
-      <Menu.Item fitted="vertically">
-        <Menu borderless style={{border: "none", boxShadow: "none"}}>
-          <Menu.Item fitted="vertically" onClick={props.onToggleSidebar}>
-            <Icon name="content" size="large" />
-          </Menu.Item>
-          <PlayGroup
-            position="right"
-            command={props.command}
-            playerid={props.player.get("playerid")}
-            isPlaying={props.player.get("isPlaying")} />
-        </Menu>
-      </Menu.Item>
-      <Menu.Item name="search">
-        <MediaSearch {...props} />
-      </Menu.Item>
+        visible={props.sidebarOpen}>
+      <Menu borderless>
+        <Menu.Item onClick={props.onToggleSidebar}>
+          <Icon name="angle left" size="big" />
+        </Menu.Item>
+        <PlayGroup
+          position="right"
+          command={props.command}
+          playerid={props.player.get("playerid")}
+          isPlaying={props.player.get("isPlaying")} />
+      </Menu>
+      <Menu borderless fluid vertical>
+        <Menu.Item name="search">
+          <MediaSearch {...props} />
+        </Menu.Item>
+      </Menu>
     </Sidebar>
     <Sidebar.Pusher>
       <PowerBar {...props} />
