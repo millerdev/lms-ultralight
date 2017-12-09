@@ -13,11 +13,10 @@ export const MainMenuUI = props => (
         width="wide"
         visible={props.sidebarOpen}
         borderless
-        style={{border: "none"}}
         vertical>
       <Menu.Item fitted="vertically">
         <Menu borderless style={{border: "none", boxShadow: "none"}}>
-          <Menu.Item onClick={props.onToggleSidebar}>
+          <Menu.Item fitted="vertically" onClick={props.onToggleSidebar}>
             <Icon name="content" size="large" />
           </Menu.Item>
           <PlayGroup
@@ -35,7 +34,7 @@ export const MainMenuUI = props => (
       <PowerBar {...props} />
       <Transition
           visible={!!props.messages.error}
-          animation='slide down'
+          animation="slide down"
           duration={500}
           unmountOnHide>
         <Message
@@ -50,7 +49,7 @@ export const MainMenuUI = props => (
           </Message.Content>
         </Message>
       </Transition>
-      <div className="ui padded grid">
+      <div className="mainview ui grid">
         <div className="sixteen wide column">
           {props.children}
         </div>
@@ -67,10 +66,9 @@ const PowerBar = props => {
   return (
     <Menu
         attached={props.sidebarOpen && "top"}
-        fixed={props.sidebarOpen ? null : "top"}
-        size="small"
+        fixed={!props.sidebarOpen ? "top" : null}
         borderless>
-      <Menu.Item fitted="vertically" onClick={props.onToggleSidebar}>
+      <Menu.Item onClick={props.onToggleSidebar}>
         <Icon name="content" size="large" />
       </Menu.Item>
       {player.isControlVisible ?
@@ -104,33 +102,42 @@ const PowerBar = props => {
 
 const PlayGroup = props => {
   const playerid = props.playerid
-  return <Menu.Menu position={props.position}>
+  return <Menu.Menu position={props.position} icon>
     <Menu.Item
-      icon="backward"
-      onClick={() => props.command(playerid, "playlist", "index", "-1")}
-      disabled={!playerid} />
+        onClick={() => props.command(playerid, "playlist", "index", "-1")}
+        disabled={!playerid}
+        fitted>
+      <Icon size="large" name="backward" />
+    </Menu.Item>
     <Menu.Item
-      onClick={() =>
-        props.command(playerid, props.isPlaying ? "pause" : "play")}
-      icon={props.isPlaying ? "pause" : "play"}
-      disabled={!playerid} />
+        onClick={() => props.command(playerid, props.isPlaying ? "pause" : "play")}
+        disabled={!playerid}
+        fitted="vertically">
+      <Icon size="large" name={props.isPlaying ? "pause" : "play"} />
+    </Menu.Item>
     <Menu.Item
-      icon="forward"
-      onClick={() => props.command(playerid, "playlist", "index", "+1")}
-      disabled={!playerid} />
+        onClick={() => props.command(playerid, "playlist", "index", "+1")}
+        disabled={!playerid}
+        fitted>
+      <Icon size="large" name="forward" />
+    </Menu.Item>
   </Menu.Menu>
 }
 
 const VolumeGroup = props => {
   const playerid = props.playerid
-  return <Menu.Menu position="right">
+  return <Menu.Menu position="right" icon>
     <Menu.Item
-      icon="volume down"
-      onClick={() => props.command(playerid, "mixer", "volume", "-5")}
-      disabled={!playerid} />
+        onClick={() => props.command(playerid, "mixer", "volume", "-5")}
+        disabled={!playerid}
+        fitted="vertically">
+      <Icon size="large" name="volume down" />
+    </Menu.Item>
     <Menu.Item
-      icon="volume up"
-      onClick={() => props.command(playerid, "mixer", "volume", "+5")}
-      disabled={!playerid} />
+        onClick={() => props.command(playerid, "mixer", "volume", "+5")}
+        disabled={!playerid}
+        fitted="vertically">
+      <Icon size="large" name="volume up" />
+    </Menu.Item>
   </Menu.Menu>
 }

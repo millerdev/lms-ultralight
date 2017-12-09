@@ -8,7 +8,11 @@
       max-height: none
   .messages
     position: fixed
-    top: 3em
+    top: 3.7em
     margin: 0.5em
     width: calc(100% - 1em)
     z-index: 10
+  .mainview.ui.grid
+    /* HACK adjust to thicker top menu - Semantic UI bug? */
+    margin: 0
+    padding-top: 3.4em !important
