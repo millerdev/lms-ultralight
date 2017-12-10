@@ -455,7 +455,7 @@ export class Playlist extends React.Component {
             index={index}
             selected={selection.has(index)}
             activeIcon={props.currentIndex === item[IX] ? "video play" : ""}
-            touching={this.state.touching}
+            touching={!!(this.state.touching && selection.has(index))}
             setHideTrackInfoCallback={hideInfo}
             showInfoIcon={index === this.state.infoIndex}
             key={index + ' ' + item.id}
@@ -491,6 +491,7 @@ export class PlaylistItem extends React.Component {
       old.index !== props.index ||
       old.item.id !== props.item.id ||
       old.selected !== props.selected ||
+      old.touching !== props.touching ||
       old.activeIcon !== props.activeIcon
     )
   }

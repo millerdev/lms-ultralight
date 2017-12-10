@@ -22,7 +22,7 @@ export const TO_LAST = "to last"
  * - dropTypes: Array of data types that can be dropped in this list.
  *   Dropping is not supported if this prop is not provided.
  * - onTap: Callback function handling tap on list item element
- *   with the class "tap-zone". Return `false` to prevent default
+ *   with the class "tap-zone".
  *   event handling. Signature: `onTap(index, event)`
  * - onDrop: Callback function for handling dropped content.
  *   Signature: `onDrop(data, dataType, index, event)`
@@ -104,7 +104,7 @@ export class TouchList extends React.Component {
     return _.find(possibleTypes, value => dropTypes.hasOwnProperty(value))
   }
   onTap(index, event) {
-    return this.props.onTap ? this.props.onTap(index, event) : null
+    this.props.onTap && this.props.onTap(index, event)
   }
   onItemSelected(index, modifier, isTouch=false) {
     this.selectionChanged(({selection, lastSelected}) => {
@@ -222,8 +222,8 @@ export class TouchListItem extends React.Component {
       this.setState({dropClass: null})
     }
   }
-  onDragOver(event, index) {
-    const dropIndex = this.context.TouchList_slide.dragOver(event, index)
+  onDragOver(event, index, target) {
+    const dropIndex = this.context.TouchList_slide.dragOver(event, index, target)
     const dropClass = index === dropIndex - 1 ? "dropAfter" :
                       index === dropIndex ? "dropBefore" : null
     if (this.state.dropClass !== dropClass) {
@@ -250,6 +250,8 @@ export class TouchListItem extends React.Component {
     const passProps = excludeKeys(props, TOUCHLISTITEM_PROPS, "TouchList.Item")
     const slide = this.context.TouchList_slide
     const index = props.index
+    // this seems hacky, but can't think of any other way get touch events
+    slide.addItem(index, this)
     if (!props.hasOwnProperty("onContextMenu")) {
       passProps.onContextMenu = event => event.preventDefault()
     }
@@ -338,12 +340,15 @@ const excludeKeys = (src, keys, for_) => _.pickBy(src, (value, key) => {
  *  - TODO long-press to view track details
  */
 function makeSlider(touchlist) {
+  const items = {}
   let listeners = []
   let fromIndex = -1
   let holdTimer = null
   let isHolding = false
+  let isTouchDrag = false
   let startPosition = null
   let latestPosition = null
+  let latestIndex = null
   let leavingTimer = null
 
   function setTouchHandlers(el) {
@@ -362,6 +367,9 @@ function makeSlider(touchlist) {
     return () => el.removeEventListener(name, handler, options)
   } 
 
+  function addItem(index, item) {
+    items[index] = item
+  }
   function touchStart(event) {
     if (event.touches.length > 1) {
       return
@@ -373,7 +381,7 @@ function makeSlider(touchlist) {
     }
     const target = getTarget(pos)
     fromIndex = getIndex(target)
-    const isDragHandle = hasClass(target, "drag-handle")
+    isTouchDrag = hasClass(target, "drag-handle")
     const isSelected = touchlist.state.selection.has(fromIndex)
     event.target.dataset.touchlistId = touchlist.id
     if (touchlist.props.dataType) {
@@ -384,12 +392,13 @@ function makeSlider(touchlist) {
     isHolding = false
     holdTimer = setTimeout(() => {
       isHolding = true
-      if (startPosition === latestPosition && !isDragHandle) {
+      if (startPosition === latestPosition && !isTouchDrag) {
         if (isSelected && touchlist.state.selection.size) {
           touchlist.clearSelection()
           isHolding = false
           latestPosition = null  // do nothing on touchEnd
         } else {
+          isTouchDrag = true
           touchlist.onLongTouch(fromIndex)
         }
       }
@@ -403,13 +412,16 @@ function makeSlider(touchlist) {
       time: event.timeStamp,
     }
     const target = getTarget(pos)
-    if (isHolding || hasClass(target, "drag-handle")) {
+    if (isTouchDrag) {
+      const sel = touchlist.state.selection
+      const index = getIndex(target)
       event.preventDefault()
-      if (pos.time - startPosition.time > 330) {
-        const hoverIndex = getIndex(target)
-        if (hoverIndex !== null) {
-          //proposeDrop(allowedDropIndex(event, hoverIndex, target))
-        }
+      if (index !== latestIndex && items.hasOwnProperty(latestIndex)) {
+        items[latestIndex].onDragLeave()
+      }
+      latestIndex = index
+      if (index !== null && items.hasOwnProperty(index)) {
+        items[index].onDragOver(event, index, target)
       }
     }
   }
@@ -420,9 +432,7 @@ function makeSlider(touchlist) {
     const target = getTarget(latestPosition)
     if (!isHolding && startPosition === latestPosition) {
       if (hasClass(target, "tap-zone")) {
-        if (touchlist.onTap(fromIndex, event) === false) {
-          event.preventDefault()
-        }
+        touchlist.onTap(fromIndex, event)
       } else {
         event.preventDefault()
         touchlist.toggleSelection(fromIndex, true)
@@ -440,7 +450,13 @@ function makeSlider(touchlist) {
     delete event.target.dataset.touchlistId
     delete event.target.dataset.touchlistDragType
     delete event.target.dataset.touchlistDragData
-    dragEnd()
+    if (items.hasOwnProperty(latestIndex) ) {
+      items[latestIndex].onDragEnd()
+      latestIndex = null
+    } else {
+      dragEnd()
+    }
+    isTouchDrag = false
     cancelHold()
   }
   function cancelHold() {
@@ -536,8 +552,8 @@ function makeSlider(touchlist) {
       event.dataTransfer.effectAllowed = mayMove ? "copyMove" : "copy"
     }
   }
-  function dragOver(event, index) {
-    const dropIndex = allowedDropIndex(event, index)
+  function dragOver(event, index, target) {
+    const dropIndex = allowedDropIndex(event, index, target)
     if (dropIndex >= 0) {
       event.preventDefault()
     }
@@ -569,6 +585,7 @@ function makeSlider(touchlist) {
   }
 
   return {
+    addItem,
     setTouchHandlers,
     dragStart,
     dragOver,
