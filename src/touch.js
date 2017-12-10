@@ -230,14 +230,6 @@ export class TouchListItem extends React.Component {
       this.setState({dropClass})
     }
   }
-  onDragLeave() {
-    this.clearDropIndicator()
-    this.context.TouchList_slide.dragLeave()
-  }
-  onDragEnd() {
-    this.clearDropIndicator()
-    this.context.TouchList_slide.dragEnd()
-  }
   onDrop(event, index) {
     this.clearDropIndicator()
     this.context.TouchList_slide.drop(event, index)
@@ -264,8 +256,8 @@ export class TouchListItem extends React.Component {
         onDragStart={event => slide.dragStart(event, index)}
         onDragOver={event => this.onDragOver(event, index)}
         onDrop={event => this.onDrop(event, index)}
-        onDragLeave={this.onDragLeave.bind(this)}
-        onDragEnd={this.onDragEnd.bind(this)}
+        onDragLeave={this.clearDropIndicator.bind(this)}
+        onDragEnd={this.clearDropIndicator.bind(this)}
         data-touchlist-item-index={index}
         className={_.filter([
           "touchlist-item",
@@ -342,14 +334,13 @@ const excludeKeys = (src, keys, for_) => _.pickBy(src, (value, key) => {
 function makeSlider(touchlist) {
   const items = {}
   let listeners = []
-  let fromIndex = -1
   let holdTimer = null
   let isHolding = false
   let isTouchDrag = false
   let startPosition = null
   let latestPosition = null
+  let startIndex = null
   let latestIndex = null
-  let leavingTimer = null
 
   function setTouchHandlers(el) {
     if (el) {
@@ -380,16 +371,19 @@ function makeSlider(touchlist) {
       time: event.timeStamp,
     }
     const target = getTarget(pos)
-    fromIndex = getIndex(target)
-    isTouchDrag = hasClass(target, "drag-handle")
-    const isSelected = touchlist.state.selection.has(fromIndex)
-    event.target.dataset.touchlistId = touchlist.id
+    const index = getIndex(target)
+    const isSelected = touchlist.state.selection.has(index)
+    if (touchlist.props.onMoveItems) {
+      event.target.dataset.touchlistId = touchlist.id
+      startIndex = index
+    }
     if (touchlist.props.dataType) {
-      const data = touchlist.getDragData(fromIndex)
+      const data = touchlist.getDragData(index)
       event.target.dataset.touchlistDragType = touchlist.props.dataType
       event.target.dataset.touchlistDragData = JSON.stringify(data)
     }
     isHolding = false
+    isTouchDrag = hasClass(target, "drag-handle")
     holdTimer = setTimeout(() => {
       isHolding = true
       if (startPosition === latestPosition && !isTouchDrag) {
@@ -399,7 +393,7 @@ function makeSlider(touchlist) {
           latestPosition = null  // do nothing on touchEnd
         } else {
           isTouchDrag = true
-          touchlist.onLongTouch(fromIndex)
+          touchlist.onLongTouch(index)
         }
       }
     }, 300)
@@ -413,11 +407,10 @@ function makeSlider(touchlist) {
     }
     const target = getTarget(pos)
     if (isTouchDrag) {
-      const sel = touchlist.state.selection
       const index = getIndex(target)
       event.preventDefault()
       if (index !== latestIndex && items.hasOwnProperty(latestIndex)) {
-        items[latestIndex].onDragLeave()
+        items[latestIndex].clearDropIndicator()
       }
       latestIndex = index
       if (index !== null && items.hasOwnProperty(index)) {
@@ -430,20 +423,22 @@ function makeSlider(touchlist) {
       return  // hold selected -> clear selection
     }
     const target = getTarget(latestPosition)
+    let index
     if (!isHolding && startPosition === latestPosition) {
+      index = getIndex(target)
       if (hasClass(target, "tap-zone")) {
-        touchlist.onTap(fromIndex, event)
+        touchlist.onTap(index, event)
       } else {
         event.preventDefault()
-        touchlist.toggleSelection(fromIndex, true)
+        touchlist.toggleSelection(index, true)
       }
     } else if (touchlist.state.selection.size) {
-      const hoverIndex = getIndex(target)
-      if (hoverIndex !== null) {
-        const toIndex = allowedDropIndex(event, hoverIndex, target)
-        if (toIndex >= 0 && touchlist.props.onMoveItems) {
+      index = getIndex(target)
+      if (index !== null) {
+        const toIndex = allowedDropIndex(event, index, target)
+        if (toIndex >= 0) {
           event.preventDefault()
-          drop(event, hoverIndex)
+          drop(event, index)
         }
       }
     }
@@ -451,10 +446,8 @@ function makeSlider(touchlist) {
     delete event.target.dataset.touchlistDragType
     delete event.target.dataset.touchlistDragData
     if (items.hasOwnProperty(latestIndex) ) {
-      items[latestIndex].onDragEnd()
+      items[latestIndex].clearDropIndicator()
       latestIndex = null
-    } else {
-      dragEnd()
     }
     isTouchDrag = false
     cancelHold()
@@ -505,8 +498,12 @@ function makeSlider(touchlist) {
     }
     return [data && JSON.parse(data), dropType]
   }
-  function isInternalMove(dataTypes) {
-    return dataTypes.indexOf(touchlist.id) !== -1
+  function getMoveIndex(event, dataTypes) {
+    if (touchlist.props.onMoveItems && dataTypes.indexOf(touchlist.id) !== -1) {
+      // use touchlist because dragOver events do not allow access to the data
+      return startIndex
+    }
+    return null
   }
   function hasClass(el, className) {
     while (el) {
@@ -519,18 +516,18 @@ function makeSlider(touchlist) {
   }
   function allowedDropIndex(event, index, target=event.currentTarget) {
     const dataTypes = getDataTypes(event)
-    const isMove = touchlist.props.onMoveItems && isInternalMove(dataTypes)
-    const sel = touchlist.state.selection
-    index = getDropIndex(event, index, target)
-    if (!isMove) {
-      return touchlist.getAllowedDropType(dataTypes) ? index : -1
+    const moveIndex = getMoveIndex(event, dataTypes)
+    const dropIndex = getDropIndex(event, index, target)
+    if (moveIndex === null) {
+      return touchlist.getAllowedDropType(dataTypes) ? dropIndex : -1
     }
-    if (sel.has(fromIndex)) {
-      if (!(sel.has(index) || sel.has(index - 1))) {
-        return index
+    const sel = touchlist.state.selection
+    if (sel.has(moveIndex)) {
+      if (!(sel.has(dropIndex) || sel.has(dropIndex - 1))) {
+        return dropIndex
       }
-    } else if (index !== fromIndex && index !== fromIndex + 1) {
-      return index
+    } else if (dropIndex !== moveIndex && dropIndex !== moveIndex + 1) {
+      return dropIndex
     }
     return -1
   }
@@ -544,7 +541,7 @@ function makeSlider(touchlist) {
     if (mayMove) {
       event.dataTransfer.effectAllowed = "move"
       event.dataTransfer.setData(touchlist.id, "")
-      fromIndex = index
+      startIndex = index
     }
     if (touchlist.props.dataType) {
       const data = JSON.stringify(touchlist.getDragData(index))
@@ -557,31 +554,23 @@ function makeSlider(touchlist) {
     if (dropIndex >= 0) {
       event.preventDefault()
     }
-    clearTimeout(leavingTimer)
     return dropIndex
-  }
-  function dragLeave() {
-    leavingTimer = setTimeout(dragEnd, 50)
-  }
-  function dragEnd() {
-    fromIndex = -1
   }
   function drop(event, index) {
     const dropIndex = getDropIndex(event, index)
     if (dropIndex >= 0) {
       const dataTypes = getDataTypes(event)
-      const isMove = touchlist.props.onMoveItems && isInternalMove(dataTypes)
-      if (isMove) {
+      const moveIndex = getMoveIndex(event, dataTypes)
+      if (moveIndex !== null) {
         let selection = touchlist.state.selection
-        if (!selection.has(fromIndex)) {
-          selection = Set([fromIndex])
+        if (!selection.has(moveIndex)) {
+          selection = Set([moveIndex])
         }
         touchlist.props.onMoveItems(selection, dropIndex)
       } else if (touchlist.props.onDrop) {
         touchlist.props.onDrop(...getData(event, dataTypes), dropIndex, event)
       }
     }
-    dragEnd()
   }
 
   return {
@@ -589,8 +578,6 @@ function makeSlider(touchlist) {
     setTouchHandlers,
     dragStart,
     dragOver,
-    dragLeave,
-    dragEnd,
     drop,
   }
 }

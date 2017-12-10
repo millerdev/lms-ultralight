@@ -59,6 +59,7 @@ x            - browser context menu appeared on long press, might be tricky
     prompt first, then clear playlist
 
 - fix lag on change selection in large playlist
+- fix info icon never dismissed after touch playlist icon
 - fix move handles showing on click selection (should only show on touch)
 - fix click next skips two tracks (display only, intermittent)
   likely caused by scheduled advanceToNextTrackAfter action
