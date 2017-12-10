@@ -217,6 +217,10 @@ export class TouchListItem extends React.Component {
       this.setState({selected})
     }
   }
+  componentWillUnmount() {
+    const slide = this.context.TouchList_slide
+    slide && slide.removeItem(this.props.index, this)
+  }
   clearDropIndicator() {
     if (this.state.dropClass !== null) {
       this.setState({dropClass: null})
@@ -360,6 +364,11 @@ function makeSlider(touchlist) {
 
   function addItem(index, item) {
     items[index] = item
+  }
+  function removeItem(index, item) {
+    if (items[index] === item) {
+      delete items[index]
+    }
   }
   function touchStart(event) {
     if (event.touches.length > 1) {
@@ -575,6 +584,7 @@ function makeSlider(touchlist) {
 
   return {
     addItem,
+    removeItem,
     setTouchHandlers,
     dragStart,
     dragOver,
