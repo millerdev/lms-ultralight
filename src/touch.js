@@ -41,7 +41,6 @@ export class TouchList extends React.Component {
     super(props)
     this.id = _.uniqueId("touch-list-")
     this.state = {
-      dropIndex: -1,
       dropTypes: {},
       selection: props.selection || Set(),
       lastSelected: IList(),
@@ -77,7 +76,6 @@ export class TouchList extends React.Component {
   }
   getChildContext() {
     return {
-      TouchList_dropIndex: this.state.dropIndex,
       TouchList_selection: this.state.selection,
       TouchList_onItemSelected: this.onItemSelected.bind(this),
       TouchList_slide: this.slide,
@@ -183,7 +181,6 @@ export class TouchList extends React.Component {
 }
 
 TouchList.childContextTypes = {
-  TouchList_dropIndex: PropTypes.number.isRequired,
   TouchList_selection: PropTypes.object.isRequired,
   TouchList_onItemSelected: PropTypes.func.isRequired,
   TouchList_slide: PropTypes.object.isRequired,
@@ -211,25 +208,47 @@ const TOUCHLIST_PROPS = {
 export class TouchListItem extends React.Component {
   constructor() {
     super()
-    this.state = {}
+    this.state = {selected: false, dropClass: null}
   }
   componentWillReceiveProps(props, context) {
     const index = props.index
     const selected = context.TouchList_selection.has(index)
-    const dropClass = index === context.TouchList_dropIndex - 1 ? "dropAfter" :
-                      index === context.TouchList_dropIndex ? "dropBefore" : null
-    if (this.state.selected !== selected || this.state.dropClass !== dropClass) {
-      this.setState({selected, dropClass})
+    if (this.state.selected !== selected) {
+      this.setState({selected})
     }
+  }
+  clearDropIndicator() {
+    if (this.state.dropClass !== null) {
+      this.setState({dropClass: null})
+    }
+  }
+  onDragOver(event, index) {
+    const dropIndex = this.context.TouchList_slide.dragOver(event, index)
+    const dropClass = index === dropIndex - 1 ? "dropAfter" :
+                      index === dropIndex ? "dropBefore" : null
+    if (this.state.dropClass !== dropClass) {
+      this.setState({dropClass})
+    }
+  }
+  onDragLeave() {
+    this.clearDropIndicator()
+    this.context.TouchList_slide.dragLeave()
+  }
+  onDragEnd() {
+    this.clearDropIndicator()
+    this.context.TouchList_slide.dragEnd()
+  }
+  onDrop(event, index) {
+    this.clearDropIndicator()
+    this.context.TouchList_slide.drop(event, index)
   }
   render() {
     const props = this.props
-    const context = this.context
     if (!props.hasOwnProperty("index")) {
       throw new Error("`TouchList.Item` `props.index` is required")
     }
     const passProps = excludeKeys(props, TOUCHLISTITEM_PROPS, "TouchList.Item")
-    const slide = context.TouchList_slide
+    const slide = this.context.TouchList_slide
     const index = props.index
     if (!props.hasOwnProperty("onContextMenu")) {
       passProps.onContextMenu = event => event.preventDefault()
@@ -238,13 +257,13 @@ export class TouchListItem extends React.Component {
         onClick={event => {
           const modifier = event.metaKey || event.ctrlKey ? SINGLE :
             (event.shiftKey ? TO_LAST : null)
-          context.TouchList_onItemSelected(index, modifier)
+          this.context.TouchList_onItemSelected(index, modifier)
         }}
         onDragStart={event => slide.dragStart(event, index)}
-        onDragOver={event => slide.dragOver(event, index)}
-        onDrop={event => slide.drop(event, index)}
-        onDragLeave={slide.dragLeave}
-        onDragEnd={slide.dragEnd}
+        onDragOver={event => this.onDragOver(event, index)}
+        onDrop={event => this.onDrop(event, index)}
+        onDragLeave={this.onDragLeave.bind(this)}
+        onDragEnd={this.onDragEnd.bind(this)}
         data-touchlist-item-index={index}
         className={_.filter([
           "touchlist-item",
@@ -274,7 +293,6 @@ const TOUCHLISTITEM_PROPS = {
 TouchList.Item = TouchListItem
 
 TouchListItem.contextTypes = {
-  TouchList_dropIndex: PropTypes.number.isRequired,
   TouchList_selection: PropTypes.object.isRequired,
   TouchList_onItemSelected: PropTypes.func.isRequired,
   TouchList_slide: PropTypes.object.isRequired,
@@ -390,7 +408,7 @@ function makeSlider(touchlist) {
       if (pos.time - startPosition.time > 330) {
         const hoverIndex = getIndex(target)
         if (hoverIndex !== null) {
-          proposeDrop(allowedDropIndex(event, hoverIndex, target))
+          //proposeDrop(allowedDropIndex(event, hoverIndex, target))
         }
       }
     }
@@ -483,11 +501,6 @@ function makeSlider(touchlist) {
     }
     return false
   }
-  function proposeDrop(dropIndex) {
-    if (touchlist.state.dropIndex !== dropIndex) {
-      touchlist.setState({dropIndex})
-    }
-  }
   function allowedDropIndex(event, index, target=event.currentTarget) {
     const dataTypes = getDataTypes(event)
     const isMove = touchlist.props.onMoveItems && isInternalMove(dataTypes)
@@ -528,15 +541,14 @@ function makeSlider(touchlist) {
     if (dropIndex >= 0) {
       event.preventDefault()
     }
-    proposeDrop(dropIndex)
     clearTimeout(leavingTimer)
+    return dropIndex
   }
   function dragLeave() {
     leavingTimer = setTimeout(dragEnd, 50)
   }
   function dragEnd() {
     fromIndex = -1
-    proposeDrop(-1)
   }
   function drop(event, index) {
     const dropIndex = getDropIndex(event, index)
