@@ -61,13 +61,13 @@ export class TouchList extends React.Component {
     if (!this.props.items || !this.props.items.equals(props.items)) {
       // TODO option to preserve selection if items have been rearranged
       // This will be necessary for the playlist.
-      this.selectionChanged(Set(), IList())
+      this.setState({selection: Set(), lastSelected: IList()})
     }
     if (props.selection && !props.selection.equals(this.state.selection)) {
       this.setState({
         selection: props.selection,
         lastSelected: this.state.lastSelected
-          .filter(index => props.selection.has(index))
+          .filter(index => props.selection.has(index)),
       })
     }
   }
@@ -151,6 +151,7 @@ export class TouchList extends React.Component {
       this.setState((state, props) => {
         const func = props.onSelectionChanged
         const newState = selection(state)
+        this._updateItemSelections(state, newState)
         if (func && !newState.selection.equals(props.selection)) {
           func(newState.selection, isTouch)
         }
@@ -160,6 +161,7 @@ export class TouchList extends React.Component {
     } else {
       if (!selection.equals(this.state.selection)) {
         const func = this.props.onSelectionChanged
+        this._updateItemSelections(this.state, {selection})
         this.setState({selection, lastSelected})
         if (func && !selection.equals(this.props.selection)) {
           func(selection, isTouch)
@@ -167,6 +169,16 @@ export class TouchList extends React.Component {
       } else if (!lastSelected.equals(this.state.lastSelected)) {
         this.setState({lastSelected})
       }
+    }
+  }
+  _updateItemSelections(oldState, newState) {
+    const selected = newState.selection.subtract(oldState.selection)
+    const deselected = oldState.selection.subtract(newState.selection)
+    if (selected.size) {
+      this.slide.select(selected)
+    }
+    if (deselected.size) {
+      this.slide.deselect(deselected)
     }
   }
   render() {
@@ -220,6 +232,11 @@ export class TouchListItem extends React.Component {
   componentWillUnmount() {
     const slide = this.context.TouchList_slide
     slide && slide.removeItem(this.props.index, this)
+  }
+  setSelected(selected) {
+    if (this.state.selected !== selected) {
+      this.setState({selected})
+    }
   }
   clearDropIndicator() {
     if (this.state.dropClass !== null) {
@@ -369,6 +386,12 @@ function makeSlider(touchlist) {
     if (items[index] === item) {
       delete items[index]
     }
+  }
+  function select(indices) {
+    indices.forEach(index => items[index] && items[index].setSelected(true))
+  }
+  function deselect(indices) {
+    indices.forEach(index => items[index] && items[index].setSelected(false))
   }
   function touchStart(event) {
     if (event.touches.length > 1) {
@@ -585,6 +608,8 @@ function makeSlider(touchlist) {
   return {
     addItem,
     removeItem,
+    select,
+    deselect,
     setTouchHandlers,
     dragStart,
     dragOver,
