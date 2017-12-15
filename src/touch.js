@@ -16,9 +16,12 @@ export const TO_LAST = "to last"
  * Important props:
  * - items: `List` of items, which will be serialized in drag/drop
  *   operations. Each item in this list should correspond to a
- *   `TouchList.Item` with the same `index`.
+ *   `TouchList.Item` at the same position in the `TouchList`. All
+ *   index arguments provided to event handlers can be used to
+ *   reference items in this list.
  * - selection: `Set` of selected indexes. If not provided the selection
- *   will be maintained internally.
+ *   will be maintained internally. Each index in this set should
+ *   correspond to the index of an item in the `items` list.
  * - dropTypes: Array of data types that can be dropped in this list.
  *   Dropping is not supported if this prop is not provided.
  * - onTap: Callback function handling tap on list item element
@@ -58,17 +61,16 @@ export class TouchList extends React.Component {
     if (!_.isEqual(dropTypes, this.state.dropTypes)) {
       this.setState({dropTypes})
     }
-    if (!this.props.items || !this.props.items.equals(props.items)) {
-      // TODO option to preserve selection if items have been rearranged
-      // This will be necessary for the playlist.
-      this.setState({selection: Set(), lastSelected: IList()})
-    }
     if (props.selection && !props.selection.equals(this.state.selection)) {
       this.setState({
         selection: props.selection,
         lastSelected: this.state.lastSelected
           .filter(index => props.selection.has(index)),
       })
+    } else if (!this.props.items || !this.props.items.equals(props.items)) {
+      // TODO option to preserve selection if items have been rearranged
+      // This will be necessary for the playlist.
+      this.setState({selection: Set(), lastSelected: IList()})
     }
   }
   componentWillUnmount() {
@@ -279,7 +281,7 @@ export class TouchListItem extends React.Component {
         onDrop={event => this.onDrop(event, index)}
         onDragLeave={this.clearDropIndicator.bind(this)}
         onDragEnd={this.clearDropIndicator.bind(this)}
-        data-touchlist-item-index={index}
+        data-touchlist-item-index={index /* touchlistItemIndex */}
         className={_.filter([
           "touchlist-item",
           this.state.selected ? "selected" : "",
@@ -468,7 +470,7 @@ function makeSlider(touchlist) {
       index = getIndex(target)
       if (index !== null) {
         const toIndex = allowedDropIndex(event, index, target)
-        if (toIndex >= 0) {
+        if (toIndex !== null) {
           event.preventDefault()
           drop(event, index)
         }
@@ -532,7 +534,7 @@ function makeSlider(touchlist) {
   }
   function getMoveIndex(event, dataTypes) {
     if (touchlist.props.onMoveItems && dataTypes.indexOf(touchlist.id) !== -1) {
-      // use touchlist because dragOver events do not allow access to the data
+      // use local state because dragOver events do not allow access to the data
       return startIndex
     }
     return null
@@ -551,7 +553,7 @@ function makeSlider(touchlist) {
     const moveIndex = getMoveIndex(event, dataTypes)
     const dropIndex = getDropIndex(event, index, target)
     if (moveIndex === null) {
-      return touchlist.getAllowedDropType(dataTypes) ? dropIndex : -1
+      return touchlist.getAllowedDropType(dataTypes) ? dropIndex : null
     }
     const sel = touchlist.state.selection
     if (sel.has(moveIndex)) {
@@ -561,7 +563,7 @@ function makeSlider(touchlist) {
     } else if (dropIndex !== moveIndex && dropIndex !== moveIndex + 1) {
       return dropIndex
     }
-    return -1
+    return null
   }
   function getDropIndex(event, index, target=event.currentTarget) {
     const a = event.clientY - target.offsetTop
@@ -583,7 +585,7 @@ function makeSlider(touchlist) {
   }
   function dragOver(event, index, target) {
     const dropIndex = allowedDropIndex(event, index, target)
-    if (dropIndex >= 0) {
+    if (dropIndex !== null) {
       event.preventDefault()
     }
     return dropIndex
