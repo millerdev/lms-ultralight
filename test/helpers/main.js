@@ -2,6 +2,11 @@ global.chai = require('chai')
 global.assert = chai.assert
 global.expect = chai.expect
 
+const Adapter = require('enzyme-adapter-react-15')
+require('enzyme').configure({
+    adapter: new Adapter()}
+)
+
 chai.should()
 chai.config.includeStack = true
 chai.use(require('chai-eql-immutable'))

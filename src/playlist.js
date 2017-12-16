@@ -346,12 +346,29 @@ export function moveItem(list, fromIndex, toIndex) {
 export class Playlist extends React.Component {
   constructor(props, context) {
     super(props)
-    this.state = {infoIndex: -1, promptForDelete: "", touching: false}
+    this.state = {
+      infoIndex: -1,
+      promptForDelete: "",
+      touching: false,
+      selection: this.getTouchlistSelection(props),
+    }
     const onDelete = this.onDeleteItems.bind(this)
     context.addKeydownHandler(8 /* backspace */, onDelete)
     context.addKeydownHandler(46 /* delete */, onDelete)
-    this.selectionChangedListener = null
     this.hideTrackInfo = () => {}
+  }
+  getTouchlistSelection(props) {
+    const indexMap = props.items
+      .toKeyedSeq()
+      .map(item => item.get(IX))
+      .flip()
+      .toObject()
+    return props.selection.map(i => indexMap[i])
+  }
+  componentWillReceiveProps(props) {
+    if (!props.selection.equals(this.props.selection)) {
+      this.setState({selection: this.getTouchlistSelection(props)})
+    }
   }
   toPlaylistIndex(touchlistIndex) {
     return this.props.items.getIn([touchlistIndex, IX])
@@ -383,9 +400,9 @@ export class Playlist extends React.Component {
   onMoveItems(selection, toIndex) {
     const loadPlayer = require("./player").loadPlayer
     const { playerid, dispatch } = this.props
-    selection = selection.map(i => this.toPlaylistIndex(i))
-    toIndex = this.toPlaylistIndex(toIndex)
-    moveItems(selection, toIndex, playerid, dispatch, lms)
+    const plSelection = selection.map(i => this.toPlaylistIndex(i))
+    const plToIndex = this.toPlaylistIndex(toIndex)
+    moveItems(plSelection, plToIndex, playerid, dispatch, lms)
       .then(() => loadPlayer(playerid, true))
       .catch(err => operationError("Move error", err))
       .then(dispatch)
@@ -420,8 +437,8 @@ export class Playlist extends React.Component {
   onDrop(data, dataType, index) {
     if (dataType === SEARCH_RESULTS) {
       const {playerid, dispatch, numTracks} = this.props
-      index = this.toPlaylistIndex(index)
-      insertPlaylistItems(playerid, data, index, dispatch, numTracks)
+      const plIndex = this.toPlaylistIndex(index)
+      insertPlaylistItems(playerid, data, plIndex, dispatch, numTracks)
     }
   }
   onSelectionChanged(selection, isTouch) {
@@ -436,7 +453,7 @@ export class Playlist extends React.Component {
   render() {
     const props = this.props
     const hideInfo = this.setHideTrackInfoCallback.bind(this)
-    const selection = props.selection
+    const selection = this.state.selection
     return <div>
       <TouchList
           className="playlist"

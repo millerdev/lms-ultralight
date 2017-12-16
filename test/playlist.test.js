@@ -1,4 +1,6 @@
+import { shallow } from 'enzyme'
 import { fromJS, Map, Seq, Set } from 'immutable'
+import React from 'react'
 
 import { effect, getEffects, getState, split } from '../src/effects'
 import * as mod from '../src/playlist'
@@ -478,6 +480,25 @@ describe('playlist', function () {
       })
     })
   })
+
+  describe("Playlist component", function () {
+    const opts = {context: {addKeydownHandler: () => {}}}
+
+    it('setup empty selection state', function () {
+      const state = makeState("abcdef")
+      const dom = shallow(<mod.Playlist {...state.toObject()} />, opts)
+      assert.equal(dom.state().selection, Set())
+      assert.equal(dom.find("TouchList").props().selection, Set())
+    })
+
+    it('map selection to touchlist indexes', function () {
+      const state = makeState("abCdEf", 10)
+      assert.equal(state.get("selection"), Set([12, 14]))
+      const dom = shallow(<mod.Playlist {...state.toObject()} />, opts)
+      assert.equal(dom.state().selection, Set([2, 4]))
+      assert.equal(dom.find("TouchList").props().selection, Set([2, 4]))
+    })
+  })
 })
 
 /**
@@ -486,31 +507,33 @@ describe('playlist', function () {
  * Configuration syntax:
  * - playlist items are letters (abcd...)
  * - capitalized letters are selected items
- * - letter in (parens) is current track
+ * - letter in (parens) is current track, defaults to first track
  * - letters after " | " are lastSelected items
  */
-function makeState(config) {
-  const index = c => indexMap.get(c.toLowerCase())
+function makeState(config, firstIndex=0) {
+  const index = c => indexMap[c.toLowerCase()]
   const match = /^((?:[a-z]|\([a-z]\))+)(?: \| ([a-z]*))?$/i.exec(config)
   const playchars = Seq(match[1])
     .filter(c => /[a-z]/i.test(c)).cacheResult()
-  const indexMap = playchars
-    .map(c => c.toLowerCase()).toKeyedSeq().flip().toMap()
-  const current = index(/\(([a-z])\)/i.exec(config)[1])
-  const items = playchars.map((c, i) => (Map({
+  const indexMap = playchars.toKeyedSeq()
+    .map(c => c.toLowerCase()).flip()
+    .map(i => i + firstIndex).toObject()
+  const currentChar = /\(([a-z])\)/i.exec(config) || {1: playchars.get(0)}
+  const current = index(currentChar[1])
+  const items = playchars.map(c => (Map({
     "url": "file:///" + c.toLowerCase(),
-    "playlist index": i,
+    "playlist index": index(c),
     "title": c.toLowerCase(),
   }))).toList()
   const data = {
     items: items,
     selection: playchars.filter(c => /[A-Z]/.test(c)).map(index).toSet(),
-    lastSelected: Seq(match[2]).map(index).toList(),
+    //lastSelected: Seq(match[2]).map(index).toList(),
     currentIndex: current,
     currentTrack: items.get(current),
     numTracks: playchars.size,
   }
-  return STATE.merge(data).remove("lastSelected")
+  return STATE.merge(data)
 }
 
 function makeConfig(state) {
