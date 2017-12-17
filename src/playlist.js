@@ -52,7 +52,7 @@ export const reducer = makeReducer({
         data.currentTrack = fromJS(list[0] || {})
       }
       if (changed && (!status.isPlaylistUpdate || !gotCurrent)) {
-        effects.push(effect(require("./player").loadPlayer, data.playerid, true))
+        effects.push(effect(loadPlayer, data.playerid, true))
       }
     } else {
       data.items = IList()
@@ -78,7 +78,7 @@ export const reducer = makeReducer({
       })
     } else {
       effects.push(effect(
-        require("./player").loadPlayer,
+        loadPlayer,
         playerid,
         true,
       ))
@@ -140,6 +140,10 @@ export const reducer = makeReducer({
 }, defaultState)
 
 const actions = reducer.actions
+
+export function loadPlayer(...args) {
+  return require("./player").loadPlayer(...args)
+}
 
 function insertPlaylistItems(playerid, items, index, dispatch, numTracks) {
   const insert = (items, index, numTracks) => {
@@ -374,7 +378,6 @@ export class Playlist extends React.Component {
     return this.props.items.getIn([touchlistIndex, IX])
   }
   playTrackAtIndex(playlistIndex) {
-    const loadPlayer = require("./player").loadPlayer
     const { playerid, dispatch } = this.props
     lms.command(playerid, "playlist", "index", playlistIndex)
       .then(() => dispatch(actions.clearSelection()))
@@ -398,7 +401,6 @@ export class Playlist extends React.Component {
     }
   }
   onMoveItems(selection, toIndex) {
-    const loadPlayer = require("./player").loadPlayer
     const { playerid, dispatch } = this.props
     const plSelection = selection.map(i => this.toPlaylistIndex(i))
     const plToIndex = this.toPlaylistIndex(toIndex)
@@ -408,7 +410,7 @@ export class Playlist extends React.Component {
       .then(dispatch)
   }
   onDeleteItems() {
-    const number = this.props.selection.size
+    const number = this.state.selection.size
     let prompt
     if (number) {
       prompt = "Delete " + number + " song" + (number > 1 ? "s" : "")
@@ -418,12 +420,11 @@ export class Playlist extends React.Component {
     this.setState({promptForDelete: prompt})
   }
   deleteItems() {
-    const loadPlayer = require("./player").loadPlayer
-    const selection = this.props.selection.map(i => this.toPlaylistIndex(i))
+    const plSelection = this.state.selection.map(i => this.toPlaylistIndex(i))
     const { playerid, dispatch } = this.props
     this.setState({promptForDelete: ""})
-    if (selection.size) {
-      deleteSelection(playerid, selection, dispatch, lms)
+    if (plSelection.size) {
+      deleteSelection(playerid, plSelection, dispatch, lms)
         .then(() => loadPlayer(playerid, true))
         .catch(err => operationError("Delete error", err))
         .then(dispatch)

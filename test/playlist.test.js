@@ -2,8 +2,11 @@ import { shallow } from 'enzyme'
 import { fromJS, Map, Seq, Set } from 'immutable'
 import React from 'react'
 
+import { promiseChecker, rewire } from './util'
+
 import { effect, getEffects, getState, split } from '../src/effects'
 import * as mod from '../src/playlist'
+import {__RewireAPI__ as module} from '../src/playlist'
 import { operationError } from '../src/util'
 
 describe('playlist', function () {
@@ -100,7 +103,7 @@ describe('playlist', function () {
           playlist_tracks: 300,
         }).toJS())))
         assert.deepEqual(effects, [effect(
-          require("../src/player").loadPlayer,
+          mod.loadPlayer,
           PLAYERID,
           true,
         )])
@@ -113,7 +116,7 @@ describe('playlist', function () {
           playlist_tracks: 300,
         }).toJS())))
         assert.deepEqual(effects, [effect(
-          require("../src/player").loadPlayer,
+          mod.loadPlayer,
           PLAYERID,
           true,
         )])
@@ -156,7 +159,7 @@ describe('playlist', function () {
         assert.equal(state1, state2)
         assert.deepEqual(effects, [
           effect(
-            require("../src/player").loadPlayer,
+            mod.loadPlayer,
             PLAYERID,
             true,
           )
@@ -484,19 +487,73 @@ describe('playlist', function () {
   describe("Playlist component", function () {
     const opts = {context: {addKeydownHandler: () => {}}}
 
-    it('setup empty selection state', function () {
-      const state = makeState("abcdef")
-      const dom = shallow(<mod.Playlist {...state.toObject()} />, opts)
+    it('should setup empty selection state', function () {
+      const state = makeState("abcdef").toObject()
+      const dom = shallow(<mod.Playlist {...state} />, opts)
       assert.equal(dom.state().selection, Set())
       assert.equal(dom.find("TouchList").props().selection, Set())
     })
 
-    it('map selection to touchlist indexes', function () {
-      const state = makeState("abCdEf", 10)
-      assert.equal(state.get("selection"), Set([12, 14]))
-      const dom = shallow(<mod.Playlist {...state.toObject()} />, opts)
+    it('should map selection to touchlist indexes', function () {
+      const state = makeState("abCdEf", 10).toObject()
+      assert.equal(state.selection, Set([12, 14]))
+      const dom = shallow(<mod.Playlist {...state} />, opts)
       assert.equal(dom.state().selection, Set([2, 4]))
       assert.equal(dom.find("TouchList").props().selection, Set([2, 4]))
+    })
+
+    it('should convert selection indexes on delete', function () {
+      const state = makeState("abCdEf", 10).toObject()
+      state.dispatch = {}
+      const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+      assert.equal(playlist.state.selection.size, 2)
+
+      const promise = promiseChecker()
+      rewire(module, {
+        deleteSelection: (playerid, selection) => {
+          assert.equal(playerid, PLAYERID)
+          assert.equal(selection, Set([12, 14]))  // verify selection
+          return promise
+            .then(loadPlayer => loadPlayer())
+            .catch(() => {/* ignore */})
+            .then(callback => assert.equal(callback, state.dispatch))
+            .done()
+        },
+        loadPlayer: (playerid, fetchPlaylist) => {
+          assert.equal(playerid, PLAYERID)
+          assert(fetchPlaylist, 'fetchPlaylist is not true')
+        },
+      }, () => {
+        playlist.deleteItems()
+      })
+      promise.check()
+    })
+
+    it('should clear playlist on delete with no selection', function () {
+      const state = makeState("abcdef", 10).toObject()
+      state.dispatch = {}
+      const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+      assert.equal(playlist.state.selection.size, 0)
+
+      const promise = promiseChecker()
+      rewire(module, {
+        lms: {command: (playerid, ...args) => {
+          assert.equal(playerid, PLAYERID)
+          assert.deepEqual(args, ["playlist", "clear"])
+          return promise
+            .then(loadPlayer => loadPlayer())
+            .catch(() => {/* ignore */})
+            .then(callback => { assert.equal(callback, state.dispatch) })
+            .done()
+        }},
+        loadPlayer: (playerid, fetchPlaylist) => {
+          assert.equal(playerid, PLAYERID)
+          assert(fetchPlaylist, 'fetchPlaylist is not true')
+        },
+      }, () => {
+        playlist.deleteItems()
+      })
+      promise.check()
     })
   })
 })

@@ -1,4 +1,6 @@
-require('babel-register')()
+require('babel-register')({
+  plugins: ['babel-plugin-rewire'],
+})
 
 process.env.NODE_ENV = 'test'
 
