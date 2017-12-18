@@ -443,7 +443,8 @@ export class Playlist extends React.Component {
     }
   }
   onSelectionChanged(selection, isTouch) {
-    this.props.dispatch(actions.selectionChanged(selection))
+    const plSelection = selection.map(i => this.toPlaylistIndex(i))
+    this.props.dispatch(actions.selectionChanged(plSelection))
     this.setInfoIndex(-1)
     this.hideTrackInfo()
     this.setState({touching: selection.size && isTouch})

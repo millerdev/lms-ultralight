@@ -555,6 +555,20 @@ describe('playlist', function () {
       })
       promise.check()
     })
+
+    it('should convert selection indexes on change selection', function () {
+      const state = makeState("abCdef", 10).toObject()
+      let dispatched = false
+      state.dispatch = action => {
+        assert.equal(action.type, "selectionChanged")
+        assert.deepEqual(action.args, [Set([12, 14, 15])])
+        dispatched = true
+      }
+      const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+      assert.equal(playlist.state.selection.size, 1)
+      playlist.onSelectionChanged(Set([2, 4, 5]), false)
+      assert(dispatched, "dispatch not called")
+    })
   })
 })
 
