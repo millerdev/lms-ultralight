@@ -509,7 +509,8 @@ export class PlaylistItem extends React.Component {
       old.index !== props.index ||
       old.item.id !== props.item.id ||
       old.touching !== props.touching ||
-      old.activeIcon !== props.activeIcon
+      old.activeIcon !== props.activeIcon ||
+      old.showInfoIcon !== props.showInfoIcon
     )
   }
   render() {
