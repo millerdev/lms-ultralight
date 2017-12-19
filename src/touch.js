@@ -53,6 +53,9 @@ export class TouchList extends React.Component {
   componentDidMount() {
     this.slide.setTouchHandlers(ReactDOM.findDOMNode(this))
   }
+  componentWillUnmount() {
+    this.slide.setTouchHandlers(null)
+  }
   componentWillReceiveProps(props) {
     if (!props.items) {
       throw new Error("TouchList.props.items must be an indexed collection")
@@ -61,20 +64,17 @@ export class TouchList extends React.Component {
     if (!_.isEqual(dropTypes, this.state.dropTypes)) {
       this.setState({dropTypes})
     }
-    if (props.selection && !props.selection.equals(this.state.selection)) {
-      this.setState({
-        selection: props.selection,
-        lastSelected: this.state.lastSelected
-          .filter(index => props.selection.has(index)),
-      })
+    if (props.selection) {
+      if (!props.selection.equals(this.state.selection)) {
+        this.setState({
+          selection: props.selection,
+          lastSelected: this.state.lastSelected
+            .filter(index => props.selection.has(index)),
+        })
+      }
     } else if (!this.props.items || !this.props.items.equals(props.items)) {
-      // TODO option to preserve selection if items have been rearranged
-      // This will be necessary for the playlist.
       this.setState({selection: Set(), lastSelected: IList()})
     }
-  }
-  componentWillUnmount() {
-    this.slide.setTouchHandlers(null)
   }
   getChildContext() {
     return {
@@ -358,6 +358,7 @@ function makeSlider(touchlist) {
   const items = {}
   let listeners = []
   let holdTimer = null
+  let isMoving = false
   let isHolding = false
   let isTouchDrag = false
   let startPosition = null
@@ -395,6 +396,11 @@ function makeSlider(touchlist) {
   function deselect(indices) {
     indices.forEach(index => items[index] && items[index].setSelected(false))
   }
+  function isTouchMove(pointA, pointB) {
+    const x = Math.abs(pointA.x - pointB.x)
+    const y = Math.abs(pointA.y - pointB.y)
+    return isMoving || Math.sqrt(x * x + y * y) > 5
+  }
   function touchStart(event) {
     if (event.touches.length > 1) {
       return
@@ -416,11 +422,12 @@ function makeSlider(touchlist) {
       event.target.dataset.touchlistDragType = touchlist.props.dataType
       event.target.dataset.touchlistDragData = JSON.stringify(data)
     }
+    isMoving = false
     isHolding = false
     isTouchDrag = hasClass(target, "drag-handle")
     holdTimer = setTimeout(() => {
       isHolding = true
-      if (startPosition === latestPosition && !isTouchDrag) {
+      if (!isTouchMove(startPosition, latestPosition) && !isTouchDrag) {
         if (isSelected && touchlist.state.selection.size) {
           touchlist.clearSelection()
           isHolding = false
@@ -440,6 +447,7 @@ function makeSlider(touchlist) {
       time: event.timeStamp,
     }
     const target = getTarget(pos)
+    isMoving = isMoving || isTouchMove(startPosition, latestPosition)
     if (isTouchDrag) {
       const index = getIndex(target)
       event.preventDefault()
@@ -458,7 +466,7 @@ function makeSlider(touchlist) {
     }
     const target = getTarget(latestPosition)
     let index
-    if (!isHolding && startPosition === latestPosition) {
+    if (!isHolding && !isTouchMove(startPosition, latestPosition)) {
       index = getIndex(target)
       if (hasClass(target, "tap-zone")) {
         touchlist.onTap(index, event)
@@ -471,9 +479,9 @@ function makeSlider(touchlist) {
       if (index !== null) {
         const toIndex = allowedDropIndex(event, index, target)
         if (toIndex !== null) {
-          event.preventDefault()
           drop(event, index)
         }
+        event.preventDefault()
       }
     }
     delete event.target.dataset.touchlistId
