@@ -388,15 +388,21 @@ export class Playlist extends React.Component {
       .then(dispatch)
     this.hideTrackInfo()
   }
+  onTap(item, index) {
+    // HACK hide info icon after touch
+    this.onLongTouch(item, index)
+  }
   onLongTouch(item, index) {
+    clearTimeout(this.infoTimer)
     // show info icon after selection changes
     setTimeout(() => this.setInfoIndex(index), 0)
     // hide info icon after short delay
-    setTimeout(() => this.setInfoIndex(-1), 3000)
+    this.infoTimer = setTimeout(() => this.setInfoIndex(-1), 3000)
     return true
   }
   setInfoIndex(index) {
     if (this.state.infoIndex !== index) {
+      console.log("infoIndex", index)
       this.setState({infoIndex: index})
     }
   }
@@ -463,6 +469,7 @@ export class Playlist extends React.Component {
           selection={selection}
           dropTypes={[SEARCH_RESULTS]}
           onDrop={this.onDrop.bind(this)}
+          onTap={this.onTap.bind(this)}
           onLongTouch={this.onLongTouch.bind(this)}
           onMoveItems={this.onMoveItems.bind(this)}
           onSelectionChanged={this.onSelectionChanged.bind(this)}>

@@ -25,8 +25,9 @@ export const TO_LAST = "to last"
  * - dropTypes: Array of data types that can be dropped in this list.
  *   Dropping is not supported if this prop is not provided.
  * - onTap: Callback function handling tap on list item element
- *   with the class "tap-zone".
- *   event handling. Signature: `onTap(index, event)`
+ *   with the class "tap-zone". Return `true` to also toggle item
+ *   selection.
+ *   event handling. Signature: `onTap(item, index, event)`
  * - onDrop: Callback function for handling dropped content.
  *   Signature: `onDrop(data, dataType, index, event)`
  * - onLongTouch: Callback function for handling long-touch event.
@@ -106,7 +107,10 @@ export class TouchList extends React.Component {
     return _.find(possibleTypes, value => dropTypes.hasOwnProperty(value))
   }
   onTap(index, event) {
-    this.props.onTap && this.props.onTap(index, event)
+    if (this.props.onTap) {
+      const item = this.props.items.get(index)
+      return this.props.onTap(item && item.toObject(), index, event)
+    }
   }
   onItemSelected(index, modifier, isTouch=false) {
     this.selectionChanged(({selection, lastSelected}) => {
@@ -469,7 +473,9 @@ function makeSlider(touchlist) {
     if (!isHolding && !isTouchMove(startPosition, latestPosition)) {
       index = getIndex(target)
       if (hasClass(target, "tap-zone")) {
-        touchlist.onTap(index, event)
+        if (touchlist.onTap(index, event)) {
+          touchlist.toggleSelection(index, true)
+        }
       } else {
         event.preventDefault()
         touchlist.toggleSelection(index, true)

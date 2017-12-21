@@ -16,6 +16,10 @@ export class TrackInfoPopup extends React.Component {
   onHide() {
     this.state.isPopped && this.setState({isPopped: false})
   }
+  onClick(event) {
+    this.setState(state => { return {isPopped: !state.isPopped} })
+    event.stopPropagation()
+  }
   render() {
     const props = this.props
     const imageUrl = lms.getImageUrl(props.item)
@@ -25,10 +29,22 @@ export class TrackInfoPopup extends React.Component {
     return <span className="gap-right">
       <Popup
           trigger={props.showInfoIcon ?
-            <Icon className="tap-zone" name="info circle" size="large" fitted /> :
+            <Icon
+              onClick={this.onClick.bind(this)}
+              className="tap-zone"
+              name="info circle"
+              size="large"
+              fitted /> :
             props.activeIcon ?
-              <Icon className="tap-zone" name={props.activeIcon} size="large" fitted /> :
-              <div className="hover-icon-container">
+              <Icon
+                onClick={this.onClick.bind(this)}
+                className="tap-zone"
+                name={props.activeIcon}
+                size="large"
+                fitted /> :
+              <div
+                  onClick={this.onClick.bind(this)}
+                  className="hover-icon-container">
                 <Image src={imageUrl} ui inline height="18px" width="18px"
                   className="tap-zone hover-icon" />
                 <div className="middle">

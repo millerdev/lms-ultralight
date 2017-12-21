@@ -55,22 +55,19 @@ x            - browser context menu appeared on long press, might be tricky
       Location: /Volumes/Work/Shared/Media/Music/2010/Sunlounger/...Lorilee].m4a
       Date Modified: Wednesday, June 10, 2015, 6:43 AM
 
-  - delete button should be enabled when no items are selected
-    prompt first, then clear playlist
-
-- fix lag on change selection in large playlist
+x- fix lag on change selection in large playlist
 - fix info icon never dismissed after touch playlist icon
-- fix move handles showing on click selection (should only show on touch)
+x- fix move handles showing on click selection (should only show on touch)
 - fix click next skips two tracks (display only, intermittent)
   likely caused by scheduled advanceToNextTrackAfter action
 - fix update player state on double-click playlist item
 - fix cannot drag first item in playlist on mobile
-- fix cannot drop item at index 0 in playlist
-- fix touch icon in playlist -> onClick() selects single item (clears existing
-  selection) instead of toggle selection
-  possible solution:
-    onTap() -> event.preventDefault()
-    could allow this by showing popup with open={...} rather than with trigger
+- fix cannot drop item before first or after last track in playlist
+x- fix touch icon in playlist -> onClick() selects single item (clears existing
+x  selection) instead of toggle selection
+x  possible solution:
+x    onTap() -> event.preventDefault()
+x    could allow this by showing popup with open={...} rather than with trigger
 - swipe to delete track(s) (delete multiple if selected)
 - get better slider controls
 - playlist
