@@ -2,7 +2,7 @@ import { List as IList, Map, Range, Set, fromJS } from 'immutable'
 import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import { Button, Confirm, List, Item } from 'semantic-ui-react'
+import { Button, Confirm, Icon, Label, List, Item } from 'semantic-ui-react'
 
 import { TrackInfoPopup } from './components'
 import { effect, combine } from './effects'
@@ -547,22 +547,25 @@ export class PlaylistItem extends React.Component {
             </Item.Meta>
             {""/*<Item.Description>...</Item.Description>*/}
           </TrackInfoPopup>
-          {songTitle(item)}
+          <SongTitle item={item} />
         </List.Description>
       </List.Content>
     </TouchList.Item>
   }
 }
 
-function songTitle({artist, title}) {
-  if (artist && title) {
-    return artist + " - " + title
-  }
-  return artist || title || "..."
+const SongTitle = props => {
+  const {artist, title, tracknum} = props.item
+  const spacer = artist && (tracknum || title) ? " - " : ""
+  return <span>
+    <span>{artist + spacer}</span>
+    { tracknum ? <span className="deemphasize">{tracknum + " "}</span> : "" }
+    <span>{title}</span>
+  </span>
 }
 
 const DragHandle = () => (
   <span className="gap-left">
-    <i className="fa fa-reorder"></i>
+    <Icon name="content" fitted />
   </span>
 )

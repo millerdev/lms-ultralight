@@ -4,6 +4,7 @@ import { connect, Provider } from 'react-redux'
 //import 'semantic-ui-css/semantic.min.css'
 
 //import DevTools from './devtools'
+import './app.styl'
 import './semantic.css'
 import { combine, split } from './effects'
 import * as menu from './menu'
