@@ -40,7 +40,7 @@ export class SeekBar extends React.Component {
   render() {
     const elapsed = this.props.elapsed
     const total = this.props.total || elapsed
-    return <div className="ui grid">
+    return <div className="ui grid seekbar">
       <div className="three wide mobile two wide tablet one wide computer column left aligned">
         {formatTime(elapsed)}
       </div>
