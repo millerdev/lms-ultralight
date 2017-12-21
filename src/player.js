@@ -26,11 +26,13 @@ export const defaultState = Map({
 })
 
 export const reducer = makeReducer({
-  gotPlayer: (state, action, status, {statusInterval=STATUS_INTERVAL}={}) => {
+  gotPlayer: (state, action, status, {resetInterval=true}={}) => {
     const data = {
       playerid: status.playerid,
       isPowerOn: status.power === 1,
-      isPlaying: status.mode === "play",
+      // player (squeezeslave only?) sometimes gets stuck
+      // in "play" mode with flag waitingToPlay=1
+      isPlaying: status.mode === "play" && !status.waitingToPlay,
       repeatMode: status["playlist repeat"],
       shuffleMode: status["playlist shuffle"],
       volumeLevel: status["mixer volume"],
@@ -40,7 +42,7 @@ export const reducer = makeReducer({
     }
     return combine(state.merge(data), [
       effect(advanceToNextTrackAfter, secondsToEndOfTrack(data), data.playerid),
-      effect(loadPlayerAfter, statusInterval * 1000, data.playerid),
+      effect(loadPlayerAfter, resetInterval, data.playerid),
     ])
   },
   onPlayerControlScroll: (state, action, visible) => {
@@ -96,14 +98,17 @@ export function loadPlayer(playerid, fetchPlaylist=false, options={}) {
 }
 
 export const loadPlayerAfter = (() => {
-  const fetchBackoff =  backoff(30000)
   const time = timer()
-  return (wait, ...args) => {
-    if (!wait) {
-      wait = fetchBackoff()
-    }
+  let fetchBackoff = backoff(STATUS_INTERVAL * 1000)
+  return (resetInterval, playerid) => {
     time.clear(IGNORE_ACTION)
-    return time.after(wait, () => loadPlayer(...args))
+    if (resetInterval) {
+      fetchBackoff = backoff(STATUS_INTERVAL * 1000)
+    }
+    const wait = fetchBackoff()
+    return time.after(wait, () =>
+      loadPlayer(playerid, false, {resetInterval: false})
+    )
   }
 })()
 
@@ -116,11 +121,7 @@ export function seek(playerid, value) {
 export class Player extends React.Component {
   command(playerid, ...args) {
     lms.command(playerid, ...args)
-      // HACK load again after 1 second because LMS sometimes returns
-      // the wrong "time" on loadPlayer immediately after a command.
-      // statusInterval is convoluted, and should ideally be removed.
-      // The correct fix for this is probably player status subscription.
-      .then(() => loadPlayer(playerid, false, {statusInterval: 1}))
+      .then(() => loadPlayer(playerid))
       .catch(err => operationError("Command error", {err, args}))
       .then(this.props.dispatch)
   }

@@ -381,9 +381,7 @@ export class Playlist extends React.Component {
     const { playerid, dispatch } = this.props
     lms.command(playerid, "playlist", "index", playlistIndex)
       .then(() => dispatch(actions.clearSelection()))
-      // HACK load again after 1 second because LMS sometimes returns
-      // the wrong "time" on loadPlayer immediately after a command.
-      .then(() => loadPlayer(playerid, true, {statusInterval: 1}))
+      .then(() => loadPlayer(playerid, true))
       .catch(err => operationError("Cannot play", err))
       .then(dispatch)
     this.hideTrackInfo()

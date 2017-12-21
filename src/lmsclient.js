@@ -109,11 +109,7 @@ export function playlistControl(playerid, cmd, item, dispatch) {
   const param = getControlParam(item)
   if (param) {
     return command(playerid, "playlistcontrol", "cmd:" + cmd, param)
-      // HACK load again after 1 second because LMS sometimes returns
-      // the wrong "time" on loadPlayer immediately after a command.
-      // statusInterval is convoluted, and should ideally be removed.
-      // The correct fix for this is probably player status subscription.
-      .then(() => loadPlayer(playerid, true, {statusInterval: 1}))
+      .then(() => loadPlayer(playerid, true))
       .catch(() => error)
       .then(action => {
         dispatch(action)

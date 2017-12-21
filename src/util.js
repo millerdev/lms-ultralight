@@ -54,15 +54,10 @@ export function timer() {
 
 export function backoff(maxMs, minMs=0) {
   const half = (minMs || 1000) / 2
-  let last = Date.now() - maxMs - 1
   let wait = half
   return () => {
-    const now = Date.now()
-    const elapsed = now - last
-    last = now
-    if (elapsed > maxMs) {
-      wait = half
-      return minMs
+    if (wait > maxMs) {
+      return maxMs
     }
     wait = wait * 2
     return _.min([wait, maxMs])

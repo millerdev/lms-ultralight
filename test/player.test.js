@@ -30,7 +30,7 @@ describe('player', function () {
           ),
           effect(
             mod.loadPlayerAfter,
-            mod.STATUS_INTERVAL * 1000,
+            true,
             PLAYERID,
           )
         ])
@@ -52,7 +52,7 @@ describe('player', function () {
           ),
           effect(
             mod.loadPlayerAfter,
-            30000,
+            true,
             PLAYERID,
           )
         ])
@@ -73,7 +73,7 @@ describe('player', function () {
           ),
           effect(
             mod.loadPlayerAfter,
-            30000,
+            true,
             PLAYERID,
           )
         ])
@@ -97,7 +97,7 @@ describe('player', function () {
           ),
           effect(
             mod.loadPlayerAfter,
-            30000,
+            true,
             PLAYERID,
           )
         ])
@@ -121,7 +121,7 @@ describe('player', function () {
           ),
           effect(
             mod.loadPlayerAfter,
-            30000,
+            true,
             PLAYERID,
           )
         ])
@@ -277,7 +277,7 @@ describe('player', function () {
       // clear the last timer
       promises[promises.length - 1].clear(IGNORE_ACTION)
       return Promise.all(promises).then(waits => {
-        assert.deepEqual(waits, [0, 1000, 2000, 4000, 8000, 16000, 30000, 30000])
+        assert.deepEqual(waits, [1000, 2000, 4000, 8000, 16000, 30000, 30000, 30000])
       })
     })
   })
