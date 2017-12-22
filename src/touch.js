@@ -405,30 +405,37 @@ function makeSlider(touchlist) {
     const y = Math.abs(pointA.y - pointB.y)
     return isMoving || Math.sqrt(x * x + y * y) > 5
   }
+  function position(event, withIndex=false) {
+    const target = withIndex ? getTarget(event.touches[0]) : null
+    const [index, listitem] = withIndex ? getIndex(target) : [null, null]
+    return {
+      x: event.touches[0].clientX,
+      y: event.touches[0].clientY,
+      touch: event.touches[0],
+      time: event.timeStamp,
+      index,
+      target,
+      listitem,
+    }
+  }
   function touchStart(event) {
     if (event.touches.length > 1) {
       return
     }
-    const pos = startPosition = latestPosition = {
-      x: event.touches[0].clientX,
-      y: event.touches[0].clientY,
-      time: event.timeStamp,
-    }
-    const target = getTarget(pos)
-    const index = getIndex(target)
-    const isSelected = touchlist.state.selection.has(index)
+    const pos = startPosition = latestPosition = position(event, true)
+    const isSelected = touchlist.state.selection.has(pos.index)
     if (touchlist.props.onMoveItems) {
       event.target.dataset.touchlistId = touchlist.id
-      startIndex = index
+      startIndex = pos.index
     }
     if (touchlist.props.dataType) {
-      const data = touchlist.getDragData(index)
+      const data = touchlist.getDragData(pos.index)
       event.target.dataset.touchlistDragType = touchlist.props.dataType
       event.target.dataset.touchlistDragData = JSON.stringify(data)
     }
     isMoving = false
     isHolding = false
-    isTouchDrag = hasClass(target, "drag-handle")
+    isTouchDrag = hasClass(pos.target, "drag-handle")
     holdTimer = setTimeout(() => {
       isHolding = true
       if (!isTouchMove(startPosition, latestPosition) && !isTouchDrag) {
@@ -438,29 +445,24 @@ function makeSlider(touchlist) {
           latestPosition = null  // do nothing on touchEnd
         } else {
           isTouchDrag = true
-          touchlist.onLongTouch(index)
+          touchlist.onLongTouch(pos.index)
         }
       }
     }, 300)
   }
   function touchMove(event) {
     cancelHold()
-    const pos = latestPosition = {
-      x: event.touches[0].clientX,
-      y: event.touches[0].clientY,
-      time: event.timeStamp,
-    }
-    const target = getTarget(pos)
+    const pos = latestPosition = position(event, isTouchDrag)
     isMoving = isMoving || isTouchMove(startPosition, latestPosition)
     if (isTouchDrag) {
-      const index = getIndex(target)
+      const index = pos.index
       event.preventDefault()
       if (index !== latestIndex && items.hasOwnProperty(latestIndex)) {
         items[latestIndex].clearDropIndicator()
       }
       latestIndex = index
       if (index !== null && items.hasOwnProperty(index)) {
-        items[index].onDragOver(event, index, target)
+        items[index].onDragOver(event, index)
       }
     }
   }
@@ -468,10 +470,8 @@ function makeSlider(touchlist) {
     if (!latestPosition) {
       return  // hold selected -> clear selection
     }
-    const target = getTarget(latestPosition)
-    let index
     if (!isHolding && !isTouchMove(startPosition, latestPosition)) {
-      index = getIndex(target)
+      const {index, target} = startPosition
       if (hasClass(target, "tap-zone")) {
         if (touchlist.onTap(index, event)) {
           touchlist.toggleSelection(index, true)
@@ -481,8 +481,8 @@ function makeSlider(touchlist) {
         touchlist.toggleSelection(index, true)
       }
     } else if (touchlist.state.selection.size) {
-      index = getIndex(target)
-      if (index !== null) {
+      if (latestPosition.index !== null) {
+        const {index, target} = latestPosition
         const toIndex = allowedDropIndex(event, index, target)
         if (toIndex !== null) {
           drop(event, index)
@@ -490,6 +490,7 @@ function makeSlider(touchlist) {
         event.preventDefault()
       }
     }
+    latestPosition = null
     delete event.target.dataset.touchlistId
     delete event.target.dataset.touchlistDragType
     delete event.target.dataset.touchlistDragData
@@ -506,20 +507,20 @@ function makeSlider(touchlist) {
       holdTimer = null
     }
   }
-  function getTarget(pos) {
-    return document.elementFromPoint(pos.x, pos.y)
+  function getTarget(touch) {
+    return document.elementFromPoint(touch.clientX, touch.clientY)
   }
   function getIndex(el) {
     while (el && el.parentNode) {
       if ("touchlistItemIndex" in el.dataset) {
-        return parseInt(el.dataset.touchlistItemIndex)
+        return [parseInt(el.dataset.touchlistItemIndex), el]
       }
       if (el.classList.contains(touchlist.id)) {
         break // TODO get index (0 or last index) depending on pos.y
       }
       el = el.parentNode
     }
-    return null
+    return [null, null]
   }
   function getDataTypes(event) {
     if (event.dataTransfer) {
@@ -580,7 +581,28 @@ function makeSlider(touchlist) {
     return null
   }
   function getDropIndex(event, index, target=event.currentTarget) {
-    const a = event.clientY - target.offsetTop
+    if (latestPosition) {
+      event = latestPosition.touch
+    }
+
+    // https://www.quirksmode.org/js/events_properties.html#position
+    let pointerY = 0
+    if (event.pageY !== undefined) {
+      pointerY = event.pageY
+    }
+    else if (event.clientY !== undefined) {
+      pointerY = event.clientY + document.body.scrollTop +
+        document.documentElement.scrollTop
+    }
+    // https://www.quirksmode.org/js/findpos.html
+    let targetY = 0
+    let obj = target
+    while (obj.offsetParent) {
+      targetY += obj.offsetTop
+      obj = obj.offsetParent
+    }
+
+    const a = pointerY - targetY
     const b = target.offsetHeight / 2
     return a > b ? index + 1 : index
   }
