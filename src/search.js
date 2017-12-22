@@ -14,6 +14,7 @@ export const SEARCH_RESULTS = "search results"
 
 export const defaultState = Map({
   isSearching: false,
+  query: "",
   results: Map(),
   error: false,
 })
@@ -24,12 +25,12 @@ export const reducer = makeReducer({
       return defaultState
     }
     return combine(
-      state.set('isSearching', true),
+      state.merge({isSearching: true, query}),
       [effect(doMediaSearch, query)],
     )
   },
   gotMediaSearchResult: (state, action, results) => {
-    return Map({
+    return state.merge({
       isSearching: false,
       results: fromJS(results || {}),
       error: !results,
@@ -64,14 +65,23 @@ export class MediaSearch extends React.Component {
       this.props.dispatch(actions.mediaSearch(query))
     }).catch(() => { /* ignore error on clear */ })
   }
+  onClearSearch() {
+    this.props.dispatch(actions.mediaSearch(""))
+    this.input.inputRef.value = ""
+    this.input.focus()
+  }
+  setSearchInput(input) {
+    this.props.setSearchInput(input)
+    this.input = input
+  }
   render() {
     const props = this.props
     return <MediaSearchUI
       {...props}
+      {...props.search.toObject()}
       onSearch={this.onSearch.bind(this)}
-      setSearchInput={props.setSearchInput}
-      isSearching={props.search.get("isSearching")}
-      results={props.search.get("results")} />
+      onClearSearch={this.onClearSearch.bind(this)}
+      setSearchInput={this.setSearchInput.bind(this)} />
   }
 }
 
@@ -81,7 +91,11 @@ const MediaSearchUI = props => (
       ref={props.setSearchInput}
       onChange={(e, {value}) => props.onSearch(value)}
       className="icon"
-      icon="search"
+      icon={{
+        name: props.query ? "x" : "search",
+        link: !!props.query,
+        onClick: props.onClearSearch,
+      }}
       loading={props.isSearching}
       placeholder="Search..."
       fluid />

@@ -12,9 +12,9 @@ x    - when at least one track is selected, single touch selects/deselects
 x  - persistent drag/drop handle
   - ? show info icon (in place of album art) on long-press
 x- hamburger button at top/left to open side menu
-  - sticky top menu and sidebar
+x  - sticky top menu and sidebar
   - search input
-      X button in search input to clear
+x      X button in search input to clear
 x    - auto-expand search content below after typing
       - content types/sections
 x        artists
@@ -61,6 +61,7 @@ x            - browser context menu appeared on long press, might be tricky
       Location: /Volumes/Work/Shared/Media/Music/2010/Sunlounger/...Lorilee].m4a
       Date Modified: Wednesday, June 10, 2015, 6:43 AM
 
+- add play progress bar along bottom edge of power bar (when scrolled below seek bar)
 - enter/return key should accept delete confirmation
 - swipe to delete track(s) (delete multiple if selected)
 - get better slider controls
