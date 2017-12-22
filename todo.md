@@ -1,6 +1,6 @@
 # TODO
 
-- fix cannot drop item before first or after last track in playlist
+- fix cannot drop item after last track in playlist
 - fix buttons stay in hover state after click
 - fix auto-advance to next track after play previous then skip to end
   this appears to be a bug in LMS (can reproduce on stock web interface)
@@ -62,6 +62,7 @@ x            - browser context menu appeared on long press, might be tricky
       Location: /Volumes/Work/Shared/Media/Music/2010/Sunlounger/...Lorilee].m4a
       Date Modified: Wednesday, June 10, 2015, 6:43 AM
 
+- enter/return key should accept delete confirmation
 - swipe to delete track(s) (delete multiple if selected)
 - get better slider controls
 - playlist

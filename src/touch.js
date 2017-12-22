@@ -249,8 +249,8 @@ export class TouchListItem extends React.Component {
       this.setState({dropClass: null})
     }
   }
-  onDragOver(event, index, target) {
-    const dropIndex = this.context.TouchList_slide.dragOver(event, index, target)
+  onDragOver(event, index) {
+    const dropIndex = this.context.TouchList_slide.dragOver(event, index)
     const dropClass = index === dropIndex - 1 ? "dropAfter" :
                       index === dropIndex ? "dropBefore" : null
     if (this.state.dropClass !== dropClass) {
@@ -401,22 +401,20 @@ function makeSlider(touchlist) {
     indices.forEach(index => items[index] && items[index].setSelected(false))
   }
   function isTouchMove(pointA, pointB) {
-    const x = Math.abs(pointA.x - pointB.x)
-    const y = Math.abs(pointA.y - pointB.y)
+    const x = Math.abs(pointA.touch.clientX - pointB.touch.clientX)
+    const y = Math.abs(pointA.touch.clientY - pointB.touch.clientY)
     return isMoving || Math.sqrt(x * x + y * y) > 5
   }
   function position(event, withIndex=false) {
-    const target = withIndex ? getTarget(event.touches[0]) : null
-    const [index, listitem] = withIndex ? getIndex(target) : [null, null]
-    return {
-      x: event.touches[0].clientX,
-      y: event.touches[0].clientY,
-      touch: event.touches[0],
-      time: event.timeStamp,
-      index,
-      target,
-      listitem,
+    const touch = event.touches[0]
+    let index = null
+    let target = null
+    let listitem = null
+    if (withIndex) {
+      target = document.elementFromPoint(touch.clientX, touch.clientY);
+      [index, listitem] = withIndex ? getIndex(target) : [null, null]
     }
+    return {touch, index, target, listitem}
   }
   function touchStart(event) {
     if (event.touches.length > 1) {
@@ -482,10 +480,9 @@ function makeSlider(touchlist) {
       }
     } else if (touchlist.state.selection.size) {
       if (latestPosition.index !== null) {
-        const {index, target} = latestPosition
-        const toIndex = allowedDropIndex(event, index, target)
+        const toIndex = allowedDropIndex(event, latestPosition.index)
         if (toIndex !== null) {
-          drop(event, index)
+          handleDrop(event, toIndex)
         }
         event.preventDefault()
       }
@@ -506,9 +503,6 @@ function makeSlider(touchlist) {
       clearTimeout(holdTimer)
       holdTimer = null
     }
-  }
-  function getTarget(touch) {
-    return document.elementFromPoint(touch.clientX, touch.clientY)
   }
   function getIndex(el) {
     while (el && el.parentNode) {
@@ -563,10 +557,10 @@ function makeSlider(touchlist) {
     }
     return false
   }
-  function allowedDropIndex(event, index, target=event.currentTarget) {
+  function allowedDropIndex(event, index) {
     const dataTypes = getDataTypes(event)
     const moveIndex = getMoveIndex(event, dataTypes)
-    const dropIndex = getDropIndex(event, index, target)
+    const dropIndex = getDropIndex(event, index)
     if (moveIndex === null) {
       return touchlist.getAllowedDropType(dataTypes) ? dropIndex : null
     }
@@ -580,9 +574,13 @@ function makeSlider(touchlist) {
     }
     return null
   }
-  function getDropIndex(event, index, target=event.currentTarget) {
+  function getDropIndex(event, index) {
+    let target
     if (latestPosition) {
       event = latestPosition.touch
+      target = latestPosition.listitem
+    } else {
+      target = event.currentTarget
     }
 
     // https://www.quirksmode.org/js/events_properties.html#position
@@ -619,15 +617,17 @@ function makeSlider(touchlist) {
       event.dataTransfer.effectAllowed = mayMove ? "copyMove" : "copy"
     }
   }
-  function dragOver(event, index, target) {
-    const dropIndex = allowedDropIndex(event, index, target)
+  function dragOver(event, index) {
+    const dropIndex = allowedDropIndex(event, index)
     if (dropIndex !== null) {
       event.preventDefault()
     }
     return dropIndex
   }
   function drop(event, index) {
-    const dropIndex = getDropIndex(event, index)
+    handleDrop(event, getDropIndex(event, index))
+  }
+  function handleDrop(event, dropIndex) {
     if (dropIndex >= 0) {
       const dataTypes = getDataTypes(event)
       const moveIndex = getMoveIndex(event, dataTypes)
