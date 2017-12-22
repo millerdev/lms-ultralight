@@ -412,7 +412,7 @@ function makeSlider(touchlist) {
     let listitem = null
     if (withIndex) {
       target = document.elementFromPoint(touch.clientX, touch.clientY);
-      [index, listitem] = withIndex ? getIndex(target) : [null, null]
+      [index, listitem] = getIndex(target)
     }
     return {touch, index, target, listitem}
   }
@@ -523,7 +523,10 @@ function makeSlider(touchlist) {
     }
     // touch event
     const dataset = event.target.dataset
-    const types = [dataset.touchlistId]
+    const types = []
+    if (dataset.touchlistId) {
+      types.push(dataset.touchlistId)
+    }
     if (dataset.touchlistDragType) {
       return types.push(dataset.touchlistDragType)
     }
