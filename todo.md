@@ -1,6 +1,5 @@
 # TODO
 
-- fix cannot drop item after last track in playlist
 - fix buttons stay in hover state after click
 - fix auto-advance to next track after play previous then skip to end
   this appears to be a bug in LMS (can reproduce on stock web interface)

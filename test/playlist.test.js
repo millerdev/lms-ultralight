@@ -7,6 +7,7 @@ import { promiseChecker, rewire } from './util'
 import { effect, getEffects, getState, split } from '../src/effects'
 import * as mod from '../src/playlist'
 import {__RewireAPI__ as module} from '../src/playlist'
+import { SEARCH_RESULTS } from '../src/search'
 import { operationError } from '../src/util'
 
 describe('playlist', function () {
@@ -568,6 +569,54 @@ describe('playlist', function () {
       assert.equal(playlist.state.selection.size, 1)
       playlist.onSelectionChanged(Set([2, 4, 5]), false)
       assert(dispatched, "dispatch not called")
+    })
+
+    it('should move item after last item in playlist', function () {
+      const state = makeState("abcdef", 10).toObject()
+      state.dispatch = {}
+      const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+      const promise = promiseChecker()
+      rewire(module, {
+        moveItems: (selection, index, playerid, dispatch) => {
+          assert.equal(selection, Set([11]))
+          assert.equal(index, 16)
+          assert.equal(playerid, PLAYERID)
+          assert.equal(dispatch, state.dispatch)
+          return promise
+            .then(loadPlayer => loadPlayer())
+            .catch(() => {/* ignore */})
+            .then(callback => { assert.equal(callback, state.dispatch) })
+            .done()
+        },
+        loadPlayer: (playerid, fetchPlaylist) => {
+          assert.equal(playerid, PLAYERID)
+          assert(fetchPlaylist, 'fetchPlaylist is not true')
+        },
+      }, () => {
+        playlist.onMoveItems(Set([1]), 6)
+      })
+      promise.check()
+    })
+
+    it('should move item after last item in playlist', function () {
+      const state = makeState("abcdef", 10).toObject()
+      state.dispatch = {}
+      const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+      const items = [{}]
+      let asserted = false
+      rewire(module, {
+        insertPlaylistItems: (playerid, data, index, dispatch, numTracks) => {
+          assert.equal(playerid, PLAYERID)
+          assert.equal(data, items)
+          assert.equal(index, 16)
+          assert.equal(dispatch, state.dispatch)
+          assert.equal(numTracks, 6)
+          asserted = true
+        },
+      }, () => {
+        playlist.onDrop(items, SEARCH_RESULTS, 6)
+      })
+      assert(asserted, 'rewire assertions not run')
     })
   })
 })

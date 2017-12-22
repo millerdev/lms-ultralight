@@ -2,7 +2,7 @@ import { List as IList, Map, Range, Set, fromJS } from 'immutable'
 import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import { Button, Confirm, Icon, Label, List, Item } from 'semantic-ui-react'
+import { Button, Confirm, Icon, List, Item } from 'semantic-ui-react'
 
 import { TrackInfoPopup } from './components'
 import { effect, combine } from './effects'
@@ -374,7 +374,10 @@ export class Playlist extends React.Component {
       this.setState({selection: this.getTouchlistSelection(props)})
     }
   }
-  toPlaylistIndex(touchlistIndex) {
+  toPlaylistIndex(touchlistIndex, maybeAtEnd=false) {
+    if (maybeAtEnd && touchlistIndex === this.props.items.size) {
+      return this.props.items.getIn([touchlistIndex - 1, IX]) + 1
+    }
     return this.props.items.getIn([touchlistIndex, IX])
   }
   playTrackAtIndex(playlistIndex) {
@@ -400,14 +403,13 @@ export class Playlist extends React.Component {
   }
   setInfoIndex(index) {
     if (this.state.infoIndex !== index) {
-      console.log("infoIndex", index)
       this.setState({infoIndex: index})
     }
   }
   onMoveItems(selection, toIndex) {
     const { playerid, dispatch } = this.props
     const plSelection = selection.map(i => this.toPlaylistIndex(i))
-    const plToIndex = this.toPlaylistIndex(toIndex)
+    const plToIndex = this.toPlaylistIndex(toIndex, true)
     moveItems(plSelection, plToIndex, playerid, dispatch, lms)
       .then(() => loadPlayer(playerid, true))
       .catch(err => operationError("Move error", err))
@@ -442,7 +444,7 @@ export class Playlist extends React.Component {
   onDrop(data, dataType, index) {
     if (dataType === SEARCH_RESULTS) {
       const {playerid, dispatch, numTracks} = this.props
-      const plIndex = this.toPlaylistIndex(index)
+      const plIndex = this.toPlaylistIndex(index, true)
       insertPlaylistItems(playerid, data, plIndex, dispatch, numTracks)
     }
   }
