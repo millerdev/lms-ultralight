@@ -14,20 +14,17 @@ x  - persistent drag/drop handle
 x- hamburger button at top/left to open side menu
 x  - sticky top menu and sidebar
   - search input
-x      X button in search input to clear
+x    - X button in search input to clear
 x    - auto-expand search content below after typing
-      - content types/sections
+x      - content types/sections
 x        artists
 x        albums
 x        songs
-        playlists?
-        folders/files?
       - interactions
-        - mouse over or item: art turns to info button, play/+ button on right
-        - click: select, show play/+ button (on first item only)
+x        - mouse over item: art turns to info button, play/+ button on right
+x        - click/touch: select, show play/+ button (on first item only)
+x        - double-click: play or enqueue
         - click art/info button: show info (drill down)
-        - double-click: play or enqueue
-        - touch: select, show play/+ button (on first item only)
         - show info
           - back controls
           - play/+ control on right
@@ -35,15 +32,17 @@ x        songs
         - back controls
           - click/touch: go back
           - bread crumbs?
-        - drag: collapse sidebar to 15%, allow drop in playlist
+xx        - touch drag: collapse sidebar to 15%, allow drop in playlist
 x        - drop in playlist: do the obvious
-        - drop in sidebar: cancel drag/drop, show full sidebar again
+x        - drop in sidebar: cancel drag/drop, show full sidebar again
 xx        - long touch: show info - tried it, and it looks unrealistic
 x          - problems:
 x            - difficult to control position
 x            - triggering didn't just work (looked flaky/hard to get right)
 x            - browser context menu appeared on long press, might be tricky
 
+- add current tack icon, title, artist to menu bar
+- add play progress bar along bottom edge of power bar (when scrolled below seek bar)
 - playlist
   - track info popup
     - clickable track details
@@ -61,7 +60,9 @@ x            - browser context menu appeared on long press, might be tricky
       Location: /Volumes/Work/Shared/Media/Music/2010/Sunlounger/...Lorilee].m4a
       Date Modified: Wednesday, June 10, 2015, 6:43 AM
 
-- add play progress bar along bottom edge of power bar (when scrolled below seek bar)
+- add more content types to search
+  - playlists?
+  - folders/files?
 - enter/return key should accept delete confirmation
 - swipe to delete track(s) (delete multiple if selected)
 - get better slider controls

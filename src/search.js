@@ -1,4 +1,4 @@
-import { List as IList, Map, Range, fromJS } from 'immutable'
+import { List as IList, Map, Range, Set, fromJS } from 'immutable'
 import _ from 'lodash'
 import React from 'react'
 import { Button, Input, Item, List, Popup } from 'semantic-ui-react'
@@ -103,6 +103,9 @@ const MediaSearchUI = props => (
   </div>
 )
 
+// HACK a thing that can be rewired by tests
+const resolved = value => Promise.resolve(value)
+
 const SECTIONS = ["contributor", "album", "track"]
 const SECTION_NAMES = {
   contributor: "Artists",
@@ -114,6 +117,7 @@ export class SearchResults extends React.Component {
   constructor(props) {
     super(props)
     this.state = this.getItems(props.results)
+    _.merge(this.state, {selection: Set()})
     this.hideTrackInfo = () => {}
   }
   componentWillReceiveProps(props) {
@@ -139,6 +143,16 @@ export class SearchResults extends React.Component {
       itemsBySection: bySection.asImmutable(),
     }
   }
+  getSelected(item) {
+    const selection = this.state.selection
+    if (selection.has(item.index)) {
+      return this.state.items
+        .filter(it => selection.has(it.get("index")))
+        .map(it => it.toObject())
+        .toArray()
+    }
+    return [item]
+  }
   playItem(item) {
     const {playerid, dispatch} = this.props
     lms.playlistControl(playerid, "load", item, dispatch)
@@ -159,7 +173,12 @@ export class SearchResults extends React.Component {
   }
   addToPlaylist(item) {
     const {playerid, dispatch} = this.props
-    lms.playlistControl(playerid, "add", item, dispatch)
+    let promise = resolved(true)
+    _.each(this.getSelected(item), item => {
+      promise = promise.then(success =>
+        success && lms.playlistControl(playerid, "add", item, dispatch)
+      )
+    })
     this.hideTrackInfo()
   }
   playOrEnqueue(item) {
@@ -172,8 +191,9 @@ export class SearchResults extends React.Component {
       this.addToPlaylist(item)
     }
   }
-  onSelectionChanged() {
+  onSelectionChanged(selection) {
     this.hideTrackInfo()
+    this.setState({selection})
   }
   setHideTrackInfoCallback(callback) {
     this.hideTrackInfo = callback
@@ -181,6 +201,7 @@ export class SearchResults extends React.Component {
   render() {
     const bySection = this.state.itemsBySection
     const hideInfo = this.setHideTrackInfoCallback.bind(this)
+    const selection = this.state.selection
     return (
       <TouchList
           dataType={SEARCH_RESULTS}
@@ -195,6 +216,7 @@ export class SearchResults extends React.Component {
               </List.Item>
             ].concat(items.map(item => 
               <SearchResult
+                canPlay={selection.size <= 1 || !selection.has(item.get("index"))}
                 playItem={this.playItem.bind(this)}
                 playNext={this.playNext.bind(this)}
                 addToPlaylist={this.addToPlaylist.bind(this)}
@@ -215,6 +237,19 @@ const SearchResult = props => {
       onDoubleClick={() => props.playOrEnqueue(item)}
       index={item.index}
       draggable>
+    <List.Content floated="right" className="playlist-controls tap-zone">
+      <List.Description>
+        <Button.Group size="mini"
+            onClick={event => event.stopPropagation()}
+            compact>
+          { props.canPlay ?
+            <Button icon="play" onClick={() => props.playItem(item)} /> : ""}
+          { props.canPlay ?
+            <Button icon="step forward" onClick={() => props.playNext(item)} /> : ""}
+          <Button icon="plus" onClick={() => props.addToPlaylist(item)} />
+        </Button.Group>
+      </List.Description>
+    </List.Content>
     <List.Content>
       <List.Description className="title">
         <TrackInfoPopup {...props}>

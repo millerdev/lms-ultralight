@@ -6,6 +6,29 @@
       border-radius: 0
       box-shadow: none
     border-right: 1px solid #D6D6D6
+    .touchlist .touchlist-item
+      .playlist-controls
+        display: none
+        .ui.buttons .ui.button
+          // TODO different padding/radius for touch interaction
+          padding: 3px 6px
+          &:first-child
+            border-top-left-radius: 2px
+            border-bottom-left-radius: 2px
+          &:last-child
+            border-top-right-radius: 2px
+            border-bottom-right-radius: 2px
+      &:hover
+        .playlist-controls
+          display: block
+      &.selected
+        .playlist-controls
+          display: block
+      // show controls on first selected item only
+      // super slick trick: https://stackoverflow.com/a/8539107/10840
+      &.selected ~ .selected
+        .playlist-controls
+          display: none
   .ui.attached.borderless.menu
     border: none
     box-shadow: 0 0 4px #bbb

@@ -2,9 +2,9 @@ import { List as IList, Map, Range, Set, fromJS } from 'immutable'
 import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import { Button, Confirm, Icon, List, Item } from 'semantic-ui-react'
+import { Button, Confirm, List, Item } from 'semantic-ui-react'
 
-import { TrackInfoPopup } from './components'
+import { DragHandle, TrackInfoPopup } from './components'
 import { effect, combine } from './effects'
 import * as lms from './lmsclient'
 import { SEARCH_RESULTS } from './search'
@@ -563,9 +563,3 @@ const SongTitle = props => {
     <span>{title}</span>
   </span>
 }
-
-const DragHandle = () => (
-  <span className="gap-left">
-    <Icon name="content" fitted />
-  </span>
-)

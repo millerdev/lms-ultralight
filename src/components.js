@@ -68,3 +68,9 @@ export class TrackInfoPopup extends React.Component {
     </span>
   }
 }
+
+export const DragHandle = () => (
+  <span className="gap-left">
+    <Icon name="content" fitted />
+  </span>
+)
