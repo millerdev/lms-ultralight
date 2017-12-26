@@ -10,7 +10,37 @@ import {__RewireAPI__ as module} from '../src/search'
 describe('search', function () {
   describe("SearchResults component", function () {
 
-    it('add multiple tracks to playlist', function () {
+    it('should play multiple tracks', function () {
+      const search = shallow(
+        <mod.SearchResults {...PROPS.toObject()} />
+      ).instance()
+      const items = search.state.items.toJS()
+      const promise = promiseChecker()
+      promise
+        .then(callback => callback(true))
+        .then(callback => callback(true))
+        .done()
+      search.onSelectionChanged(Set([2, 4, 6]))
+      assert.equal(search.state.selection.size, 3)
+      assert.equal(items[2].album, "Faded - Single")
+      let index = 2
+      rewire(module, {
+        lms: {playlistControl: (playerid, cmd, item, dispatch) => {
+          assert.equal(playerid, PLAYERID)
+          assert.equal(cmd, index === 2 ? "load" : "add", "index = " + index)
+          assert.deepEqual(item, items[index])
+          assert.equal(dispatch, PROPS.get("dispatch"))
+          index += 2
+          return promise
+        }},
+      }, () => {
+        search.playItem(items[2])
+      })
+      assert.equal(index, 8)
+      promise.check()
+    })
+
+    it('should add multiple tracks to playlist', function () {
       const search = shallow(
         <mod.SearchResults {...PROPS.toObject()} />
       ).instance()

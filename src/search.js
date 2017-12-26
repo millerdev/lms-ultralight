@@ -155,7 +155,9 @@ export class SearchResults extends React.Component {
   }
   playItem(item) {
     const {playerid, dispatch} = this.props
-    lms.playlistControl(playerid, "load", item, dispatch)
+    const items = this.getSelected(item)
+    const promise = lms.playlistControl(playerid, "load", items[0], dispatch)
+    this._addItems(items.slice(1), promise)
     this.hideTrackInfo()
   }
   playNext(item) {
@@ -172,14 +174,16 @@ export class SearchResults extends React.Component {
     this.hideTrackInfo()
   }
   addToPlaylist(item) {
+    this._addItems(this.getSelected(item))
+    this.hideTrackInfo()
+  }
+  _addItems(items, promise=resolved(true)) {
     const {playerid, dispatch} = this.props
-    let promise = resolved(true)
-    _.each(this.getSelected(item), item => {
+    _.each(items, item => {
       promise = promise.then(success =>
         success && lms.playlistControl(playerid, "add", item, dispatch)
       )
     })
-    this.hideTrackInfo()
   }
   playOrEnqueue(item) {
     const props = this.props
@@ -216,7 +220,7 @@ export class SearchResults extends React.Component {
               </List.Item>
             ].concat(items.map(item => 
               <SearchResult
-                canPlay={selection.size <= 1 || !selection.has(item.get("index"))}
+                canPlayNext={selection.size <= 1 || !selection.has(item.get("index"))}
                 playItem={this.playItem.bind(this)}
                 playNext={this.playNext.bind(this)}
                 addToPlaylist={this.addToPlaylist.bind(this)}
@@ -242,10 +246,10 @@ const SearchResult = props => {
         <Button.Group size="mini"
             onClick={event => event.stopPropagation()}
             compact>
-          { props.canPlay ?
-            <Button icon="play" onClick={() => props.playItem(item)} /> : ""}
-          { props.canPlay ?
-            <Button icon="step forward" onClick={() => props.playNext(item)} /> : ""}
+          <Button icon="play" onClick={() => props.playItem(item)} />
+          <Button icon="step forward"
+            disabled={!props.canPlayNext}
+            onClick={() => props.playNext(item)} />
           <Button icon="plus" onClick={() => props.addToPlaylist(item)} />
         </Button.Group>
       </List.Description>
