@@ -9,11 +9,14 @@
 
     .ui.list.touchlist .touchlist-item
       .playlist-controls
+        position: absolute
+        z-index: 5
+        right: 0
+        top: 0
         display: none
         .ui.buttons .ui.button
           padding-left: 7px
           padding-right: 7px
-          margin: -3px 0
       &:hover
         .playlist-controls
           display: block

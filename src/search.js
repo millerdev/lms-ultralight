@@ -241,19 +241,6 @@ const SearchResult = props => {
       onDoubleClick={() => props.playOrEnqueue(item)}
       index={item.index}
       draggable>
-    <List.Content floated="right" className="playlist-controls tap-zone">
-      <List.Description>
-        <Button.Group size="mini"
-            onClick={event => event.stopPropagation()}
-            compact>
-          <Button icon="play" onClick={() => props.playItem(item)} />
-          <Button icon="step forward"
-            disabled={!props.canPlayNext}
-            onClick={() => props.playNext(item)} />
-          <Button icon="plus" onClick={() => props.addToPlaylist(item)} />
-        </Button.Group>
-      </List.Description>
-    </List.Content>
     <List.Content>
       <List.Description className="title">
         <TrackInfoPopup {...props}>
@@ -276,6 +263,19 @@ const SearchResult = props => {
           </Item.Extra>
         </TrackInfoPopup>
         {item[item.type]}
+      </List.Description>
+    </List.Content>
+    <List.Content className="playlist-controls tap-zone">
+      <List.Description>
+        <Button.Group size="mini"
+            onClick={event => event.stopPropagation()}
+            compact>
+          <Button icon="play" onClick={() => props.playItem(item)} />
+          <Button icon="step forward"
+            disabled={!props.canPlayNext}
+            onClick={() => props.playNext(item)} />
+          <Button icon="plus" onClick={() => props.addToPlaylist(item)} />
+        </Button.Group>
       </List.Description>
     </List.Content>
   </TouchList.Item>

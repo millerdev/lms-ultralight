@@ -3,6 +3,7 @@
 - fix buttons stay in hover state after click
 - fix auto-advance to next track after play previous then skip to end
   this appears to be a bug in LMS (can reproduce on stock web interface)
+- fix playlist loads (maximum) first 100 tracks
 - fix spacing in progress/seek bar
 - fix spacing in control bar (rw/play/ff volume repeat/random)
 
@@ -42,6 +43,8 @@ x            - triggering didn't just work (looked flaky/hard to get right)
 x            - browser context menu appeared on long press, might be tricky
 
 - add current tack icon, title, artist to menu bar
+- show track info popup as full screen on mobile
+- add "..." item at end of search result section to get more results
 - add play progress bar along bottom edge of power bar (when scrolled below seek bar)
 - playlist
   - track info popup
