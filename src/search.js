@@ -3,7 +3,7 @@ import _ from 'lodash'
 import React from 'react'
 import { Breadcrumb, Button, Icon, Input, List, Message, Segment } from 'semantic-ui-react'
 
-import { TrackInfoIcon } from './components'
+import { MediaInfo, TrackInfoIcon } from './components'
 import { effect, combine } from './effects'
 import * as lms from './lmsclient'
 import makeReducer from './store'
@@ -98,20 +98,31 @@ const doDrillDown = item => {
   return lms.command("::", drill.cmd, 0, 100, ...params)
     .then(json => {
       const result = json.data.result
-      // adapt to MediaSearchResult format
-      result[drill.type + "s_count"] = result.count || 0
-      result[drill.type + "s_loop"] = _.map(result[drill.loop],
-        item => _.assign({
-          [drill.type + "_id"]: item.id,
-          [drill.type]: item.title,
-        }, item)
-      )
+      if (drill.type === "info") {
+        result.info = _.reduce(result.songinfo_loop, _.assign, {})
+      } else {
+        // adapt to MediaSearchResult format
+        result[drill.type + "s_count"] = result.count || 0
+        result[drill.type + "s_loop"] = _.map(result[drill.loop],
+          item => _.assign({
+            [drill.type + "_id"]: item.id,
+            [drill.type]: drill.title ? item[drill.title] : item.title,
+          }, item)
+        )
+      }
       return actions.gotDrillDownResult(result, name)
     })
-    .catch(() => actions.gotDrillDownResult(false, name))
+    .catch(err => actions.gotDrillDownResult(false, String(err || name)))
 }
 
 const NEXT_SECTION = {
+  genre: {
+    cmd: "artists",
+    param: "genre_id",
+    type: "contributor",
+    loop: "artists_loop",
+    title: "artist",
+  },
   contributor: {
     cmd: "albums",
     param: "artist_id",
@@ -126,6 +137,12 @@ const NEXT_SECTION = {
     loop: "titles_loop",
     tags: "c",
   },
+  track: {
+    cmd: "songinfo",
+    param: "track_id",
+    type: "info",
+    tags: "aAcCdefgiIjJkKlLmMnopPDUqrROSstTuvwxXyY",
+  }
 }
 
 const actions = reducer.actions
@@ -190,6 +207,11 @@ const MediaSearchUI = props => (
           { props.error === true ? "Error" : props.error }
         </Message.Content>
       </Message> : null}
+    { props.results.get("info") ?
+      <MediaInfo
+        item={props.results.get("info").toJS()}
+        onDrillDown={props.onDrillDown}
+        imageSize="tiny" /> : null }
     { props.results.get("count") ? <SearchResults {...props} /> : null }
   </div>
 )
@@ -339,10 +361,10 @@ export class SearchResults extends React.Component {
               </List.Item>
             ].concat(items.map(item => 
               <SearchResult
-                canPlayNext={selection.size <= 1 || !selection.has(item.get("index"))}
                 onDrillDown={this.props.onDrillDown}
                 playItem={this.playItem.bind(this)}
-                playNext={this.playNext.bind(this)}
+                playNext={ selection.size <= 1 || !selection.has(item.get("index")) ?
+                  this.playNext.bind(this) : null}
                 addToPlaylist={this.addToPlaylist.bind(this)}
                 playOrEnqueue={this.playOrEnqueue.bind(this)}
                 setHideTrackInfoCallback={hideInfo}
@@ -363,7 +385,10 @@ const SearchResult = props => {
       draggable>
     <List.Content>
       <List.Description className="title">
-        <TrackInfoIcon {...props} onClick={() => props.onDrillDown(item)} />
+        <TrackInfoIcon
+          {...props}
+          icon={ item.type === "track" ? null : "plus square outline" }
+          onClick={() => props.onDrillDown(item)} />
         <span className="gap-left">{item[item.type]}</span>
       </List.Description>
     </List.Content>
@@ -374,7 +399,7 @@ const SearchResult = props => {
             compact>
           <Button icon="play" onClick={() => props.playItem(item)} />
           <Button icon="step forward"
-            disabled={!props.canPlayNext}
+            disabled={!props.playNext}
             onClick={() => props.playNext(item)} />
           <Button icon="plus" onClick={() => props.addToPlaylist(item)} />
         </Button.Group>

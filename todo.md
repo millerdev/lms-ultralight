@@ -47,6 +47,7 @@ x            - browser context menu appeared on long press, might be tricky
 - back button navigation
 - add current tack icon, title, artist to menu bar
 - show track info popup as full screen on mobile
+- translate text: error messages, track info field names, search, etc.
 - add "..." item at end of search result section to get more results
 - add play progress bar along bottom edge of power bar (when scrolled below seek bar)
 - playlist

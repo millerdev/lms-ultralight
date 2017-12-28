@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import { Button, Confirm, List, Item } from 'semantic-ui-react'
 
-import { DragHandle, TrackInfoPopup } from './components'
+import { DragHandle, MediaInfo, TrackInfoPopup } from './components'
 import { effect, combine } from './effects'
 import * as lms from './lmsclient'
 import { SEARCH_RESULTS } from './search'
@@ -535,18 +535,13 @@ export class PlaylistItem extends React.Component {
       </List.Content>
       <List.Content>
         <List.Description className="title">
-          <TrackInfoPopup {...props}>
-            <Button icon="play" floated="right" onClick={props.playTrack}
-              style={{"margin": "0 0 1em 1em"}} />
-            <Item.Header>{item.title}</Item.Header>
-            {_.map([item.artist, item.composer, item.album], text => (
-              text ? <Item.Meta key={text}>{text}</Item.Meta> : ""
-            ))}
-            <Item.Meta>
-              {_.filter([item.genre, item.year]).join(" | ")}
-            </Item.Meta>
-            {""/*<Item.Description>...</Item.Description>*/}
-          </TrackInfoPopup>
+          <TrackInfoPopup
+            {...props}
+            button={
+              <Button icon="play" floated="right"
+                onClick={props.playTrack}
+                className="tr-corner" />
+            } />
           <SongTitle item={item} />
         </List.Description>
       </List.Content>

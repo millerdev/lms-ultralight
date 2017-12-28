@@ -3,13 +3,16 @@
     .nav
       border: none
       box-shadow: none
-      margin-top: 0
+      margin: 0
     .ui.borderless.menu
       margin: 0
       border: none
       border-radius: 0
       box-shadow: none
     border-right: 1px solid #D6D6D6
+
+    .ui.list.touchlist
+      margin-top: 0
 
     .ui.list.touchlist .touchlist-item
       .playlist-controls
@@ -51,3 +54,10 @@
     /* HACK adjust to thicker top menu - Semantic UI bug? */
     margin: 0
     padding-top: 3.4em !important
+
+  .ui.items.media-info
+    margin-top: 0
+    > .item
+      user-select: text
+      > .content > .header
+        margin-top: 0
