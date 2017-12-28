@@ -1,9 +1,9 @@
 import { List as IList, Map, Range, Set, fromJS } from 'immutable'
 import _ from 'lodash'
 import React from 'react'
-import { Button, Input, Item, List, Popup } from 'semantic-ui-react'
+import { Breadcrumb, Button, Icon, Input, List, Message, Segment } from 'semantic-ui-react'
 
-import { TrackInfoPopup } from './components'
+import { TrackInfoIcon } from './components'
 import { effect, combine } from './effects'
 import * as lms from './lmsclient'
 import makeReducer from './store'
@@ -14,8 +14,10 @@ export const SEARCH_RESULTS = "search results"
 
 export const defaultState = Map({
   isSearching: false,
+  name: "",
   query: "",
   results: Map(),
+  previous: null,
   error: false,
 })
 
@@ -30,12 +32,39 @@ export const reducer = makeReducer({
     )
   },
   gotMediaSearchResult: (state, action, results) => {
+    if (!results) {
+      return state.merge({
+        isSearching: false,
+        error: state.get("query") || true,
+      })
+    }
     return state.merge({
       isSearching: false,
-      results: fromJS(results || {}),
-      error: !results,
+      name: state.get("query"),
+      results: fromJS(results),
+      previous: null,
+      error: false,
     })
   },
+  drillDown: (state, action, item) => {
+    return combine(
+      state.merge({isSearching: true}),
+      [effect(doDrillDown, item)],
+    )
+  },
+  gotDrillDownResult: (state, action, results, name) => {
+    if (!results) {
+      return state.merge({isSearching: false, error: name || true})
+    }
+    return state.merge({
+      isSearching: false,
+      name,
+      results: fromJS(results),
+      previous: state.merge({isSearching: false}),
+      error: false,
+    })
+  },
+  searchNav: (state, action, previousState) => previousState,
 }, defaultState)
 
 /**
@@ -47,6 +76,56 @@ const doMediaSearch = (query) => {
   return lms.command("::", "search", 0, 10, "term:" + query, "extended:1")
     .then(json => actions.gotMediaSearchResult(json.data.result))
     .catch(() => actions.gotMediaSearchResult(false))
+}
+
+/**
+ * Media drill down effect
+ *
+ * @returns a promise that resolves to a gotDrillDownResult action
+ */
+const doDrillDown = item => {
+  const name = item[item.type]
+  const drill = NEXT_SECTION[item.type]
+  if (!drill) {
+    window.console.log("unknown drill down item", item)
+    return actions.gotDrillDownResult(false, name)
+  }
+  const params = [drill.param + ":" + item[item.type + "_id"]]
+  if (drill.tags) {
+    params.push("tags:" + drill.tags)
+  }
+  // TODO pagination
+  return lms.command("::", drill.cmd, 0, 100, ...params)
+    .then(json => {
+      const result = json.data.result
+      // adapt to MediaSearchResult format
+      result[drill.type + "s_count"] = result.count || 0
+      result[drill.type + "s_loop"] = _.map(result[drill.loop],
+        item => _.assign({
+          [drill.type + "_id"]: item.id,
+          [drill.type]: item.title,
+        }, item)
+      )
+      return actions.gotDrillDownResult(result, name)
+    })
+    .catch(() => actions.gotDrillDownResult(false, name))
+}
+
+const NEXT_SECTION = {
+  contributor: {
+    cmd: "albums",
+    param: "artist_id",
+    type: "album",
+    loop: "albums_loop",
+    tags: "lj",
+  },
+  album: {
+    cmd: "titles",
+    param: "album_id",
+    type: "track",
+    loop: "titles_loop",
+    tags: "c",
+  },
 }
 
 const actions = reducer.actions
@@ -70,6 +149,9 @@ export class MediaSearch extends React.Component {
     this.input.inputRef.value = ""
     this.input.focus()
   }
+  onDrillDown(item) {
+    this.props.dispatch(actions.drillDown(item))
+  }
   setSearchInput(input) {
     this.props.setSearchInput(input)
     this.input = input
@@ -81,6 +163,7 @@ export class MediaSearch extends React.Component {
       {...props.search.toObject()}
       onSearch={this.onSearch.bind(this)}
       onClearSearch={this.onClearSearch.bind(this)}
+      onDrillDown={this.onDrillDown.bind(this)}
       setSearchInput={this.setSearchInput.bind(this)} />
   }
 }
@@ -99,9 +182,45 @@ const MediaSearchUI = props => (
       loading={props.isSearching}
       placeholder="Search..."
       fluid />
+    <MediaSearchNav state={Map(props)} dispatch={props.dispatch} />
+    { props.error ?
+      <Message size="small" negative>
+        <Message.Content>
+          <Icon name="warning" size="large" />
+          { props.error === true ? "Error" : props.error }
+        </Message.Content>
+      </Message> : null}
     { props.results.get("count") ? <SearchResults {...props} /> : null }
   </div>
 )
+
+export const MediaSearchNav = ({state, dispatch}) => {
+  function navItem(state, key, active) {
+    return {
+      key,
+      content: state.get("name"),
+      onClick: active ? null : () => dispatch(actions.searchNav(state)),
+      active,
+    }
+  }
+  function navItems(state, active=true) {
+    if (state.get("previous")) {
+      const items = navItems(state.get("previous"), false)
+      items.push(navItem(state, items.length, active))
+      return items
+    }
+    return [navItem(state, 0, active)]
+  }
+  return !state.get("previous") ? null : (
+    <Segment className="nav" size="small">
+      <Breadcrumb
+        sections={navItems(state)}
+        icon="right angle"
+        size="tiny"
+      />
+    </Segment>
+  )
+}
 
 // HACK a thing that can be rewired by tests
 const resolved = value => Promise.resolve(value)
@@ -221,6 +340,7 @@ export class SearchResults extends React.Component {
             ].concat(items.map(item => 
               <SearchResult
                 canPlayNext={selection.size <= 1 || !selection.has(item.get("index"))}
+                onDrillDown={this.props.onDrillDown}
                 playItem={this.playItem.bind(this)}
                 playNext={this.playNext.bind(this)}
                 addToPlaylist={this.addToPlaylist.bind(this)}
@@ -243,26 +363,8 @@ const SearchResult = props => {
       draggable>
     <List.Content>
       <List.Description className="title">
-        <TrackInfoPopup {...props}>
-          <Item.Header>{item[item.type]}</Item.Header>
-          <Item.Extra>
-            <Button.Group>
-              <IconButton
-                icon="play"
-                tooltip="Play"
-                onClick={() => props.playItem(item)} />
-              <IconButton
-                icon="step forward"
-                tooltip="Play Next"
-                onClick={() => props.playNext(item)} />
-              <IconButton
-                icon="plus"
-                tooltip="Add to Playlist"
-                onClick={() => props.addToPlaylist(item)} />
-            </Button.Group>
-          </Item.Extra>
-        </TrackInfoPopup>
-        {item[item.type]}
+        <TrackInfoIcon {...props} onClick={() => props.onDrillDown(item)} />
+        <span className="gap-left">{item[item.type]}</span>
       </List.Description>
     </List.Content>
     <List.Content className="playlist-controls tap-zone">
@@ -280,13 +382,3 @@ const SearchResult = props => {
     </List.Content>
   </TouchList.Item>
 }
-
-const IconButton = ({icon, onClick, tooltip}) => (
-  <Popup
-    trigger={<Button icon={icon} onClick={onClick} />}
-    content={tooltip}
-    position="bottom center"
-    size="tiny"
-    inverted
-    basic />
-)

@@ -42,6 +42,9 @@ x            - difficult to control position
 x            - triggering didn't just work (looked flaky/hard to get right)
 x            - browser context menu appeared on long press, might be tricky
 
+- hotkey help
+- hotkey for menu
+- back button navigation
 - add current tack icon, title, artist to menu bar
 - show track info popup as full screen on mobile
 - add "..." item at end of search result section to get more results

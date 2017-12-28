@@ -22,36 +22,12 @@ export class TrackInfoPopup extends React.Component {
   }
   render() {
     const props = this.props
-    const imageUrl = lms.getImageUrl(props.item)
     if (this.state.isPopped && props.setHideTrackInfoCallback) {
       props.setHideTrackInfoCallback(this.onHide.bind(this))
     }
     return <span className="gap-right">
       <Popup
-          trigger={props.showInfoIcon ?
-            <Icon
-              onClick={this.onClick.bind(this)}
-              className="tap-zone"
-              name="info circle"
-              size="large"
-              fitted /> :
-            props.activeIcon ?
-              <Icon
-                onClick={this.onClick.bind(this)}
-                className="tap-zone"
-                name={props.activeIcon}
-                size="large"
-                fitted /> :
-              <div
-                  onClick={this.onClick.bind(this)}
-                  className="hover-icon-container">
-                <Image src={imageUrl} ui inline height="18px" width="18px"
-                  className="tap-zone hover-icon" />
-                <div className="middle">
-                  <Icon className="tap-zone" name="info circle" size="large" fitted />
-                </div>
-              </div>
-          }
+          trigger={<TrackInfoIcon {...props} onClick={this.onClick.bind(this)} />}
           open={this.state.isPopped}
           onOpen={this.onPop.bind(this)}
           onClose={this.onHide.bind(this)}
@@ -60,13 +36,44 @@ export class TrackInfoPopup extends React.Component {
           wide="very">
         <Item.Group>
           <Item>
-            <Item.Image size="small" src={imageUrl} />
+            <Item.Image size="small" src={lms.getImageUrl(props.item)} />
             <Item.Content>{props.children}</Item.Content>
           </Item>
         </Item.Group>
       </Popup>
     </span>
   }
+}
+
+export const TrackInfoIcon = props => {
+  if (props.showInfoIcon) {
+    return <Icon
+      onClick={props.onClick}
+      className="tap-zone"
+      name="info circle"
+      size="large"
+      fitted />
+  } else if (props.activeIcon) {
+    return <Icon
+      onClick={props.onClick}
+      className="tap-zone"
+      name={props.activeIcon}
+      size="large"
+      fitted />
+  }
+  return <div
+      onClick={props.onClick}
+      className="hover-icon-container">
+    <Image
+      src={lms.getImageUrl(props.item)}
+      className="tap-zone hover-icon"
+      height="18px"
+      width="18px"
+      ui inline />
+    <div className="middle">
+      <Icon className="tap-zone" name="info circle" size="large" fitted />
+    </div>
+  </div>
 }
 
 export const DragHandle = () => (
