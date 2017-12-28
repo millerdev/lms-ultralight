@@ -46,32 +46,33 @@ export class TrackInfoPopup extends React.Component {
 }
 
 export const TrackInfoIcon = props => {
+  const icon = props.icon || "info circle"
   if (props.showInfoIcon) {
     return <Icon
       onClick={props.onClick}
       className="tap-zone"
-      name="info circle"
-      size="large"
-      fitted />
-  } else if (props.activeIcon) {
-    return <Icon
-      onClick={props.onClick}
-      className="tap-zone"
-      name={props.activeIcon}
+      name={icon}
       size="large"
       fitted />
   }
   return <div
       onClick={props.onClick}
-      className="hover-icon-container">
-    <Image
-      src={lms.getImageUrl(props.item)}
-      className="tap-zone hover-icon"
-      height="18px"
-      width="18px"
-      ui inline />
+      className="hover-icon-container tap-zone">
+    { props.activeIcon ?
+      <Icon
+        className="hover-icon"
+        name={props.activeIcon}
+        size="large"
+        fitted /> :
+      <Image
+        src={lms.getImageUrl(props.item)}
+        className="tap-zone hover-icon"
+        height="18px"
+        width="18px"
+        ui inline />
+    }
     <div className="middle">
-      <Icon className="tap-zone" name="info circle" size="large" fitted />
+      <Icon name={icon} size="large" fitted />
     </div>
   </div>
 }
