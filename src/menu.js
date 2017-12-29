@@ -4,9 +4,8 @@ import PropTypes from 'prop-types'
 import React from 'react'
 
 import { combine, effect, split, IGNORE_ACTION } from './effects'
-import * as lms from './lmsclient'
 import { MainMenuUI } from './menuui'
-import * as player from './player'
+import { playerControl, loadPlayer } from './playctl'
 import * as players from './playerselect'
 import * as search from './search'
 import makeReducer from './store'
@@ -32,9 +31,6 @@ const messagesReducer = makeReducer({
 })
 
 export const actions = messagesReducer.actions
-
-// HACK a thing that can be rewired by tests
-const resolved = value => Promise.resolve(value)
 
 export function reducer(state=defaultState, action) {
   const [msgState, msgEffects] =
@@ -73,7 +69,7 @@ export class MainMenu extends React.Component {
         }
         playerid = data[0].playerid
       }
-      this.loadPlayer(playerid, true)
+      loadPlayer(playerid, true).then(this.props.dispatch)
     }).catch(err =>
       this.props.dispatch(operationError("Cannot load players", err))
     )
@@ -94,48 +90,15 @@ export class MainMenu extends React.Component {
       this.keydownHandlers[event.keyCode]()
     }
   }
-  loadPlayer(...args) {
-    return player.loadPlayer(...args).then(this.props.dispatch)
-  }
-  playItems(items) {
-    const {player, dispatch} = this.props
-    const playerid = player.get("playerid")
-    const promise = lms.playlistControl(playerid, "load", items[0], dispatch)
-    if (items.length > 1) {
-      this.addToPlaylist(items.slice(1), promise)
-    }
-  }
-  playNext(item) {
-    const {player, dispatch} = this.props
-    const playerid = player.get("playerid")
-    lms.playlistControl(playerid, "insert", item, dispatch)
-      .then(success => {
-        if (success && !player.get("isPlaying")) {
-          const loadPlayer = require("./player").loadPlayer
-          lms.command(playerid, "playlist", "index", "+1")
-            .then(() => loadPlayer(playerid))
-            .then(dispatch)
-        }
-      })
-  }
-  addToPlaylist(items, promise=resolved(true)) {
-    const {player, dispatch} = this.props
-    const playerid = player.get("playerid")
-    _.each(items, item => {
-      promise = promise.then(success =>
-        success && lms.playlistControl(playerid, "add", item, dispatch)
-      )
-    })
-  }
-  playOrEnqueue(item) {
-    const props = this.props
-    if (!props.playlist.get("numTracks")) {
-      this.playItems([item])
-    } else if (!props.player.get("isPlaying")) {
-      this.playNext(item)
-    } else {
-      this.addToPlaylist([item])
-    }
+  playctl() {
+    return playerControl(
+      this.props.player.get("playerid"),
+      this.props.dispatch,
+      {
+        player: this.props.player,
+        playlist: this.props.playlist,
+      },
+    )
   }
   setSearchInput(input) {
     if (input && input !== this.searchInput) {
@@ -144,7 +107,7 @@ export class MainMenu extends React.Component {
   }
   onPlayerSelected(playerid) {
     localStorage.currentPlayer = playerid
-    this.loadPlayer(playerid, true)
+    loadPlayer(playerid, true).then(this.props.dispatch)
   }
   onToggleSidebar() {
     const open = !this.state.sidebarOpen
@@ -158,12 +121,6 @@ export class MainMenu extends React.Component {
   onHideError() {
     this.props.dispatch(actions.hideOperationError())
   }
-  command(playerid, ...args) {
-    lms.command(playerid, ...args)
-      .catch(err =>
-        this.props.dispatch(operationError("Command error", {args, err})))
-      .then(() => this.loadPlayer(playerid))
-  }
   render() {
     const props = this.props
     return <MainMenuUI
@@ -171,14 +128,9 @@ export class MainMenu extends React.Component {
         onPlayerSelected={this.onPlayerSelected.bind(this)}
         onToggleSidebar={this.onToggleSidebar.bind(this)}
         sidebarOpen={this.state.sidebarOpen}
-        command={this.command.bind(this)}
-        playItems={this.playItems.bind(this)}
-        playNext={this.playNext.bind(this)}
-        addToPlaylist={this.addToPlaylist.bind(this)}
-        playOrEnqueue={this.playOrEnqueue.bind(this)}
+        playctl={this.playctl()}
         players={props.menu.get("players")}
         search={props.menu.get("search")}
-        playerid={props.player.get("playerid")}
         messages={props.menu.get("messages").toObject()}
         onHideError={this.onHideError.bind(this)}
         {...props}>

@@ -1,9 +1,9 @@
 import { List as IList, Map, Range, Set, fromJS } from 'immutable'
 import _ from 'lodash'
 import React from 'react'
-import { Breadcrumb, Button, Icon, Input, List, Message, Segment } from 'semantic-ui-react'
+import { Breadcrumb, Icon, Input, List, Message, Segment } from 'semantic-ui-react'
 
-import { MediaInfo, TrackInfoIcon } from './components'
+import { MediaInfo, PlaylistButtons, TrackInfoIcon } from './components'
 import { effect, combine } from './effects'
 import * as lms from './lmsclient'
 import makeReducer from './store'
@@ -211,9 +211,7 @@ const MediaSearchUI = props => (
       <MediaInfo
         item={props.results.get("info").toJS()}
         onDrillDown={props.onDrillDown}
-        playItems={props.playItems}
-        playNext={props.playNext}
-        addToPlaylist={props.addToPlaylist}
+        playctl={props.playctl}
         imageSize="tiny" /> : null }
     { props.results.get("count") ? <SearchResults {...props} /> : null }
   </div>
@@ -295,17 +293,17 @@ export class SearchResults extends React.Component {
     return [item]
   }
   playItem(item) {
-    this.props.playItems(this.getSelected(item))
+    this.props.playctl.playItems(this.getSelected(item))
   }
   addToPlaylist(item) {
-    this.props.addToPlaylist(this.getSelected(item))
+    this.props.playctl.addToPlaylist(this.getSelected(item))
   }
   playOrEnqueue(item) {
     const props = this.props
     if (!props.playlist.get("numTracks")) {
       this.playItem(item)
     } else if (!props.player.get("isPlaying")) {
-      this.props.playNext(item)
+      this.props.playctl.playNext(item)
     } else {
       this.addToPlaylist(item)
     }
@@ -334,7 +332,7 @@ export class SearchResults extends React.Component {
                 onDrillDown={this.props.onDrillDown}
                 playItem={this.playItem.bind(this)}
                 playNext={ selection.size <= 1 || !selection.has(item.get("index")) ?
-                  this.props.playNext : null}
+                  this.props.playctl.playNext : null}
                 addToPlaylist={this.addToPlaylist.bind(this)}
                 playOrEnqueue={this.playOrEnqueue.bind(this)}
                 item={item.toObject()} />
@@ -356,22 +354,17 @@ const SearchResult = props => {
       <List.Description className="title">
         <TrackInfoIcon
           {...props}
-          icon={ item.type === "track" ? null : "plus square outline" }
+          icon={item.type === "track" ? null : "plus square outline"}
           onClick={() => props.onDrillDown(item)} />
         <span className="gap-left">{item[item.type]}</span>
       </List.Description>
     </List.Content>
     <List.Content className="playlist-controls tap-zone">
       <List.Description>
-        <Button.Group size="mini"
-            onClick={event => event.stopPropagation()}
-            compact>
-          <Button icon="play" onClick={() => props.playItem(item)} />
-          <Button icon="step forward"
-            disabled={!props.playNext}
-            onClick={() => props.playNext(item)} />
-          <Button icon="plus" onClick={() => props.addToPlaylist(item)} />
-        </Button.Group>
+        <PlaylistButtons
+          play={() => props.playItem(item)}
+          playNext={props.playNext ? () => props.playNext(item) : null}
+          addToPlaylist={() => props.addToPlaylist(item)} />
       </List.Description>
     </List.Content>
   </TouchList.Item>

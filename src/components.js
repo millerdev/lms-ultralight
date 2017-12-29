@@ -8,6 +8,11 @@ import { formatTime } from './util'
 
 export const MediaInfo = props => {
   const item = props.item
+  const track = {
+    type: "track",
+    track_id: props.item.id,
+    track: props.item.title,
+  }
   return (
     <Item.Group className="media-info">
       <Item>
@@ -17,7 +22,12 @@ export const MediaInfo = props => {
             src={lms.getImageUrl(item)}
             floated="left" />
           { props.button ||
-            <PlaylistButtons {...props} floated="right" className="tr-corner" /> }
+            <PlaylistButtons
+              play={() => props.playctl.playItems([track])}
+              playNext={() => props.playctl.playNext(track)}
+              addToPlaylist={() => props.playctl.addToPlaylist([track])}
+              className="tr-corner"
+              floated="right" /> }
           <Item.Header>{item.title}</Item.Header>
           {_.map(["artist", "album"], key => item.hasOwnProperty(key) ?
             <Item.Description key={key}>
@@ -141,22 +151,17 @@ _.each(MEDIA_INFO, item => {
 })
 
 export const PlaylistButtons = props => {
-  const item = {
-    type: "track",
-    track_id: props.item.id,
-    track: props.item.title,
-  }
   return (
     <Button.Group size="mini"
         onClick={event => event.stopPropagation()}
         className={props.className}
         floated={props.floated}
         compact>
-      <Button icon="play" onClick={() => props.playItems([item])} />
+      <Button icon="play" onClick={props.play} />
       <Button icon="step forward"
         disabled={!props.playNext}
-        onClick={() => props.playNext(item)} />
-      <Button icon="plus" onClick={() => props.addToPlaylist([item])} />
+        onClick={props.playNext} />
+      <Button icon="plus" onClick={props.addToPlaylist} />
     </Button.Group>
   )
 }
