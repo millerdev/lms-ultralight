@@ -60,11 +60,13 @@ export const reducer = makeReducer({
       isSearching: false,
       name,
       results: fromJS(results),
-      previous: state.merge({isSearching: false}),
+      previous: state,
       error: false,
     })
   },
-  searchNav: (state, action, previousState) => previousState,
+  searchNav: (state, action, previousState) => (
+    previousState.merge({isSearching: false})
+  ),
 }, defaultState)
 
 /**
@@ -199,7 +201,10 @@ const MediaSearchUI = props => (
       loading={props.isSearching}
       placeholder="Search..."
       fluid />
-    <MediaSearchNav state={Map(props)} dispatch={props.dispatch} />
+    <MediaSearchNav
+      name={props.name}
+      previous={props.previous}
+      dispatch={props.dispatch} />
     { props.error ?
       <Message size="small" negative>
         <Message.Content>
@@ -217,32 +222,30 @@ const MediaSearchUI = props => (
   </div>
 )
 
-export const MediaSearchNav = ({state, dispatch}) => {
-  function navItem(state, key, active) {
-    return {
-      key,
+export class MediaSearchNav extends React.PureComponent {
+  navItems(state, active=true) {
+    const prev = state.get("previous")
+    const items = prev ? this.navItems(prev, false) : []
+    items.push({
+      key: String(items.length),
       content: state.get("name"),
-      onClick: active ? null : () => dispatch(actions.searchNav(state)),
+      onClick: active ? null : () => this.props.dispatch(actions.searchNav(state)),
       active,
-    }
+    })
+    return items
   }
-  function navItems(state, active=true) {
-    if (state.get("previous")) {
-      const items = navItems(state.get("previous"), false)
-      items.push(navItem(state, items.length, active))
-      return items
-    }
-    return [navItem(state, 0, active)]
+  render() {
+    const {name, previous} = this.props
+    return !previous ? null : (
+      <Segment className="nav" size="small">
+        <Breadcrumb
+          sections={this.navItems(Map({name, previous}))}
+          icon="right angle"
+          size="tiny"
+        />
+      </Segment>
+    )
   }
-  return !state.get("previous") ? null : (
-    <Segment className="nav" size="small">
-      <Breadcrumb
-        sections={navItems(state)}
-        icon="right angle"
-        size="tiny"
-      />
-    </Segment>
-  )
 }
 
 const SECTIONS = ["contributor", "album", "track"]
