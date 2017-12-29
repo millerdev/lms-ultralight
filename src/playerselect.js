@@ -51,10 +51,10 @@ export const SelectPlayer = props => (
     placeholder="Select Player"
     onClick={() => maybeLoadPlayers(props.dispatch)}
     onChange={(e, { value }) => props.onPlayerSelected(value)}
-    options={props.players.map(item => ({
+    options={props.players.toSeq().map(item => ({
       text: item.get("name"),
       value: item.get("playerid"),
-    })).toJS()}
+    })).toArray()}
     value={props.playerid || ""}
     loading={props.loading}
     error={props.error}
