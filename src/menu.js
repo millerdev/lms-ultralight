@@ -33,6 +33,9 @@ const messagesReducer = makeReducer({
 
 export const actions = messagesReducer.actions
 
+// HACK a thing that can be rewired by tests
+const resolved = value => Promise.resolve(value)
+
 export function reducer(state=defaultState, action) {
   const [msgState, msgEffects] =
     split(messagesReducer(state.get("messages"), action))
@@ -94,6 +97,46 @@ export class MainMenu extends React.Component {
   loadPlayer(...args) {
     return player.loadPlayer(...args).then(this.props.dispatch)
   }
+  playItems(items) {
+    const {player, dispatch} = this.props
+    const playerid = player.get("playerid")
+    const promise = lms.playlistControl(playerid, "load", items[0], dispatch)
+    if (items.length > 1) {
+      this.addToPlaylist(items.slice(1), promise)
+    }
+  }
+  playNext(item) {
+    const {player, dispatch} = this.props
+    const playerid = player.get("playerid")
+    lms.playlistControl(playerid, "insert", item, dispatch)
+      .then(success => {
+        if (success && !player.get("isPlaying")) {
+          const loadPlayer = require("./player").loadPlayer
+          lms.command(playerid, "playlist", "index", "+1")
+            .then(() => loadPlayer(playerid))
+            .then(dispatch)
+        }
+      })
+  }
+  addToPlaylist(items, promise=resolved(true)) {
+    const {player, dispatch} = this.props
+    const playerid = player.get("playerid")
+    _.each(items, item => {
+      promise = promise.then(success =>
+        success && lms.playlistControl(playerid, "add", item, dispatch)
+      )
+    })
+  }
+  playOrEnqueue(item) {
+    const props = this.props
+    if (!props.playlist.get("numTracks")) {
+      this.playItems([item])
+    } else if (!props.player.get("isPlaying")) {
+      this.playNext(item)
+    } else {
+      this.addToPlaylist([item])
+    }
+  }
   setSearchInput(input) {
     if (input && input !== this.searchInput) {
       this.searchInput = input
@@ -129,6 +172,10 @@ export class MainMenu extends React.Component {
         onToggleSidebar={this.onToggleSidebar.bind(this)}
         sidebarOpen={this.state.sidebarOpen}
         command={this.command.bind(this)}
+        playItems={this.playItems.bind(this)}
+        playNext={this.playNext.bind(this)}
+        addToPlaylist={this.addToPlaylist.bind(this)}
+        playOrEnqueue={this.playOrEnqueue.bind(this)}
         players={props.menu.get("players")}
         search={props.menu.get("search")}
         playerid={props.player.get("playerid")}

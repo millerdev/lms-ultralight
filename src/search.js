@@ -211,6 +211,9 @@ const MediaSearchUI = props => (
       <MediaInfo
         item={props.results.get("info").toJS()}
         onDrillDown={props.onDrillDown}
+        playItems={props.playItems}
+        playNext={props.playNext}
+        addToPlaylist={props.addToPlaylist}
         imageSize="tiny" /> : null }
     { props.results.get("count") ? <SearchResults {...props} /> : null }
   </div>
@@ -243,9 +246,6 @@ export const MediaSearchNav = ({state, dispatch}) => {
     </Segment>
   )
 }
-
-// HACK a thing that can be rewired by tests
-const resolved = value => Promise.resolve(value)
 
 const SECTIONS = ["contributor", "album", "track"]
 const SECTION_NAMES = {
@@ -295,43 +295,17 @@ export class SearchResults extends React.Component {
     return [item]
   }
   playItem(item) {
-    const {playerid, dispatch} = this.props
-    const items = this.getSelected(item)
-    const promise = lms.playlistControl(playerid, "load", items[0], dispatch)
-    this._addItems(items.slice(1), promise)
-    this.hideTrackInfo()
-  }
-  playNext(item) {
-    const {player, playerid, dispatch} = this.props
-    lms.playlistControl(playerid, "insert", item, dispatch)
-      .then(success => {
-        if (success && !player.get("isPlaying")) {
-          const loadPlayer = require("./player").loadPlayer
-          lms.command(playerid, "playlist", "index", "+1")
-            .then(() => loadPlayer(playerid))
-            .then(dispatch)
-        }
-      })
-    this.hideTrackInfo()
+    this.props.playItems(this.getSelected(item))
   }
   addToPlaylist(item) {
-    this._addItems(this.getSelected(item))
-    this.hideTrackInfo()
-  }
-  _addItems(items, promise=resolved(true)) {
-    const {playerid, dispatch} = this.props
-    _.each(items, item => {
-      promise = promise.then(success =>
-        success && lms.playlistControl(playerid, "add", item, dispatch)
-      )
-    })
+    this.props.addToPlaylist(this.getSelected(item))
   }
   playOrEnqueue(item) {
     const props = this.props
     if (!props.playlist.get("numTracks")) {
       this.playItem(item)
     } else if (!props.player.get("isPlaying")) {
-      this.playNext(item)
+      this.props.playNext(item)
     } else {
       this.addToPlaylist(item)
     }
@@ -340,12 +314,8 @@ export class SearchResults extends React.Component {
     this.hideTrackInfo()
     this.setState({selection})
   }
-  setHideTrackInfoCallback(callback) {
-    this.hideTrackInfo = callback
-  }
   render() {
     const bySection = this.state.itemsBySection
-    const hideInfo = this.setHideTrackInfoCallback.bind(this)
     const selection = this.state.selection
     return (
       <TouchList
@@ -364,10 +334,9 @@ export class SearchResults extends React.Component {
                 onDrillDown={this.props.onDrillDown}
                 playItem={this.playItem.bind(this)}
                 playNext={ selection.size <= 1 || !selection.has(item.get("index")) ?
-                  this.playNext.bind(this) : null}
+                  this.props.playNext : null}
                 addToPlaylist={this.addToPlaylist.bind(this)}
                 playOrEnqueue={this.playOrEnqueue.bind(this)}
-                setHideTrackInfoCallback={hideInfo}
                 item={item.toObject()} />
             ).toArray())
           }

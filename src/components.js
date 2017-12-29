@@ -141,18 +141,22 @@ _.each(MEDIA_INFO, item => {
 })
 
 export const PlaylistButtons = props => {
-  const item = props.item
+  const item = {
+    type: "track",
+    track_id: props.item.id,
+    track: props.item.title,
+  }
   return (
     <Button.Group size="mini"
         onClick={event => event.stopPropagation()}
         className={props.className}
         floated={props.floated}
         compact>
-      <Button icon="play" onClick={() => props.playItem(item)} />
+      <Button icon="play" onClick={() => props.playItems([item])} />
       <Button icon="step forward"
         disabled={!props.playNext}
         onClick={() => props.playNext(item)} />
-      <Button icon="plus" onClick={() => props.addToPlaylist(item)} />
+      <Button icon="plus" onClick={() => props.addToPlaylist([item])} />
     </Button.Group>
   )
 }
