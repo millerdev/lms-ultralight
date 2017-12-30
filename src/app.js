@@ -1,5 +1,6 @@
 import { Map } from 'immutable'
 import React from 'react'
+import { BrowserRouter as Router, withRouter } from 'react-router-dom'
 import { connect, Provider } from 'react-redux'
 //import 'semantic-ui-css/semantic.min.css'
 
@@ -33,7 +34,7 @@ function reducer(state=defaultState, action) {
 }
 
 const store = makeStore(reducer, defaultState)
-const MainMenu = connect(state => state.toObject())(menu.MainMenu)
+const MainMenu = withRouter(connect(state => state.toObject())(menu.MainMenu))
 const Player = connect(state => {
   const state_ = state.get("player").toObject()
   state_.currentTrack = state.getIn(["playlist", "currentTrack"])
@@ -45,11 +46,13 @@ const Playlist = connect(
 
 const App = () => (
   <Provider store={store}>
-    <MainMenu>
-      <Player />
-      <Playlist />
-      {/* <DevTools /> */}
-    </MainMenu>
+    <Router>
+      <MainMenu>
+        <Player />
+        <Playlist />
+        {/* <DevTools /> */}
+      </MainMenu>
+    </Router>
   </Provider>
 )
 

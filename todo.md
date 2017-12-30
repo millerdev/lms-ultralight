@@ -1,8 +1,9 @@
 # TODO
 
 x- no sidebar on mobile (use full screen)
+x- navigation with back button, esp on mobile
 - show extended info on click icon in playlist
-- navigation with back button, esp on mobile
+- album and artist in player should be clickable links
 
 - fix buttons stay in hover state after click
 - fix auto-advance to next track after play previous then skip to end

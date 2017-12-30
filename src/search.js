@@ -172,8 +172,12 @@ export class MediaSearch extends React.Component {
     this.props.dispatch(actions.drillDown(item))
   }
   setSearchInput(input) {
-    this.props.setSearchInput(input)
     this.input = input
+    if (input) {
+      // https://stackoverflow.com/a/40235334/10840
+      input.focus()
+      input.inputRef.select()
+    }
   }
   render() {
     const props = this.props

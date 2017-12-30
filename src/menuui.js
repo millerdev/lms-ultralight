@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link, Route, Switch } from 'react-router-dom'
 import { Icon, Menu, Message, Responsive, Sidebar, Transition } from 'semantic-ui-react'
 
 import * as players from './playerselect'
@@ -26,34 +27,35 @@ export const MainMenuUI = props => (
       </Message>
     </Transition>
     <Responsive minWidth={500}>
-      <Sidebar
-          as="div"
-          className="sidebar"
-          animation="push"
-          width="wide"
-          visible={props.sidebarOpen}>
-        <MenuItems {...props} />
-      </Sidebar>
+      <Route path="/menu" children={({match: menuOpen}) => (
+        <Sidebar
+            as="div"
+            className="sidebar"
+            animation="push"
+            width="wide"
+            visible={!!menuOpen}>
+          <MenuItems {...props} />
+        </Sidebar>
+      )} />
       <Sidebar.Pusher>
         <MainView {...props} />
       </Sidebar.Pusher>
     </Responsive>
     <Responsive maxWidth={500}>
-      {props.sidebarOpen ?
-        <MenuItems {...props} /> :
-        <MainView {...props} />}
+      <Switch>
+        <Route path="/menu" render={() => <MenuItems {...props} />} />
+        <Route render={() => <MainView {...props} />} />
+      </Switch>
     </Responsive>
   </div>
 )
 
 const MenuItems = props => (
-  <div className="menu-items">
-    <Menu borderless fluid vertical>
-      <Menu.Item name="search">
-        <MediaSearch {...props} />
-      </Menu.Item>
-    </Menu>
-  </div>
+  <Menu borderless fluid vertical className="menu-items">
+    <Menu.Item name="search">
+      <MediaSearch {...props} />
+    </Menu.Item>
+  </Menu>
 )
 
 const MainView = props => (
@@ -66,12 +68,14 @@ const MainView = props => (
 
 const PowerBar = props => {
   const player = props.player.toObject()
-  return (
+  return <Route path="/menu" children={({match: menuOpen}) => (
     <Menu className="power-bar" fixed="top" borderless>
-      <Menu.Item onClick={props.onToggleSidebar}>
-        <Icon name="content" size="large" />
-      </Menu.Item>
-      {player.isControlVisible && !props.sidebarOpen ?
+      <Link to={ menuOpen ? "/" : "/menu" }>
+        <Menu.Item>
+          <Icon name="content" size="large" />
+        </Menu.Item>
+      </Link>
+      { player.isControlVisible && !menuOpen ?
         <Menu.Item fitted>
           <players.SelectPlayer
             playerid={player.playerid}
@@ -83,7 +87,7 @@ const PowerBar = props => {
           playctl={props.playctl}
           isPlaying={player.isPlaying} />
       }
-      {player.isControlVisible ?
+      {player.isControlVisible && !menuOpen ?
         <Menu.Menu position="right">
           <Menu.Item
               fitted="vertically"
@@ -96,7 +100,7 @@ const PowerBar = props => {
         <VolumeGroup playctl={props.playctl} />
       }
     </Menu>
-  )
+  )} />
 }
 
 const PlayGroup = props => {

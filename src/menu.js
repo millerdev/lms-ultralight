@@ -56,7 +56,6 @@ export const hideOperationErrorAfter = (() => {
 export class MainMenu extends React.Component {
   constructor() {
     super()
-    this.state = {sidebarOpen: false}
     this.keydownHandlers = {}
   }
   componentDidMount() {
@@ -100,23 +99,9 @@ export class MainMenu extends React.Component {
       },
     )
   }
-  setSearchInput(input) {
-    if (input && input !== this.searchInput) {
-      this.searchInput = input
-    }
-  }
   onPlayerSelected(playerid) {
     localStorage.currentPlayer = playerid
     loadPlayer(playerid, true).then(this.props.dispatch)
-  }
-  onToggleSidebar() {
-    const open = !this.state.sidebarOpen
-    this.setState({sidebarOpen: open}, () => {
-      if (open) {
-        this.searchInput.focus()
-        this.searchInput.inputRef.select()
-      }
-    })
   }
   onHideError() {
     this.props.dispatch(actions.hideOperationError())
@@ -124,10 +109,7 @@ export class MainMenu extends React.Component {
   render() {
     const props = this.props
     return <MainMenuUI
-        setSearchInput={this.setSearchInput.bind(this)}
         onPlayerSelected={this.onPlayerSelected.bind(this)}
-        onToggleSidebar={this.onToggleSidebar.bind(this)}
-        sidebarOpen={this.state.sidebarOpen}
         playctl={this.playctl()}
         players={props.menu.get("players")}
         search={props.menu.get("search")}
