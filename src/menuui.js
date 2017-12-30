@@ -7,6 +7,24 @@ import './menu.styl'
 
 export const MainMenuUI = props => (
   <div className="mainmenu">
+    <PowerBar {...props} />
+    <Transition
+        visible={!!props.messages.error}
+        animation="slide down"
+        duration={500}
+        unmountOnHide>
+      <Message
+          className="messages"
+          onDismiss={props.onHideError}
+          onClick={props.onHideError}
+          size="small"
+          negative>
+        <Message.Content>
+          <Icon name="warning" size="large" />
+          {props.messages.error}
+        </Message.Content>
+      </Message>
+    </Transition>
     <Responsive minWidth={500}>
       <Sidebar
           as="div"
@@ -30,15 +48,6 @@ export const MainMenuUI = props => (
 
 const MenuItems = props => (
   <div className="menu-items">
-    <Menu borderless>
-      <Menu.Item onClick={props.onToggleSidebar}>
-        <Icon name="angle left" size="big" />
-      </Menu.Item>
-      <PlayGroup
-        position="right"
-        playctl={props.playctl}
-        isPlaying={props.player.get("isPlaying")} />
-    </Menu>
     <Menu borderless fluid vertical>
       <Menu.Item name="search">
         <MediaSearch {...props} />
@@ -48,29 +57,9 @@ const MenuItems = props => (
 )
 
 const MainView = props => (
-  <div>
-    <PowerBar {...props} />
-    <Transition
-        visible={!!props.messages.error}
-        animation="slide down"
-        duration={500}
-        unmountOnHide>
-      <Message
-          className="messages"
-          onDismiss={props.onHideError}
-          onClick={props.onHideError}
-          size="small"
-          negative>
-        <Message.Content>
-          <Icon name="warning" size="large" />
-          {props.messages.error}
-        </Message.Content>
-      </Message>
-    </Transition>
-    <div className="mainview ui grid">
-      <div className="sixteen wide column">
-        {props.children}
-      </div>
+  <div className="mainview ui grid">
+    <div className="sixteen wide column">
+      {props.children}
     </div>
   </div>
 )
@@ -78,15 +67,11 @@ const MainView = props => (
 const PowerBar = props => {
   const player = props.player.toObject()
   return (
-    <Menu
-        className="power-bar"
-        attached={props.sidebarOpen && "top"}
-        fixed={!props.sidebarOpen ? "top" : null}
-        borderless>
+    <Menu className="power-bar" fixed="top" borderless>
       <Menu.Item onClick={props.onToggleSidebar}>
         <Icon name="content" size="large" />
       </Menu.Item>
-      {player.isControlVisible ?
+      {player.isControlVisible && !props.sidebarOpen ?
         <Menu.Item fitted>
           <players.SelectPlayer
             playerid={player.playerid}

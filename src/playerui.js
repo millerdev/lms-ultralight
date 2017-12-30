@@ -96,6 +96,7 @@ export const PlayerUI = props => (
       <div className="middle aligned row">
         <div className="left floated eight wide mobile four wide tablet two wide computer column">
           <Visibility
+            fireOnMount
             onTopPassed={() => props.onControlVisibilityChange(false)}
             onTopVisible={() => props.onControlVisibilityChange(true)}
             once={false}>
