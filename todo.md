@@ -1,5 +1,9 @@
 # TODO
 
+x- no sidebar on mobile (use full screen)
+- show extended info on click icon in playlist
+- navigation with back button, esp on mobile
+
 - fix buttons stay in hover state after click
 - fix auto-advance to next track after play previous then skip to end
   this appears to be a bug in LMS (can reproduce on stock web interface)
@@ -7,42 +11,9 @@
 - fix spacing in progress/seek bar
 - fix spacing in control bar (rw/play/ff volume repeat/random)
 
-x- mobile drag/drop
-x  - long-press to select (multiple)
-x    - when at least one track is selected, single touch selects/deselects
-x  - persistent drag/drop handle
-  - ? show info icon (in place of album art) on long-press
-x- hamburger button at top/left to open side menu
-x  - sticky top menu and sidebar
-  - search input
-x    - X button in search input to clear
-x    - auto-expand search content below after typing
-x      - content types/sections
-x        artists
-x        albums
-x        songs
-      - interactions
-x        - mouse over item: art turns to info button, play/+ button on right
-x        - click/touch: select, show play/+ button (on first item only)
-x        - double-click: play or enqueue
-        - click art/info button: show info (drill down)
-        - show info
-          - back controls
-          - play/+ control on right
-          - show item details
-        - back controls
-          - click/touch: go back
-          - bread crumbs?
-xx        - touch drag: collapse sidebar to 15%, allow drop in playlist
-x        - drop in playlist: do the obvious
-x        - drop in sidebar: cancel drag/drop, show full sidebar again
-xx        - long touch: show info - tried it, and it looks unrealistic
-x          - problems:
-x            - difficult to control position
-x            - triggering didn't just work (looked flaky/hard to get right)
-x            - browser context menu appeared on long press, might be tricky
+- upgrade libraries
 
-- hotkey help
+- hotkey help screen
 - hotkey for menu
 - back button navigation
 - add current tack icon, title, artist to menu bar

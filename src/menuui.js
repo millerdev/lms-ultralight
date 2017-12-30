@@ -1,5 +1,5 @@
 import React from 'react'
-import { Icon, Menu, Message, Sidebar, Transition } from 'semantic-ui-react'
+import { Icon, Menu, Message, Responsive, Sidebar, Transition } from 'semantic-ui-react'
 
 import * as players from './playerselect'
 import { MediaSearch } from './search'
@@ -7,52 +7,71 @@ import './menu.styl'
 
 export const MainMenuUI = props => (
   <div className="mainmenu">
-    <Sidebar
-        as="div"
-        className="sidebarContainer"
-        animation="push"
-        width="wide"
-        visible={props.sidebarOpen}>
-      <Menu borderless>
-        <Menu.Item onClick={props.onToggleSidebar}>
-          <Icon name="angle left" size="big" />
-        </Menu.Item>
-        <PlayGroup
-          position="right"
-          playctl={props.playctl}
-          isPlaying={props.player.get("isPlaying")} />
-      </Menu>
-      <Menu borderless fluid vertical>
-        <Menu.Item name="search">
-          <MediaSearch {...props} />
-        </Menu.Item>
-      </Menu>
-    </Sidebar>
-    <Sidebar.Pusher>
-      <PowerBar {...props} />
-      <Transition
-          visible={!!props.messages.error}
-          animation="slide down"
-          duration={500}
-          unmountOnHide>
-        <Message
-            className="messages"
-            onDismiss={props.onHideError}
-            onClick={props.onHideError}
-            size="small"
-            negative>
-          <Message.Content>
-            <Icon name="warning" size="large" />
-            {props.messages.error}
-          </Message.Content>
-        </Message>
-      </Transition>
-      <div className="mainview ui grid">
-        <div className="sixteen wide column">
-          {props.children}
-        </div>
+    <Responsive minWidth={500}>
+      <Sidebar
+          as="div"
+          className="sidebar"
+          animation="push"
+          width="wide"
+          visible={props.sidebarOpen}>
+        <MenuItems {...props} />
+      </Sidebar>
+      <Sidebar.Pusher>
+        <MainView {...props} />
+      </Sidebar.Pusher>
+    </Responsive>
+    <Responsive maxWidth={500}>
+      {props.sidebarOpen ?
+        <MenuItems {...props} /> :
+        <MainView {...props} />}
+    </Responsive>
+  </div>
+)
+
+const MenuItems = props => (
+  <div className="menu-items">
+    <Menu borderless>
+      <Menu.Item onClick={props.onToggleSidebar}>
+        <Icon name="angle left" size="big" />
+      </Menu.Item>
+      <PlayGroup
+        position="right"
+        playctl={props.playctl}
+        isPlaying={props.player.get("isPlaying")} />
+    </Menu>
+    <Menu borderless fluid vertical>
+      <Menu.Item name="search">
+        <MediaSearch {...props} />
+      </Menu.Item>
+    </Menu>
+  </div>
+)
+
+const MainView = props => (
+  <div>
+    <PowerBar {...props} />
+    <Transition
+        visible={!!props.messages.error}
+        animation="slide down"
+        duration={500}
+        unmountOnHide>
+      <Message
+          className="messages"
+          onDismiss={props.onHideError}
+          onClick={props.onHideError}
+          size="small"
+          negative>
+        <Message.Content>
+          <Icon name="warning" size="large" />
+          {props.messages.error}
+        </Message.Content>
+      </Message>
+    </Transition>
+    <div className="mainview ui grid">
+      <div className="sixteen wide column">
+        {props.children}
       </div>
-    </Sidebar.Pusher>
+    </div>
   </div>
 )
 
@@ -60,6 +79,7 @@ const PowerBar = props => {
   const player = props.player.toObject()
   return (
     <Menu
+        className="power-bar"
         attached={props.sidebarOpen && "top"}
         fixed={!props.sidebarOpen ? "top" : null}
         borderless>

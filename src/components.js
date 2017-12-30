@@ -154,7 +154,7 @@ export const PlaylistButtons = props => {
   return (
     <Button.Group size="mini"
         onClick={event => event.stopPropagation()}
-        className={props.className}
+        className={_.filter(["playlist-buttons", props.className]).join(" ")}
         floated={props.floated}
         compact>
       <Button icon="play" onClick={props.play} />
