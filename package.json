@@ -15,6 +15,7 @@
     "immutable": "^3.8.1",
     "lodash": "^4.17.2",
     "prop-types": "^15.6.0",
+    "query-string": "^5.0.1",
     "rc-slider": "^5.4.0",
     "react": "^15.6.2",
     "react-dom": "^15.6.2",

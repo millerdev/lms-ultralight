@@ -53,7 +53,7 @@ export const MainMenuUI = props => (
 const MenuItems = props => (
   <Menu borderless fluid vertical className="menu-items">
     <Menu.Item name="search">
-      <MediaSearch {...props} />
+      <MediaSearch {...props} basePath="/menu" />
     </Menu.Item>
   </Menu>
 )

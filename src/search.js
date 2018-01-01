@@ -1,98 +1,97 @@
-import { List as IList, Map, Range, Set, fromJS } from 'immutable'
+import { List as IList, Map, Set, fromJS } from 'immutable'
 import _ from 'lodash'
+import qs from 'query-string'
 import React from 'react'
-import { Breadcrumb, Icon, Input, List, Message, Segment } from 'semantic-ui-react'
+import { Link, Route } from 'react-router-dom'
+import { Breadcrumb, Input, List, Segment } from 'semantic-ui-react'
 
 import { MediaInfo, PlaylistButtons, TrackInfoIcon } from './components'
 import { effect, combine } from './effects'
 import * as lms from './lmsclient'
 import makeReducer from './store'
 import { TouchList } from './touch'
-import { timer } from './util'
+import { operationError, timer } from './util'
 
 export const SEARCH_RESULTS = "search results"
 
 export const defaultState = Map({
   isSearching: false,
-  name: "",
-  query: "",
-  results: Map(),
-  previous: null,
-  error: false,
 })
 
 export const reducer = makeReducer({
-  mediaSearch: (state, action, query) => {
+  mediaSearch: (state, action, query, ...args) => {
     if (!query) {
       return defaultState
     }
     return combine(
-      state.merge({isSearching: true, query}),
-      [effect(doMediaSearch, query)],
+      state.merge({isSearching: true}),
+      [effect(doMediaSearch, query, ...args)],
     )
   },
-  gotMediaSearchResult: (state, action, results) => {
-    if (!results) {
-      return state.merge({
-        isSearching: false,
-        error: state.get("query") || true,
-      })
-    }
-    return state.merge({
-      isSearching: false,
-      name: state.get("query"),
-      results: fromJS(results),
-      previous: null,
-      error: false,
-    })
-  },
-  drillDown: (state, action, item) => {
+  drillDown: (state, action, ...args) => {
     return combine(
       state.merge({isSearching: true}),
-      [effect(doDrillDown, item)],
+      [effect(doDrillDown, ...args)],
     )
   },
-  gotDrillDownResult: (state, action, results, name) => {
-    if (!results) {
-      return state.merge({isSearching: false, error: name || true})
-    }
-    return state.merge({
-      isSearching: false,
-      name,
-      results: fromJS(results),
-      previous: state,
-      error: false,
-    })
+  doneSearching: state => {
+    return state.merge({isSearching: false})
   },
+  mediaError: (state, action, err, message) => combine(
+    state.merge({isSearching: false}),
+    [effect(operationError, message || "Media error", err)],
+  ),
   searchNav: (state, action, previousState) => (
     previousState.merge({isSearching: false})
   ),
 }, defaultState)
 
+const getDefaultNavState = basePath => ({
+  name: "Menu",
+  path: basePath,
+  query: "",
+  result: null,
+  previous: null,
+})
+
 /**
  * Media search effect
  *
- * @returns a promise that resolves to a gotMediaSearchResult action
+ * @returns a promise that resolves to an action
  */
-const doMediaSearch = (query) => {
+const doMediaSearch = (query, history, location, basePath) => {
   return lms.command("::", "search", 0, 10, "term:" + query, "extended:1")
-    .then(json => actions.gotMediaSearchResult(json.data.result))
-    .catch(() => actions.gotMediaSearchResult(false))
+    .then(json => {
+      const path = basePath + "?q=" + query
+      const state = {
+        name: query,
+        path,
+        query,
+        result: json.data.result,
+        previous: getDefaultNavState(basePath),
+      }
+      if (location.pathname === basePath) {
+        history.replace(path, state)
+      } else {
+        history.push(path, state)
+      }
+      return actions.doneSearching()
+    })
+    .catch(error => actions.mediaError(error))
 }
 
 /**
- * Media drill down effect
+ * Load media item details
  *
- * @returns a promise that resolves to a gotDrillDownResult action
+ * @returns a promise that resolves to an action
  */
-const doDrillDown = item => {
-  const name = item[item.type]
+const doDrillDown = (item, history, location, basePath) => {
   const drill = NEXT_SECTION[item.type]
   if (!drill) {
-    window.console.log("unknown drill down item", item)
-    return actions.gotDrillDownResult(false, name)
+    return actions.operationError("Unknown media item", item)
   }
-  const params = [drill.param + ":" + item[item.type + "_id"]]
+  const item_id = item[item.type + "_id"]
+  const params = [drill.param + ":" + item_id]
   if (drill.tags) {
     params.push("tags:" + drill.tags)
   }
@@ -112,9 +111,25 @@ const doDrillDown = item => {
           }, item)
         )
       }
-      return actions.gotDrillDownResult(result, name)
+      const path = basePath + "/" + item.type + "/" + item_id
+      const name = item[item.type]
+      const state = {
+        name: name || (result.info && result.info.title) || "Media",
+        path,
+        query: "",
+        result,
+      }
+      if (name === undefined) {
+        // loading from URL
+        state.previous = getDefaultNavState(basePath)
+        history.replace(path, state)
+      } else {
+        state.previous = location.state || getDefaultNavState(basePath)
+        history.push(path, state)
+      }
+      return actions.doneSearching()
     })
-    .catch(err => actions.gotDrillDownResult(false, String(err || name)))
+    .catch(error => actions.mediaError(error))
 }
 
 const NEXT_SECTION = {
@@ -149,31 +164,82 @@ const NEXT_SECTION = {
 
 const actions = reducer.actions
 
-export class MediaSearch extends React.Component {
-  constructor() {
-    super()
+export const MediaSearch = props => {
+  const {basePath} = props
+  const path = basePath + "/:type(track|album|contributor|genre)/:id"
+  return (
+    <Route path={path} children={route => (
+      <RoutedMediaSearch {...props} {...route} />
+    )} />
+  )
+}
+
+export class RoutedMediaSearch extends React.PureComponent {
+  constructor(props) {
+    super(props)
     this.timer = timer()
+    this.state = this.updateLocationState(props)
+  }
+  componentDidMount() {
+    this.focusInput()
   }
   componentWillUnmount() {
     this.timer.clear()
   }
+  componentWillReceiveProps(props) {
+    const state = this.updateLocationState(props)
+    if (state.query !== this.state.query) {
+      this.setState(state)
+    }
+  }
+  updateLocationState(props) {
+    const {basePath, match, history, location} = props
+    const state = location.state || {}
+    if (match && match.params.id !== undefined) {
+      if (!state.result) {
+        const {params: {type, id}} = match
+        this.onDrillDown({type, [type + "_id"]: id})
+      }
+    } else if (location.search) {
+      const params = qs.parse(location.search)
+      if (params.q && state.query !== params.q) {
+        props.dispatch(actions.mediaSearch(
+          params.q,
+          history,
+          location,
+          basePath,
+        ))
+      }
+      return {query: params.q || ""}
+    }
+    return {query: ""}
+  }
   onSearch(query) {
+    this.setState({query})
     this.timer.clear()
     this.timer.after(350, () => {
-      this.props.dispatch(actions.mediaSearch(query))
+      const {history, location, basePath, dispatch} = this.props
+      dispatch(actions.mediaSearch(query, history, location, basePath))
     }).catch(() => { /* ignore error on clear */ })
   }
   onClearSearch() {
-    this.props.dispatch(actions.mediaSearch(""))
+    const {history, location, basePath} = this.props
+    this.setState({query: ""})
+    this.props.dispatch(actions.mediaSearch("", history, location, basePath))
     this.input.inputRef.value = ""
     this.input.focus()
   }
   onDrillDown(item) {
-    this.props.dispatch(actions.drillDown(item))
+    const {history, location, basePath} = this.props
+    this.props.dispatch(actions.drillDown(item, history, location, basePath))
   }
   setSearchInput(input) {
     this.input = input
-    if (input) {
+    this.focusInput()
+  }
+  focusInput() {
+    const input = this.input
+    if (input && input.inputRef !== document.activeElement) {
       // https://stackoverflow.com/a/40235334/10840
       input.focus()
       input.inputRef.select()
@@ -181,59 +247,51 @@ export class MediaSearch extends React.Component {
   }
   render() {
     const props = this.props
-    return <MediaSearchUI
-      {...props}
-      {...props.search.toObject()}
-      onSearch={this.onSearch.bind(this)}
-      onClearSearch={this.onClearSearch.bind(this)}
-      onDrillDown={this.onDrillDown.bind(this)}
-      setSearchInput={this.setSearchInput.bind(this)} />
+    const {name, result, previous} = props.location.state || {}
+    const query = this.state.query
+    const onDrillDown = this.onDrillDown.bind(this)
+    return <div>
+      <Input
+        ref={this.setSearchInput.bind(this)}
+        value={query}
+        onChange={(e, {value}) => this.onSearch(value)}
+        className="icon"
+        icon={{
+          name: query ? "x" : "search",
+          link: !!query,
+          onClick: () => this.onClearSearch(),
+        }}
+        loading={props.isSearching}
+        placeholder="Search..."
+        fluid />
+      <MediaNav name={name} previous={previous} />
+      { result && result.info ?
+        <MediaInfo
+          item={result.info}
+          onDrillDown={onDrillDown}
+          playctl={props.playctl}
+          imageSize="tiny"
+        /> : null
+      }
+      { result && result.count ?
+        <SearchResults
+          {...props}
+          {...props.search.toObject()}
+          results={result}
+          onDrillDown={onDrillDown}
+        /> : null
+      }
+    </div>
   }
 }
 
-const MediaSearchUI = props => (
-  <div>
-    <Input
-      ref={props.setSearchInput}
-      onChange={(e, {value}) => props.onSearch(value)}
-      className="icon"
-      icon={{
-        name: props.query ? "x" : "search",
-        link: !!props.query,
-        onClick: props.onClearSearch,
-      }}
-      loading={props.isSearching}
-      placeholder="Search..."
-      fluid />
-    <MediaSearchNav
-      name={props.name}
-      previous={props.previous}
-      dispatch={props.dispatch} />
-    { props.error ?
-      <Message size="small" negative>
-        <Message.Content>
-          <Icon name="warning" size="large" />
-          { props.error === true ? "Error" : props.error }
-        </Message.Content>
-      </Message> : null}
-    { props.results.get("info") ?
-      <MediaInfo
-        item={props.results.get("info").toJS()}
-        onDrillDown={props.onDrillDown}
-        playctl={props.playctl}
-        imageSize="tiny" /> : null }
-    { props.results.get("count") ? <SearchResults {...props} /> : null }
-  </div>
-)
-
-export class MediaSearchNav extends React.PureComponent {
+export class MediaNav extends React.PureComponent {
   navItems(state, active=true) {
-    const prev = state.get("previous")
-    const items = prev ? this.navItems(prev, false) : []
+    const items = state.previous ? this.navItems(state.previous, false) : []
+    const loc = {pathname: state.path, state: state}
     items.push({
       key: String(items.length),
-      content: state.get("name"),
-      onClick: active ? null : () => this.props.dispatch(actions.searchNav(state)),
+      content: active ? state.name : <Link to={loc}>{state.name}</Link>,
       active,
     })
     return items
@@ -243,7 +301,7 @@ export class MediaSearchNav extends React.PureComponent {
     return !previous ? null : (
       <Segment className="nav" size="small">
         <Breadcrumb
-          sections={this.navItems(Map({name, previous}))}
+          sections={this.navItems({name, previous})}
           icon="right angle"
           size="tiny"
         />
@@ -259,7 +317,7 @@ const SECTION_NAMES = {
   track: "Songs",
 }
 
-export class SearchResults extends React.Component {
+export class SearchResults extends React.PureComponent {
   constructor(props) {
     super(props)
     this.state = this.getItems(props.results)
@@ -272,27 +330,28 @@ export class SearchResults extends React.Component {
     }
   }
   getItems(results) {
-    const indexes = Range().values()
-    const bySection = Map().asMutable()
-    let items = IList().asMutable()
+    const itemsBySection = {}
+    if (!results) {
+      return {items: IList(), itemsBySection}
+    }
+    let i = 0
+    let items = []
     _.each(SECTIONS, section => {
-      if (results.get(section + "s_count")) {
-        const sectionItems = results.get(section + "s_loop").map(
-          item => item.merge({index: indexes.next().value, type: section})
+      if (results[section + "s_count"]) {
+        const sectionItems = _.map(results[section + "s_loop"],
+          item => _.assign({}, item, {index: i++, type: section})
         )
-        bySection.set(section, sectionItems)
         items = items.concat(sectionItems)
+        itemsBySection[section] = sectionItems
       }
     })
-    return {
-      items: items.asImmutable(),
-      itemsBySection: bySection.asImmutable(),
-    }
+    return {items: fromJS(items), itemsBySection}
   }
   getSelected(item) {
     const selection = this.state.selection
     if (selection.has(item.index)) {
       return this.state.items
+        .toSeq()
         .filter(it => selection.has(it.get("index")))
         .map(it => it.toObject())
         .toArray()
@@ -328,22 +387,22 @@ export class SearchResults extends React.Component {
           items={this.state.items}
           onSelectionChanged={this.onSelectionChanged.bind(this)}>
         {_.map(SECTIONS, section => {
-          const items = bySection.get(section)
-          if (items) {
+          if (bySection.hasOwnProperty(section)) {
+            const items = bySection[section]
             return [
               <List.Item>
                 <List.Header>{SECTION_NAMES[section]}</List.Header>
               </List.Item>
-            ].concat(items.map(item => 
+            ].concat(_.map(items, item =>
               <SearchResult
                 onDrillDown={this.props.onDrillDown}
                 playItem={this.playItem.bind(this)}
-                playNext={ selection.size <= 1 || !selection.has(item.get("index")) ?
+                playNext={ selection.size <= 1 || !selection.has(item.index) ?
                   this.props.playctl.playNext : null}
                 addToPlaylist={this.addToPlaylist.bind(this)}
                 playOrEnqueue={this.playOrEnqueue.bind(this)}
-                item={item.toObject()} />
-            ).toArray())
+                item={item} />
+            ))
           }
         })}
       </TouchList>
