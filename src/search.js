@@ -200,10 +200,14 @@ export class RoutedMediaSearch extends React.Component {
   updateLocationState(props) {
     const {basePath, match, history, location, isSearching} = props
     const state = location.state || {}
+    let query = this.state ? this.state.query : ""
     if (match && match.params.id) {
-      if (!state.result && !isSearching) {
-        const {params: {type, id}} = match
-        this.onDrillDown({type, [type + "_id"]: id})
+      if (!isSearching) {
+        if (!state.result) {
+          const {params: {type, id}} = match
+          this.onDrillDown({type, [type + "_id"]: id})
+        }
+        query = ""
       }
     } else if (location.search) {
       const params = qs.parse(location.search)
@@ -215,9 +219,9 @@ export class RoutedMediaSearch extends React.Component {
           basePath,
         ))
       }
-      return {query: params.q || ""}
+      query = params.q || ""
     }
-    return {query: ""}
+    return {query}
   }
   onSearch(query) {
     this.setState({query})
