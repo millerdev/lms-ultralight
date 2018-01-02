@@ -107,16 +107,16 @@ export class MainMenu extends React.Component {
     this.props.dispatch(actions.hideOperationError())
   }
   render() {
-    const props = this.props
+    const {menu, children, ...props} = this.props
     return <MainMenuUI
-        onPlayerSelected={this.onPlayerSelected.bind(this)}
         playctl={this.playctl()}
-        players={props.menu.get("players")}
-        search={props.menu.get("search")}
-        messages={props.menu.get("messages").toObject()}
+        players={menu.get("players")}
+        search={menu.get("search")}
+        messages={menu.get("messages").toObject()}
         onHideError={this.onHideError.bind(this)}
+        onPlayerSelected={this.onPlayerSelected.bind(this)}
         {...props}>
-      {props.children}
+      {children}
     </MainMenuUI>
   }
 }

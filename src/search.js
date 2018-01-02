@@ -41,9 +41,6 @@ export const reducer = makeReducer({
     state.merge({isSearching: false}),
     [effect(operationError, message || "Media error", err)],
   ),
-  searchNav: (state, action, previousState) => (
-    previousState.merge({isSearching: false})
-  ),
 }, defaultState)
 
 const getDefaultNavState = basePath => ({
@@ -169,12 +166,14 @@ export const MediaSearch = props => {
   const path = basePath + "/:type(track|album|contributor|genre)/:id"
   return (
     <Route path={path} children={route => (
-      <RoutedMediaSearch {...props} {...route} />
+      <RoutedMediaSearch {...props} {...props.search.toObject()} {...route} />
     )} />
   )
 }
 
-export class RoutedMediaSearch extends React.PureComponent {
+const IGNORE_DIFF = {playctl: true, match: true}
+
+export class RoutedMediaSearch extends React.Component {
   constructor(props) {
     super(props)
     this.timer = timer()
@@ -185,6 +184,12 @@ export class RoutedMediaSearch extends React.PureComponent {
   }
   componentWillUnmount() {
     this.timer.clear()
+  }
+  shouldComponentUpdate(props, state) {
+    return _.some(this.props, (value, key) =>
+        !IGNORE_DIFF[key] && props[key] !== value) ||
+      _.some(this.state, (value, key) => state[key] !== value) ||
+      !_.isEqual(_.keys(props), _.keys(this.props))
   }
   componentWillReceiveProps(props) {
     const state = this.updateLocationState(props)
@@ -276,7 +281,6 @@ export class RoutedMediaSearch extends React.PureComponent {
       { result && result.count ?
         <SearchResults
           {...props}
-          {...props.search.toObject()}
           results={result}
           onDrillDown={onDrillDown}
         /> : null
@@ -366,9 +370,9 @@ export class SearchResults extends React.PureComponent {
   }
   playOrEnqueue(item) {
     const props = this.props
-    if (!props.playlist.get("numTracks")) {
+    if (!props.numTracks) {
       this.playItem(item)
-    } else if (!props.player.get("isPlaying")) {
+    } else if (!props.isPlaying) {
       this.props.playctl.playNext(item)
     } else {
       this.addToPlaylist(item)

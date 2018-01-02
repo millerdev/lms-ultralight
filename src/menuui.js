@@ -6,23 +6,27 @@ import * as players from './playerselect'
 import { MediaSearch } from './search'
 import './menu.styl'
 
-export const MainMenuUI = props => (
+export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ...props}) => (
   <div className="mainmenu">
-    <PowerBar {...props} />
+    <PowerBar
+      players={players.toObject()}
+      onPlayerSelected={onPlayerSelected}
+      {...props}
+    />
     <Transition
-        visible={!!props.messages.error}
+        visible={!!messages.error}
         animation="slide down"
         duration={500}
         unmountOnHide>
       <Message
           className="messages"
-          onDismiss={props.onHideError}
-          onClick={props.onHideError}
+          onDismiss={onHideError}
+          onClick={onHideError}
           size="small"
           negative>
         <Message.Content>
           <Icon name="warning" size="large" />
-          {props.messages.error}
+          {messages.error}
         </Message.Content>
       </Message>
     </Transition>
@@ -50,10 +54,15 @@ export const MainMenuUI = props => (
   </div>
 )
 
-const MenuItems = props => (
+const MenuItems = ({player, playlist, ...props}) => (
   <Menu borderless fluid vertical className="menu-items">
     <Menu.Item name="search">
-      <MediaSearch {...props} basePath="/menu" />
+      <MediaSearch
+        {...props}
+        basePath="/menu"
+        isPlaying={player.get("isPlaying")}
+        numTracks={playlist.get("numTracks")}
+      />
     </Menu.Item>
   </Menu>
 )
@@ -81,7 +90,7 @@ const PowerBar = props => {
             playerid={player.playerid}
             onPlayerSelected={props.onPlayerSelected}
             dispatch={props.dispatch}
-            {...props.players.toObject()} />
+            {...props.players} />
         </Menu.Item> :
         <PlayGroup
           playctl={props.playctl}
