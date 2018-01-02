@@ -1,10 +1,5 @@
 # TODO
 
-x- no sidebar on mobile (use full screen)
-x- navigation with back button, esp on mobile
-x  - handle /menu?q=...
-  - menu not displayed on nav to /menu?q=... in breadcrumbs
-  - make menu breadcrumb state a list, do not remove tail when navigating
 - show extended info on click icon in playlist
 - album and artist in player should be clickable links
 

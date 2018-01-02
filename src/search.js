@@ -45,9 +45,9 @@ export const reducer = makeReducer({
 
 const getDefaultNavState = basePath => ({
   name: "Menu",
-  path: basePath,
   query: "",
   result: null,
+  linkTo: {pathname: basePath},
   previous: null,
 })
 
@@ -62,9 +62,9 @@ const doMediaSearch = (query, history, location, basePath) => {
       const path = basePath + "?q=" + query
       const state = {
         name: query,
-        path,
         query,
         result: json.data.result,
+        linkTo: {pathname: basePath, search: "?q=" + query},
         previous: getDefaultNavState(basePath),
       }
       if (location.pathname === basePath) {
@@ -112,9 +112,9 @@ const doDrillDown = (item, history, location, basePath) => {
       const name = item[item.type]
       const state = {
         name: name || (result.info && result.info.title) || "Media",
-        path,
         query: "",
         result,
+        linkTo: {pathname: path},
       }
       if (name === undefined) {
         // loading from URL
@@ -198,16 +198,16 @@ export class RoutedMediaSearch extends React.Component {
     }
   }
   updateLocationState(props) {
-    const {basePath, match, history, location} = props
+    const {basePath, match, history, location, isSearching} = props
     const state = location.state || {}
-    if (match && match.params.id !== undefined) {
-      if (!state.result) {
+    if (match && match.params.id) {
+      if (!state.result && !isSearching) {
         const {params: {type, id}} = match
         this.onDrillDown({type, [type + "_id"]: id})
       }
     } else if (location.search) {
       const params = qs.parse(location.search)
-      if (params.q && state.query !== params.q) {
+      if (params.q && state.query !== params.q && !isSearching) {
         props.dispatch(actions.mediaSearch(
           params.q,
           history,
@@ -292,7 +292,7 @@ export class RoutedMediaSearch extends React.Component {
 export class MediaNav extends React.PureComponent {
   navItems(state, active=true) {
     const items = state.previous ? this.navItems(state.previous, false) : []
-    const loc = {pathname: state.path, state: state}
+    const loc = _.assign({state}, state.linkTo)
     items.push({
       key: String(items.length),
       content: active ? state.name : <Link to={loc}>{state.name}</Link>,
