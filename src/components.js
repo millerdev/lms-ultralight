@@ -57,7 +57,7 @@ MediaInfo.contextTypes = {
 }
 
 
-function drillable(item, key, showMediaInfo) {
+export function drillable(item, key, showMediaInfo) {
   const text = item[key]
   if (showMediaInfo) {
     let id = item[key + "_id"]

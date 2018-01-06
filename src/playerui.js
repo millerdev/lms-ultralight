@@ -1,9 +1,11 @@
 import _ from 'lodash'
 import Slider from 'rc-slider'
 import React from 'react'
+import PropTypes from 'prop-types'
 import { Button, Item, Visibility } from 'semantic-ui-react'
 import 'rc-slider/assets/index.css'
 
+import { drillable } from './components'
 import * as lms from './lmsclient'
 import { formatTime } from './util'
 import 'font-awesome/css/font-awesome.css'
@@ -18,18 +20,22 @@ const NWayButton = props => {
       >{props.markup[props.value]}</Button>
 }
 
-const CurrentTrackInfo = props => (
+const CurrentTrackInfo = (props, {showMediaInfo}) => (
   <Item.Group>
     <Item>
       <Item.Image size="tiny" src={lms.getImageUrl(props.tags, props.playerid)} />
       <Item.Content>
         <Item.Header>{props.tags.title}</Item.Header>
-        <Item.Meta>{props.tags.artist}</Item.Meta>
-        <Item.Meta>{props.tags.album}</Item.Meta>
+        <Item.Meta>{drillable(props.tags, "artist", showMediaInfo)}</Item.Meta>
+        <Item.Meta>{drillable(props.tags, "album", showMediaInfo)}</Item.Meta>
       </Item.Content>
     </Item>
   </Item.Group>
 )
+
+CurrentTrackInfo.contextTypes = {
+  showMediaInfo: PropTypes.func,
+}
 
 export class SeekBar extends React.Component {
   // TODO display time at mouse pointer on hover

@@ -1,13 +1,10 @@
 # TODO
 
-x- show extended info on click icon in playlist
-- album and artist in player should be clickable links
-  - hide popup on click
-- file path should be a clickable link to download the file
-- full screen track info on mobile
+- show track info popup as full screen on mobile
 - large touchlist icons on small screens
 - move play button to other end of track title in info popup
 - use HashRouter instead of BrowserRouter
+- volume value indicator should be below volume bar
 
 - fix buttons stay in hover state after click
 - fix auto-advance to next track after play previous then skip to end
@@ -24,9 +21,8 @@ x- show extended info on click icon in playlist
 
 - hotkey help screen
 - hotkey for menu
-- back button navigation
 - add current tack icon, title, artist to menu bar
-- show track info popup as full screen on mobile
+- file path should be a clickable link to download the file
 - translate text: error messages, track info field names, search, etc.
 - add "..." item at end of search result section to get more results
 - add play progress bar along bottom edge of power bar (when scrolled below seek bar)
