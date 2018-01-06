@@ -28,10 +28,10 @@ export const reducer = makeReducer({
       [effect(doMediaSearch, query, ...args)],
     )
   },
-  drillDown: (state, action, ...args) => {
+  loadAndShowMediaInfo: (state, action, ...args) => {
     return combine(
       state.merge({isSearching: true}),
-      [effect(doDrillDown, ...args)],
+      [effect(_loadAndShowMediaInfo, ...args)],
     )
   },
   doneSearching: state => {
@@ -82,10 +82,10 @@ const doMediaSearch = (query, history, location, basePath) => {
  *
  * @returns a promise that resolves to an action
  */
-const doDrillDown = (item, history, location, basePath) => {
+const _loadAndShowMediaInfo = (item, history, location, basePath) => {
   const drill = NEXT_SECTION[item.type]
   if (!drill) {
-    return actions.operationError("Unknown media item", item)
+    return operationError("Unknown media item", item)
   }
   const item_id = item[item.type + "_id"]
   const params = [drill.param + ":" + item_id]
@@ -171,7 +171,7 @@ export const MediaSearch = props => {
   )
 }
 
-const IGNORE_DIFF = {playctl: true, match: true}
+const IGNORE_DIFF = {playctl: true, match: true, showMediaInfo: true}
 
 export class RoutedMediaSearch extends React.Component {
   constructor(props) {
@@ -205,7 +205,7 @@ export class RoutedMediaSearch extends React.Component {
       if (!isSearching) {
         if (!state.result) {
           const {params: {type, id}} = match
-          this.onDrillDown({type, [type + "_id"]: id})
+          this.props.showMediaInfo({type, [type + "_id"]: id})
         }
         query = ""
       }
@@ -238,10 +238,6 @@ export class RoutedMediaSearch extends React.Component {
     this.input.inputRef.value = ""
     this.input.focus()
   }
-  onDrillDown(item) {
-    const {history, location, basePath} = this.props
-    this.props.dispatch(actions.drillDown(item, history, location, basePath))
-  }
   setSearchInput(input) {
     this.input = input
     this.focusInput()
@@ -258,7 +254,6 @@ export class RoutedMediaSearch extends React.Component {
     const props = this.props
     const {name, result, previous} = props.location.state || {}
     const query = this.state.query
-    const onDrillDown = this.onDrillDown.bind(this)
     return <div>
       <Input
         ref={this.setSearchInput.bind(this)}
@@ -277,7 +272,6 @@ export class RoutedMediaSearch extends React.Component {
       { result && result.info ?
         <MediaInfo
           item={result.info}
-          onDrillDown={onDrillDown}
           playctl={props.playctl}
           imageSize="tiny"
         /> : null
@@ -286,7 +280,7 @@ export class RoutedMediaSearch extends React.Component {
         <SearchResults
           {...props}
           results={result}
-          onDrillDown={onDrillDown}
+          showMediaInfo={props.showMediaInfo}
         /> : null
       }
     </div>
@@ -403,7 +397,7 @@ export class SearchResults extends React.PureComponent {
               </List.Item>
             ].concat(_.map(items, item =>
               <SearchResult
-                onDrillDown={this.props.onDrillDown}
+                showMediaInfo={this.props.showMediaInfo}
                 playItem={this.playItem.bind(this)}
                 playNext={ selection.size <= 1 || !selection.has(item.index) ?
                   this.props.playctl.playNext : null}
@@ -429,7 +423,7 @@ const SearchResult = props => {
         <TrackInfoIcon
           {...props}
           icon={item.type === "track" ? null : "plus square outline"}
-          onClick={() => props.onDrillDown(item)} />
+          onClick={() => props.showMediaInfo(item)} />
         <span className="gap-left">{item[item.type]}</span>
       </List.Description>
     </List.Content>

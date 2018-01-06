@@ -7,6 +7,7 @@ x- show extended info on click icon in playlist
 - full screen track info on mobile
 - large touchlist icons on small screens
 - move play button to other end of track title in info popup
+- use HashRouter instead of BrowserRouter
 
 - fix buttons stay in hover state after click
 - fix auto-advance to next track after play previous then skip to end

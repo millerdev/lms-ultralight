@@ -558,11 +558,6 @@ export class PlaylistItem extends React.Component {
       loadTrackInfo(props.item.id).then(props.dispatch)
     }
   }
-  onDrillDown(item) {
-    const actions = require("./search").reducer.actions
-    const {dispatch, history, location} = this.props
-    dispatch(actions.drillDown(item, history, location, "/menu"))
-  }
   render() {
     const props = this.props
     const item = props.item
@@ -584,7 +579,6 @@ export class PlaylistItem extends React.Component {
             item={info || item}
             isLoading={!info}
             onOpen={this.onOpenPopup.bind(this)}
-            onDrillDown={this.onDrillDown.bind(this)}
             button={
               <Button icon="play" floated="right"
                 onClick={props.playTrack}

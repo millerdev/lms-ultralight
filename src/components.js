@@ -1,12 +1,13 @@
 import _ from 'lodash'
 import React from 'react'
+import PropTypes from 'prop-types'
 import { Button, Dimmer, Icon, Image, Item, Loader, Popup } from 'semantic-ui-react'
 
 import './components.styl'
 import * as lms from './lmsclient'
 import { formatTime } from './util'
 
-export const MediaInfo = props => {
+export const MediaInfo = (props, context) => {
   const item = props.item
   const track = {
     type: "track",
@@ -31,7 +32,7 @@ export const MediaInfo = props => {
           <Item.Header>{item.title}</Item.Header>
           {_.map(["artist", "album"], key => item.hasOwnProperty(key) ?
             <Item.Description key={key}>
-              {drillable(item, key, props)}
+              {drillable(item, key, props.showMediaInfo || context.showMediaInfo)}
             </Item.Description> : ""
           )}
         </Item.Content>
@@ -51,9 +52,14 @@ export const MediaInfo = props => {
   )
 }
 
-function drillable(item, key, props) {
+MediaInfo.contextTypes = {
+  showMediaInfo: PropTypes.func,
+}
+
+
+function drillable(item, key, showMediaInfo) {
   const text = item[key]
-  if (props.onDrillDown) {
+  if (showMediaInfo) {
     let id = item[key + "_id"]
     if (!id) {
       id = item[key + "_ids"]
@@ -64,7 +70,7 @@ function drillable(item, key, props) {
     if (id) {
       key = DRILL_KEYS.hasOwnProperty(key) ? DRILL_KEYS[key] : key
       item = {type: key, [key + "_id"]: id, [key]: text}
-      return <a onClick={() => props.onDrillDown(item)}>{text}</a>
+      return <a onClick={() => showMediaInfo(item)}>{text}</a>
     }
   }
   return text
@@ -185,6 +191,10 @@ export class TrackInfoPopup extends React.Component {
     this.setState(state => { return {isPopped: !state.isPopped} })
     event.stopPropagation()
   }
+  showMediaInfo(...args) {
+    this.onHide()
+    this.context.showMediaInfo(...args)
+  }
   render() {
     const props = this.props
     if (this.state.isPopped && props.setHideTrackInfoCallback) {
@@ -199,10 +209,14 @@ export class TrackInfoPopup extends React.Component {
           position="right center"
           on="click"
           wide="very">
-        <MediaInfo {...props} />
+        <MediaInfo {...props} showMediaInfo={this.showMediaInfo.bind(this)} />
       </Popup>
     </span>
   }
+}
+
+TrackInfoPopup.contextTypes = {
+  showMediaInfo: PropTypes.func.isRequired,
 }
 
 export const TrackInfoIcon = props => {

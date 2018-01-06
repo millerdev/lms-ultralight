@@ -30,7 +30,7 @@ export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ..
         </Message.Content>
       </Message>
     </Transition>
-    <Responsive minWidth={500}>
+    <Responsive minWidth={501}>
       <Route path="/menu" children={({match: menuOpen}) => (
         <Sidebar
             as="div"
