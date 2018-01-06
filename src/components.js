@@ -22,6 +22,16 @@ export const MediaInfo = (props, context) => {
             size={props.imageSize || "small"}
             src={lms.getImageUrl(item)}
             floated="left" />
+          { props.onClose ?
+            <Button
+              className="close-button"
+              onClick={props.onClose}
+              floated="right"
+              content="&#10005;"
+              size="tiny"
+              basic
+            /> : null
+          }
           { props.button ||
             <PlaylistButtons
               play={() => props.playctl.playItems([track])}
@@ -209,7 +219,11 @@ export class TrackInfoPopup extends React.Component {
           position="right center"
           on="click"
           wide="very">
-        <MediaInfo {...props} showMediaInfo={this.showMediaInfo.bind(this)} />
+        <MediaInfo
+          {...props}
+          showMediaInfo={this.showMediaInfo.bind(this)}
+          onClose={this.onHide.bind(this)}
+        />
       </Popup>
     </span>
   }

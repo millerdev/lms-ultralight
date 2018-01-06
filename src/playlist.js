@@ -580,10 +580,11 @@ export class PlaylistItem extends React.Component {
             isLoading={!info}
             onOpen={this.onOpenPopup.bind(this)}
             button={
-              <Button icon="play" floated="right"
+              <Button icon="play"
                 onClick={props.playTrack}
                 className="tr-corner" />
-            } />
+            }
+          />
           <SongTitle item={item} />
         </List.Description>
       </List.Content>
