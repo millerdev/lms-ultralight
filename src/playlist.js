@@ -25,6 +25,7 @@ export const defaultState = Map({
   currentIndex: null,
   currentTrack: Map(),
   selection: Set(),
+  fullTrackInfo: {},
 })
 
 export const reducer = makeReducer({
@@ -137,6 +138,18 @@ export const reducer = makeReducer({
     return state.set("selection", selection)
   },
   clearSelection: state => state.set("selection", Set()),
+  loadedTrackInfo: (state, action, info) => {
+    const now = new Date()
+    const infos = {}
+    // clone, keeping only unexpired info
+    _.forOwn(state.get("fullTrackInfo"), (value, key) => {
+      if (value && value.expirationDate > now) {
+        infos[key] = value
+      }
+    })
+    infos[info.id] = info
+    return state.set("fullTrackInfo", infos)
+  }
 }, defaultState)
 
 const actions = reducer.actions
@@ -308,6 +321,19 @@ function mergePlaylist(list, array) {
     newItem = next()
   }
   return IList(merged)
+}
+
+export function loadTrackInfo(trackId) {
+  const track = "track_id:" + trackId
+  const tags = "tags:aAcCdefgiIjJkKlLmMnopPDUqrROSstTuvwxXyY"
+  return lms.command("::", "songinfo", 0, 100, track, tags)
+    .then(json => {
+      const info = _.reduce(json.data.result.songinfo_loop, _.assign, {})
+      // expire in 5 minutes
+      info.expirationDate = new Date((new Date()).getTime() + 5 * 60 * 1000)
+      return actions.loadedTrackInfo(info)
+    })
+    .catch(error => operationError("Error loading track info", error))
 }
 
 /**
@@ -483,6 +509,8 @@ export class Playlist extends React.Component {
             touching={!!(this.state.touching && selection.has(index))}
             setHideTrackInfoCallback={hideInfo}
             showInfoIcon={index === this.state.infoIndex}
+            fullTrackInfo={props.fullTrackInfo}
+            dispatch={props.dispatch}
             key={index + ' ' + item.id}
           />
         }).toArray()}
@@ -517,12 +545,21 @@ export class PlaylistItem extends React.Component {
       old.item.id !== props.item.id ||
       old.touching !== props.touching ||
       old.activeIcon !== props.activeIcon ||
-      old.showInfoIcon !== props.showInfoIcon
+      old.showInfoIcon !== props.showInfoIcon ||
+      old.fullTrackInfo[old.item.id] !== props.fullTrackInfo[props.item.id]
     )
+  }
+  onOpenPopup() {
+    const props = this.props
+    const info = props.fullTrackInfo[props.item.id]
+    if (!info || info.expirationDate < new Date()) {
+      loadTrackInfo(props.item.id).then(props.dispatch)
+    }
   }
   render() {
     const props = this.props
     const item = props.item
+    const info = props.fullTrackInfo[item.id]
     return <TouchList.Item
         index={props.index}
         onDoubleClick={props.playTrack}
@@ -537,6 +574,9 @@ export class PlaylistItem extends React.Component {
         <List.Description className="title">
           <TrackInfoPopup
             {...props}
+            item={info || item}
+            isLoading={!info}
+            onOpen={this.onOpenPopup.bind(this)}
             button={
               <Button icon="play" floated="right"
                 onClick={props.playTrack}

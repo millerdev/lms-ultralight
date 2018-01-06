@@ -1,7 +1,10 @@
 # TODO
 
-- show extended info on click icon in playlist
+x- show extended info on click icon in playlist
 - album and artist in player should be clickable links
+- file path should be a clickable link to download the file
+- full screen track info on mobile
+- large touchlist icons on small screens
 
 - fix buttons stay in hover state after click
 - fix auto-advance to next track after play previous then skip to end

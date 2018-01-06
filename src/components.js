@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import React from 'react'
-import { Button, Icon, Image, Item, Popup } from 'semantic-ui-react'
+import { Button, Dimmer, Icon, Image, Item, Loader, Popup } from 'semantic-ui-react'
 
 import './components.styl'
 import * as lms from './lmsclient'
@@ -38,6 +38,7 @@ export const MediaInfo = props => {
       </Item>
       <Item>
         <Item.Content>
+          <Dimmer inverted active={props.isLoading || false}><Loader /></Dimmer>
           {_.map(MEDIA_INFO, info =>
             !info.display(item[info.key], item, info.key) ? null :
               <Item.Description key={info.key}>
@@ -172,7 +173,10 @@ export class TrackInfoPopup extends React.Component {
     this.state = {isPopped: false}
   }
   onPop() {
-    !this.state.isPopped && this.setState({isPopped: true})
+    if (!this.state.isPopped) {
+      this.props.onOpen && this.props.onOpen()
+      this.setState({isPopped: true})
+    }
   }
   onHide() {
     this.state.isPopped && this.setState({isPopped: false})
