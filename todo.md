@@ -2,9 +2,11 @@
 
 x- show extended info on click icon in playlist
 - album and artist in player should be clickable links
+  - hide popup on click
 - file path should be a clickable link to download the file
 - full screen track info on mobile
 - large touchlist icons on small screens
+- move play button to other end of track title in info popup
 
 - fix buttons stay in hover state after click
 - fix auto-advance to next track after play previous then skip to end
@@ -14,6 +16,10 @@ x- show extended info on click icon in playlist
 - fix spacing in control bar (rw/play/ff volume repeat/random)
 
 - upgrade libraries
+- get rid of immutable.js
+- replace semantic-ui-react with
+  - https://material.io/ via https://github.com/jamesmfriedman/rmwc
+  - or https://ant.design/docs/react/introduce
 
 - hotkey help screen
 - hotkey for menu

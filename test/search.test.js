@@ -1,12 +1,7 @@
 import { shallow } from 'enzyme'
 import React from 'react'
 
-//import { promiseChecker, rewire } from './util'
-
 import * as mod from '../src/search'
-//import {__RewireAPI__ as module} from '../src/search'
-//import { SEARCH_RESULTS } from '../src/search'
-//import { operationError } from '../src/util'
 
 describe('search', function () {
   describe("RoutedMediaSearch component", function () {

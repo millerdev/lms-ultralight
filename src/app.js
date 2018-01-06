@@ -40,9 +40,9 @@ const Player = connect(state => {
   state_.currentTrack = state.getIn(["playlist", "currentTrack"])
   return state_
 })(player.Player)
-const Playlist = connect(
+const Playlist = withRouter(connect(
   state => state.get("playlist").toObject()
-)(playlist.Playlist)
+)(playlist.Playlist))
 
 const App = () => (
   <Provider store={store}>
