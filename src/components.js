@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Button, Dimmer, Icon, Image, Item, Loader, Popup } from 'semantic-ui-react'
+import { Button, Dimmer, Icon, Image, Item, Loader, Popup, Responsive } from 'semantic-ui-react'
 
 import './components.styl'
 import * as lms from './lmsclient'
@@ -183,7 +183,7 @@ export const PlaylistButtons = props => {
   )
 }
 
-export class TrackInfoPopup extends React.Component {
+export class TrackInfoButton extends React.Component {
   constructor(props) {
     super(props)
     this.state = {isPopped: false}
@@ -197,8 +197,17 @@ export class TrackInfoPopup extends React.Component {
   onHide() {
     this.state.isPopped && this.setState({isPopped: false})
   }
-  onClick(event) {
+  onShowPopup(event) {
     this.setState(state => { return {isPopped: !state.isPopped} })
+    event.stopPropagation()
+  }
+  onLoadInfoInMenu(event) {
+    const item = this.props.item
+    this.context.showMediaInfo({
+      type: "track",
+      track_id: item.id,
+      track: item.title,
+    })
     event.stopPropagation()
   }
   showMediaInfo(...args) {
@@ -211,25 +220,32 @@ export class TrackInfoPopup extends React.Component {
       props.setHideTrackInfoCallback(this.onHide.bind(this))
     }
     return <span className="gap-right">
-      <Popup
-          trigger={<TrackInfoIcon {...props} onClick={this.onClick.bind(this)} />}
-          open={this.state.isPopped}
-          onOpen={this.onPop.bind(this)}
-          onClose={this.onHide.bind(this)}
-          position="right center"
-          on="click"
-          wide="very">
-        <MediaInfo
-          {...props}
-          showMediaInfo={this.showMediaInfo.bind(this)}
-          onClose={this.onHide.bind(this)}
-        />
-      </Popup>
+      <Responsive minWidth={501} as="span">
+        <Popup
+            trigger={
+              <TrackInfoIcon {...props} onClick={this.onShowPopup.bind(this)} />
+            }
+            open={this.state.isPopped}
+            onOpen={this.onPop.bind(this)}
+            onClose={this.onHide.bind(this)}
+            position="right center"
+            on="click"
+            wide="very">
+          <MediaInfo
+            {...props}
+            showMediaInfo={this.showMediaInfo.bind(this)}
+            onClose={this.onHide.bind(this)}
+          />
+        </Popup>
+      </Responsive>
+      <Responsive maxWidth={500} as="span">
+        <TrackInfoIcon {...props} onClick={this.onLoadInfoInMenu.bind(this)} />
+      </Responsive>
     </span>
   }
 }
 
-TrackInfoPopup.contextTypes = {
+TrackInfoButton.contextTypes = {
   showMediaInfo: PropTypes.func.isRequired,
 }
 

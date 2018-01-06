@@ -1,6 +1,5 @@
 # TODO
 
-- show track info popup as full screen on mobile
 - large touchlist icons on small screens
 - use HashRouter instead of BrowserRouter
 - volume value indicator should be below volume bar
