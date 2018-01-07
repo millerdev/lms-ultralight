@@ -11,8 +11,8 @@ export const MediaInfo = (props, context) => {
   const item = props.item
   const track = {
     type: "track",
-    track_id: props.item.id,
-    track: props.item.title,
+    track_id: item.id,
+    track: item.title,
   }
   return (
     <Item.Group className="media-info">
@@ -98,12 +98,17 @@ function drillTransform(value, item, info, props) {
   return drillable(item, info.key, props)
 }
 
-function urlToPath(url) {
+function urlToPath(url, item) {
   if (url.startsWith("file://")) {
     url = url.slice(7)
   }
   if (url.indexOf("%") > -1) {
     url = decodeURI(url)
+  }
+  if (item.hasOwnProperty("id")) {
+    const filename = url.slice(url.lastIndexOf("/") + 1)
+    const href = "/music/" + item.id + "/download/" + encodeURI(filename)
+    url = <a href={href}>{url}</a>
   }
   return url
 }
