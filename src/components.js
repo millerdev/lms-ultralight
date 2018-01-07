@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Button, Dimmer, Icon, Image, Item, Loader, Popup, Responsive } from 'semantic-ui-react'
+import { Button, Dimmer, Icon, Image, Item, Loader, Popup } from 'semantic-ui-react'
 
 import './components.styl'
 import * as lms from './lmsclient'
@@ -219,8 +219,13 @@ export class TrackInfoButton extends React.Component {
     if (this.state.isPopped && props.setHideTrackInfoCallback) {
       props.setHideTrackInfoCallback(this.onHide.bind(this))
     }
-    return <span className="gap-right">
-      <Responsive minWidth={501} as="span">
+    return props.smallScreen ?
+      <TrackInfoIcon
+        {...props}
+        smallScreen
+        onClick={this.onLoadInfoInMenu.bind(this)}
+      /> :
+      <span className="gap-right">
         <Popup
             trigger={
               <TrackInfoIcon {...props} onClick={this.onShowPopup.bind(this)} />
@@ -237,11 +242,7 @@ export class TrackInfoButton extends React.Component {
             onClose={this.onHide.bind(this)}
           />
         </Popup>
-      </Responsive>
-      <Responsive maxWidth={500} as="span">
-        <TrackInfoIcon {...props} onClick={this.onLoadInfoInMenu.bind(this)} />
-      </Responsive>
-    </span>
+      </span>
   }
 }
 
@@ -251,32 +252,32 @@ TrackInfoButton.contextTypes = {
 
 export const TrackInfoIcon = props => {
   const icon = props.icon || "info circle"
-  if (props.showInfoIcon) {
-    return <Icon
-      onClick={props.onClick}
-      className="tap-zone"
-      name={icon}
-      size="large"
-      fitted />
-  }
+  const floated = props.smallScreen ? " left floated" : ""
+  const size = props.smallScreen ? "big" : "large"
+  const dim = props.smallScreen ? "30px" : "18px"
+  const dims = {height: dim, width: dim}
+  const iconDims = props.smallScreen ? dims : {}
   return <div
-      onClick={props.onClick}
-      className="hover-icon-container tap-zone">
-    { props.activeIcon ?
+    onClick={props.onClick}
+    className={"hover-icon-container tap-zone" + floated}
+  >
+    { props.showInfoIcon || props.activeIcon ?
       <Icon
         className="hover-icon"
-        name={props.activeIcon}
-        size="large"
-        fitted /> :
+        name={props.showInfoIcon ? icon : props.activeIcon}
+        size={size}
+        style={iconDims}
+        fitted
+      /> :
       <Image
         src={lms.getImageUrl(props.item)}
         className="tap-zone hover-icon"
-        height="18px"
-        width="18px"
-        ui inline />
+        style={dims}
+        ui inline
+      />
     }
     <div className="middle">
-      <Icon name={icon} size="large" fitted />
+      <Icon name={icon} size={size} style={iconDims} fitted />
     </div>
   </div>
 }

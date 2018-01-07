@@ -2,6 +2,7 @@ import { List as IList, Map, Range, Set, fromJS } from 'immutable'
 import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
+import Media from 'react-media'
 import { Button, Confirm, List } from 'semantic-ui-react'
 
 import { DragHandle, TrackInfoButton } from './components'
@@ -573,31 +574,43 @@ export class PlaylistItem extends React.Component {
         </List.Description>
       </List.Content>
       <List.Content>
-        <List.Description className="title">
-          <TrackInfoButton
-            {...props}
-            item={info || item}
-            isLoading={!info}
-            onOpen={this.onOpenPopup.bind(this)}
-            button={
-              <Button icon="play"
-                onClick={props.playTrack}
-                className="tr-corner" />
-            }
-          />
-          <SongTitle item={item} />
-        </List.Description>
+        <Media query="(max-width: 500px)">
+        { smallScreen =>
+          <List.Description className="title">
+            <TrackInfoButton
+              {...props}
+              smallScreen={smallScreen}
+              item={info || item}
+              isLoading={!info}
+              onOpen={this.onOpenPopup.bind(this)}
+              button={
+                <Button icon="play"
+                  onClick={props.playTrack}
+                  className="tr-corner" />
+              }
+            />
+            <SongTitle item={item} smallScreen={smallScreen} />
+          </List.Description>
+        }
+        </Media>
       </List.Content>
     </TouchList.Item>
   }
 }
 
-const SongTitle = props => {
-  const {artist, title, tracknum} = props.item
+const SongTitle = ({item, smallScreen}) => {
+  const {artist, title, tracknum} = item
+  const track = tracknum ? <span className="deemphasize">{tracknum + " "}</span> : ""
+  if (smallScreen) {
+    return <div>
+      <div>{track}{title}</div>
+      <div className="deemphasize">{artist}</div>
+    </div>
+  }
   const spacer = artist && (tracknum || title) ? " - " : ""
   return <span>
     <span>{artist + spacer}</span>
-    { tracknum ? <span className="deemphasize">{tracknum + " "}</span> : "" }
+    {track}
     <span>{title}</span>
   </span>
 }
