@@ -8,6 +8,7 @@ import * as lms from './lmsclient'
 import { formatTime } from './util'
 
 export const MediaInfo = (props, context) => {
+  const showMediaInfo = props.showMediaInfo || context.showMediaInfo
   const item = props.item
   const track = {
     type: "track",
@@ -42,7 +43,7 @@ export const MediaInfo = (props, context) => {
           <Item.Header>{item.title}</Item.Header>
           {_.map(["artist", "album"], key => item.hasOwnProperty(key) ?
             <Item.Description key={key}>
-              {drillable(item, key, props.showMediaInfo || context.showMediaInfo)}
+              {drillable(item, key, showMediaInfo)}
             </Item.Description> : ""
           )}
         </Item.Content>
@@ -53,7 +54,7 @@ export const MediaInfo = (props, context) => {
           {_.map(MEDIA_INFO, info =>
             !info.display(item[info.key], item, info.key) ? null :
               <Item.Description key={info.key}>
-                {info.name}: {info.transform(item[info.key], item, info, props)}
+                {info.name}: {info.transform(item[info.key], item, info, showMediaInfo)}
               </Item.Description>
           )}
         </Item.Content>
@@ -94,8 +95,8 @@ const DRILL_KEYS = {
   conductor: "contributor",
 }
 
-function drillTransform(value, item, info, props) {
-  return drillable(item, info.key, props)
+function drillTransform(value, item, info, showMediaInfo) {
+  return drillable(item, info.key, showMediaInfo)
 }
 
 function urlToPath(url, item) {
