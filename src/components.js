@@ -260,7 +260,7 @@ export const TrackInfoIcon = props => {
   const icon = props.icon || "info circle"
   const floated = props.smallScreen ? " left floated" : ""
   const size = props.smallScreen ? "big" : "large"
-  const dim = props.smallScreen ? "30px" : "18px"
+  const dim = props.smallScreen ? "32px" : "18px"
   const dims = {height: dim, width: dim}
   const iconDims = props.smallScreen ? dims : {}
   return <div

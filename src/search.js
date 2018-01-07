@@ -2,6 +2,7 @@ import { List as IList, Map, Set, fromJS } from 'immutable'
 import _ from 'lodash'
 import qs from 'query-string'
 import React from 'react'
+import Media from 'react-media'
 import { Link, Route } from 'react-router-dom'
 import { Breadcrumb, Input, List, Segment } from 'semantic-ui-react'
 
@@ -142,14 +143,14 @@ const NEXT_SECTION = {
     param: "artist_id",
     type: "album",
     loop: "albums_loop",
-    tags: "lj",
+    tags: "alj",  // artist, album, artwork_track_id
   },
   album: {
     cmd: "titles",
     param: "album_id",
     type: "track",
     loop: "titles_loop",
-    tags: "c",
+    tags: "acj",  // artist, coverid, artwork_track_id
   },
   track: {
     cmd: "songinfo",
@@ -157,6 +158,10 @@ const NEXT_SECTION = {
     type: "info",
     tags: "aAcCdefgiIjJkKlLmMnopPDUqrROSstTuvwxXyY",
   }
+}
+const SECONDARY_INFO = {
+  album: item => item.artist || "",
+  track: item => item.artist || "",
 }
 
 const actions = reducer.actions
@@ -383,7 +388,7 @@ export class SearchResults extends React.PureComponent {
   render() {
     const bySection = this.state.itemsBySection
     const selection = this.state.selection
-    return (
+    return <Media query="(max-width: 500px)">{ smallScreen =>
       <TouchList
           dataType={SEARCH_RESULTS}
           items={this.state.items}
@@ -397,6 +402,7 @@ export class SearchResults extends React.PureComponent {
               </List.Item>
             ].concat(_.map(items, item =>
               <SearchResult
+                smallScreen={smallScreen}
                 showMediaInfo={this.props.showMediaInfo}
                 playItem={this.playItem.bind(this)}
                 playNext={ selection.size <= 1 || !selection.has(item.index) ?
@@ -408,12 +414,18 @@ export class SearchResults extends React.PureComponent {
           }
         })}
       </TouchList>
-    )
+    }</Media>
   }
 }
 
 const SearchResult = props => {
   const item = props.item
+  const smallScreen = props.smallScreen
+  const gap = smallScreen ? null : "gap-left"
+  let secondaryInfo = ""
+  if (smallScreen && SECONDARY_INFO.hasOwnProperty(item.type)) {
+    secondaryInfo = SECONDARY_INFO[item.type](item)
+  }
   return <TouchList.Item
       onDoubleClick={() => props.playOrEnqueue(item)}
       index={item.index}
@@ -423,8 +435,13 @@ const SearchResult = props => {
         <TrackInfoIcon
           {...props}
           icon={item.type === "track" ? null : "plus square outline"}
-          onClick={() => props.showMediaInfo(item)} />
-        <span className="gap-left">{item[item.type]}</span>
+          onClick={() => props.showMediaInfo(item)}
+          smallScreen={smallScreen}
+        />
+        <span className={gap}>{item[item.type]}</span>
+        { smallScreen && secondaryInfo ?
+          <div className="deemphasize">{secondaryInfo}</div> : null
+        }
       </List.Description>
     </List.Content>
     <List.Content className="playlist-controls tap-zone">
