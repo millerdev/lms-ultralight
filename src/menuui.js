@@ -1,6 +1,7 @@
 import React from 'react'
+import Media from 'react-media'
 import { Link, Route, Switch } from 'react-router-dom'
-import { Icon, Menu, Message, Responsive, Sidebar, Transition } from 'semantic-ui-react'
+import { Icon, Menu, Message, Sidebar, Transition } from 'semantic-ui-react'
 
 import * as players from './playerselect'
 import { MediaSearch } from './search'
@@ -30,27 +31,29 @@ export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ..
         </Message.Content>
       </Message>
     </Transition>
-    <Responsive minWidth={501}>
-      <Route path="/menu" children={({match: menuOpen}) => (
-        <Sidebar
-            as="div"
-            className="sidebar"
-            animation="push"
-            width="wide"
-            visible={!!menuOpen}>
-          <MenuItems {...props} />
-        </Sidebar>
-      )} />
-      <Sidebar.Pusher>
-        <MainView {...props} />
-      </Sidebar.Pusher>
-    </Responsive>
-    <Responsive maxWidth={500}>
+    <Media query="(max-width: 500px)">
+    { smallScreen => smallScreen ?
       <Switch>
         <Route path="/menu" render={() => <MenuItems {...props} />} />
         <Route render={() => <MainView {...props} />} />
-      </Switch>
-    </Responsive>
+      </Switch> :
+      <div>
+        <Route path="/menu" children={({match: menuOpen}) => (
+          <Sidebar
+              as="div"
+              className="sidebar"
+              animation="push"
+              width="wide"
+              visible={!!menuOpen}>
+            <MenuItems {...props} />
+          </Sidebar>
+        )} />
+        <Sidebar.Pusher>
+          <MainView {...props} />
+        </Sidebar.Pusher>
+      </div>
+    }
+    </Media>
   </div>
 )
 
