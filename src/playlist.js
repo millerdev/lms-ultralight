@@ -563,19 +563,23 @@ export class PlaylistItem extends React.Component {
     const props = this.props
     const item = props.item
     const info = props.fullTrackInfo[item.id]
-    return <TouchList.Item
+    return <Media query="(max-width: 500px)">{ smallScreen => {
+      const heightStyle = smallScreen ? {height: 32} : {}
+      return <TouchList.Item
         index={props.index}
         onDoubleClick={props.playTrack}
-        draggable>
-      <List.Content floated="right">
-        <List.Description className={props.touching ? "drag-handle" : ""}>
-          {formatTime(item.duration || 0)}
-          {props.touching ? <DragHandle /> : ""}
-        </List.Description>
-      </List.Content>
-      <List.Content>
-        <Media query="(max-width: 500px)">
-        { smallScreen =>
+        draggable
+      >
+        <List.Content floated="right">
+          <List.Description
+            className={props.touching ? "drag-handle" : ""}
+            style={heightStyle}
+          >
+            {formatTime(item.duration || 0)}
+            {props.touching ? <DragHandle /> : ""}
+          </List.Description>
+        </List.Content>
+        <List.Content>
           <List.Description className="title">
             <TrackInfoButton
               {...props}
@@ -591,10 +595,9 @@ export class PlaylistItem extends React.Component {
             />
             <SongTitle item={item} smallScreen={smallScreen} />
           </List.Description>
-        }
-        </Media>
-      </List.Content>
-    </TouchList.Item>
+        </List.Content>
+      </TouchList.Item>
+    }}</Media>
   }
 }
 
