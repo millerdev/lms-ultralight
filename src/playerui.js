@@ -11,6 +11,8 @@ import { formatTime } from './util'
 import 'font-awesome/css/font-awesome.css'
 import './player.styl'
 
+const ToolTipSlider = Slider.createSliderWithTooltip(Slider)
+
 const NWayButton = props => {
   const next = props.value + 1 >= props.markup.length ? 0 : props.value + 1
   return <Button
@@ -51,7 +53,7 @@ export class SeekBar extends React.Component {
         {formatTime(elapsed)}
       </div>
       <div className="ten wide mobile twelve wide tablet fourteen wide computer column">
-        <Slider
+        <ToolTipSlider
           max={_.max([total, elapsed, 1])}
           value={this.state.seeking ? this.state.seek : elapsed}
           onBeforeChange={seek => this.setState({seeking: true, seek})}
@@ -81,7 +83,7 @@ export class VolumeSlider extends React.Component {
   }
   render() {
     const props = this.props
-    return <Slider
+    return <ToolTipSlider
       marks={this.marks}
       value={this.state.sliding ? this.state.level : props.volumeLevel}
       onBeforeChange={level => this.setState({sliding: true, level})}

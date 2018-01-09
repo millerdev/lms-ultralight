@@ -1,11 +1,6 @@
 # TODO
 
-x- large touchlist icons on small screens
-x  - playlist
-x  - menu
-x- show track info (tap playlist icon) on small screen has wrong buttons, buttons modify playlist
-xx- use HashRouter instead of BrowserRouter
-- volume value indicator should be below volume bar
+- show track info segment with slide down transition (hide with slide up)
 
 - fix buttons stay in hover state after click
 - fix auto-advance to next track after play previous then skip to end
