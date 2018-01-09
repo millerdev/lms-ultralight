@@ -3,9 +3,9 @@ import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
 import Media from 'react-media'
-import { Button, Confirm, List } from 'semantic-ui-react'
+import { Button, Confirm, List, Segment } from 'semantic-ui-react'
 
-import { DragHandle, TrackInfoButton } from './components'
+import { DragHandle, MediaInfo, TrackInfoIcon } from './components'
 import { effect, combine } from './effects'
 import * as lms from './lmsclient'
 import { SEARCH_RESULTS } from './search'
@@ -540,10 +540,15 @@ Playlist.contextTypes = {
 }
 
 export class PlaylistItem extends React.Component {
-  shouldComponentUpdate(props) {
+  constructor(props) {
+    super(props)
+    this.state = {expanded: false}
+  }
+  shouldComponentUpdate(props, state) {
     // Need this because props.item is always a new object
     const old = this.props
     return (
+      this.state.expanded !== state.expanded ||
       old.index !== props.index ||
       old.item.id !== props.item.id ||
       old.touching !== props.touching ||
@@ -552,12 +557,25 @@ export class PlaylistItem extends React.Component {
       old.fullTrackInfo[old.item.id] !== props.fullTrackInfo[props.item.id]
     )
   }
-  onOpenPopup() {
-    const props = this.props
-    const info = props.fullTrackInfo[props.item.id]
-    if (!info || info.expirationDate < new Date()) {
-      loadTrackInfo(props.item.id).then(props.dispatch)
+  onToggleInfo(event) {
+    this.setState((state, props) => {
+      state = _.clone(state)
+      state.expanded = !state.expanded
+      if (state.expanded) {
+        const info = props.fullTrackInfo[props.item.id]
+        if (!info || info.expirationDate < new Date()) {
+          loadTrackInfo(props.item.id).then(props.dispatch)
+        }
+      }
+      return state
+    })
+    event.stopPropagation()
+  }
+  onCollapseInfo(event) {
+    if (this.state.expanded) {
+      this.setState({expanded: false})
     }
+    event.stopPropagation()
   }
   render() {
     const props = this.props
@@ -581,21 +599,37 @@ export class PlaylistItem extends React.Component {
         </List.Content>
         <List.Content>
           <List.Description className="title">
-            <TrackInfoButton
-              {...props}
-              smallScreen={smallScreen}
-              item={info || item}
-              isLoading={!info}
-              onOpen={this.onOpenPopup.bind(this)}
-              button={
-                <Button icon="play"
-                  onClick={props.playTrack}
-                  className="tr-corner" />
-              }
-            />
+            <span className={smallScreen ? "" : "gap-right"}>
+              <TrackInfoIcon
+                item={item}
+                activeIcon={props.activeIcon}
+                showInfoIcon={props.showInfoIcon}
+                onClick={this.onToggleInfo.bind(this)}
+                smallScreen={smallScreen}
+              />
+            </span>
             <SongTitle item={item} smallScreen={smallScreen} />
           </List.Description>
         </List.Content>
+        { this.state.expanded ?
+          <Segment
+            className="tap-zone no-drag"
+            onClick={event => event.stopPropagation()}
+            onDoubleClick={event => event.stopPropagation() && false}
+          >
+            <MediaInfo
+              item={info || item}
+              isLoading={!info}
+              button={
+                <Button icon="play"
+                  onClick={props.playTrack}
+                  className="tr-corner"
+                />
+              }
+              onClose={this.onCollapseInfo.bind(this)}
+            />
+          </Segment> : null
+        }
       </TouchList.Item>
     }}</Media>
   }

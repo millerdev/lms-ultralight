@@ -420,7 +420,11 @@ function makeSlider(touchlist) {
     if (event.touches.length > 1) {
       return
     }
-    const pos = startPosition = latestPosition = position(event, true)
+    const pos = position(event, true)
+    if (hasClass(pos.target, "no-drag")) {
+      return
+    }
+    startPosition = latestPosition = pos
     const isSelected = touchlist.state.selection.has(pos.index)
     if (touchlist.props.onMoveItems) {
       event.target.dataset.touchlistId = touchlist.id
@@ -608,6 +612,11 @@ function makeSlider(touchlist) {
     return a > b ? index + 1 : index
   }
   function dragStart(event, index) {
+    const target = document.elementFromPoint(event.clientX, event.clientY)
+    if (hasClass(target, "no-drag")) {
+      event.preventDefault()
+      return
+    }
     const mayMove = touchlist.props.onMoveItems
     if (mayMove) {
       event.dataTransfer.effectAllowed = "move"
