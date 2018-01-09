@@ -44,9 +44,12 @@ const Playlist = connect(
   state => state.get("playlist").toObject()
 )(playlist.Playlist)
 
+const ultralight = /\/ultralight(\/?|$)/.test(window.location.pathname)
+const basename = ultralight ? "/ultralight" : "/"
+
 const App = () => (
   <Provider store={store}>
-    <Router>
+    <Router basename={basename}>
       <MainMenu>
         <Player />
         <Playlist />
