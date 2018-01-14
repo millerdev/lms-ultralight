@@ -22,6 +22,7 @@ export const defaultState = Map({
 export const reducer = makeReducer({
   mediaSearch: (state, action, query, ...args) => {
     if (!query) {
+      afterMediaSearch(null, query, ...args)
       return defaultState
     }
     return combine(
@@ -57,25 +58,29 @@ const getDefaultNavState = basePath => ({
  *
  * @returns a promise that resolves to an action
  */
-const doMediaSearch = (query, history, location, basePath) => {
+const doMediaSearch = (query, ...args) => {
   return lms.command("::", "search", 0, 10, "term:" + query, "extended:1")
     .then(json => {
-      const path = basePath + "?q=" + query
-      const state = {
-        name: query,
-        query,
-        result: json.data.result,
-        linkTo: {pathname: basePath, search: "?q=" + query},
-        previous: getDefaultNavState(basePath),
-      }
-      if (location.pathname === basePath) {
-        history.replace(path, state)
-      } else {
-        history.push(path, state)
-      }
+      afterMediaSearch(json.data.result, query, ...args)
       return actions.doneSearching()
     })
     .catch(error => actions.mediaError(error))
+}
+
+const afterMediaSearch = (result, query, history, location, basePath) => {
+  const path = basePath + (query ? "?q=" + query : "")
+  const state = {
+    name: query,
+    query,
+    result,
+    linkTo: {pathname: basePath, search: query ? "?q=" + query : ""},
+    previous: query ? getDefaultNavState(basePath) : null,
+  }
+  if (query && location.pathname === basePath) {
+    history.replace(path, state)
+  } else {
+    history.push(path, state)
+  }
 }
 
 /**
@@ -182,7 +187,7 @@ export class RoutedMediaSearch extends React.Component {
   constructor(props) {
     super(props)
     this.timer = timer()
-    this.state = this.updateLocationState(props)
+    this.updateLocationState(props)
   }
   componentDidMount() {
     this.focusInput()
@@ -190,29 +195,20 @@ export class RoutedMediaSearch extends React.Component {
   componentWillUnmount() {
     this.timer.clear()
   }
-  shouldComponentUpdate(props, state) {
+  shouldComponentUpdate(props) {
     return _.some(this.props, (value, key) =>
         !IGNORE_DIFF[key] && props[key] !== value) ||
-      _.some(this.state, (value, key) => state[key] !== value) ||
       !_.isEqual(_.keys(props), _.keys(this.props))
-  }
-  componentWillReceiveProps(props) {
-    const state = this.updateLocationState(props)
-    if (state.query !== this.state.query) {
-      this.setState(state)
-    }
   }
   updateLocationState(props) {
     const {basePath, match, history, location, isSearching} = props
     const state = location.state || {}
-    let query = this.state ? this.state.query : ""
     if (match && match.params.id) {
       if (!isSearching) {
         if (!state.result) {
           const {params: {type, id}} = match
           this.props.showMediaInfo({type, [type + "_id"]: id})
         }
-        query = ""
       }
     } else if (location.search) {
       const params = qs.parse(location.search)
@@ -224,12 +220,9 @@ export class RoutedMediaSearch extends React.Component {
           basePath,
         ))
       }
-      query = params.q || ""
     }
-    return {query}
   }
   onSearch(query) {
-    this.setState({query})
     this.timer.clear()
     this.timer.after(350, () => {
       const {history, location, basePath, dispatch} = this.props
@@ -238,7 +231,6 @@ export class RoutedMediaSearch extends React.Component {
   }
   onClearSearch() {
     const {history, location, basePath} = this.props
-    this.setState({query: ""})
     this.props.dispatch(actions.mediaSearch("", history, location, basePath))
     this.input.inputRef.value = ""
     this.input.focus()
@@ -258,16 +250,15 @@ export class RoutedMediaSearch extends React.Component {
   render() {
     const props = this.props
     const {name, result, previous} = props.location.state || {}
-    const query = this.state.query
+    const inputHasValue = !!(this.input && this.input.inputRef.value)
     return <div>
       <Input
         ref={this.setSearchInput.bind(this)}
-        value={query}
         onChange={(e, {value}) => this.onSearch(value)}
         className="icon"
         icon={{
-          name: query ? "x" : "search",
-          link: !!query,
+          name: inputHasValue ? "x" : "search",
+          link: inputHasValue,
           onClick: () => this.onClearSearch(),
         }}
         loading={props.isSearching}
