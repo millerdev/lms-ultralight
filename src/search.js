@@ -388,7 +388,7 @@ export class SearchResults extends React.PureComponent {
           if (bySection.hasOwnProperty(section)) {
             const items = bySection[section]
             return [
-              <List.Item>
+              <List.Item key={section}>
                 <List.Header>{SECTION_NAMES[section]}</List.Header>
               </List.Item>
             ].concat(_.map(items, item =>
@@ -400,7 +400,8 @@ export class SearchResults extends React.PureComponent {
                   this.props.playctl.playNext : null}
                 addToPlaylist={this.addToPlaylist.bind(this)}
                 playOrEnqueue={this.playOrEnqueue.bind(this)}
-                item={item} />
+                item={item}
+                key={item.type + "-" + item[item.type + "_id"]} />
             ))
           }
         })}

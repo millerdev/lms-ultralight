@@ -10,10 +10,6 @@
   "plugins": [
     "react"
   ],
-  "ecmaFeatures": {
-    "jsx": true,
-    "modules": true
-  },
   "rules": {
     "quotes": 0,
     "no-console": 1,

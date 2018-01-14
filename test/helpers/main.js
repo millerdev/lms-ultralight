@@ -2,7 +2,7 @@ global.chai = require('chai')
 global.assert = chai.assert
 global.expect = chai.expect
 
-const Adapter = require('enzyme-adapter-react-15')
+const Adapter = require('enzyme-adapter-react-16')
 require('enzyme').configure({adapter: new Adapter()})
 
 chai.should()

@@ -26,7 +26,6 @@ const GLOBALS = {
 /*############## PLUGINS ##############*/
 
 let plugins = [
-  new webpack.optimize.OccurenceOrderPlugin(),
   new webpack.DefinePlugin(GLOBALS),
   new CopyWebpackPlugin([{from: "src/static"}]),
   // this plugin injects your resources to the index file
@@ -35,120 +34,165 @@ let plugins = [
     showErrors: DEBUG,
     template: 'src/static/index.html',
     inject: 'body'
-  })
+  }),
+  new webpack.LoaderOptionsPlugin({
+    options: {
+      eslint: { failOnWarning: DEBUG },
+      postcss: [ autoprefixer({ browsers: ['last 2 versions'] }) ],
+    },
+  }),
 ];
 
 if (!DEBUG) {
-  plugins.push(new ExtractTextPlugin('css/[name]-[hash].css', {allChunks: false}));
-  plugins.push(new webpack.optimize.DedupePlugin());
-  plugins.push(new webpack.optimize.UglifyJsPlugin({compressor: {warnings: false}}));
-  plugins.push(new webpack.optimize.AggressiveMergingPlugin());
-  plugins.push(new webpack.optimize.MinChunkSizePlugin({minChunkSize: 5000}));
+  plugins = plugins.concat([
+    new ExtractTextPlugin({
+      filename: 'css/[name]-[contenthash].css',
+      allChunks: false,
+      disable: DEBUG,
+    }),
+    new webpack.optimize.UglifyJsPlugin({sourceMap: true}),
+    new webpack.optimize.AggressiveMergingPlugin(),
+    new webpack.optimize.MinChunkSizePlugin({minChunkSize: 5000}),
+  ]);
 }
 
 
 /*############## LOADERS ##############*/
 
-let stylLoader;
-if (DEBUG) {
-  stylLoader = 'style!css?localIdentName=[local]-[hash:base64:4]&sourceMap!stylus?sourceMap';
-}
-else {
-  stylLoader = ExtractTextPlugin.extract(
-    "style",
-    "css?localIdentName=[local]-[hash:base64:4]&sourceMap!stylus?sourceMap&outputStyle=compressed"
-  );
-}
+const stylusConfig = ["css-loader", "stylus-loader"];
+const stylusLoader = DEBUG ?
+  ["style-loader"].concat(stylusConfig) :
+  ExtractTextPlugin.extract({fallback: "style-loader", use: stylusConfig})
 
-const loaders = [
+const rules = [
   {
     test: /\.css$/,
-    loader: 'style!css'
+    use: [
+      "style-loader",
+      "css-loader",
+    ],
   },
   {
     test: /\.styl$/,
-    loader: stylLoader
+    use: stylusLoader,
   },
   {
     test: /\.font\.js$/,
-    loader: "style!css!fontgen"
+    use: [
+      "style-loader",
+      "css-loader",
+      "fontgen-loader",
+    ],
   },
   {
     test: /\.js$/,
-    loader: 'babel!eslint',
+    use: [
+      "babel-loader",
+      "eslint-loader",
+    ],
     include: path.join(__dirname, 'src')
   },
   {
     test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
-    loader: "url?limit=10000&mimetype=application/font-woff"
+    use: [
+      {
+        loader: "url-loader",
+        options: {limit: 10000, mimetype: "application/font-woff"}
+      },
+    ],
   },
   {
     test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
-    loader: "url?limit=10000&mimetype=application/font-woff"
+    use: [
+      {
+        loader: "url-loader",
+        options: {limit: 10000, mimetype: "application/font-woff"}
+      },
+    ],
   },
   {
     test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-    loader: "url?limit=10000&mimetype=application/octet-stream"
+    use: [
+      {
+        loader: "url-loader",
+        options: {limit: 10000, mimetype: "application/octet-stream"}
+      },
+    ],
   },
   {
     test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-    loader: "file"
+    use: [
+      "file-loader"
+    ],
   },
   {
     test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-    loader: "url?limit=10000&mimetype=image/svg+xml"
+    use: [
+      {
+        loader: "url-loader",
+        options: {limit: 10000, mimetype: "image/svg+xml"}
+      },
+    ],
   },
   {
     test: /\.gif$/,
-    loader: 'url?limit=10000&mimetype=image/gif'
+    use: [
+      {
+        loader: "url-loader",
+        options: {limit: 10000, mimetype: "image/gif"}
+      },
+    ],
   },
   {
     test: /\.(jpg|jpeg)$/,
-    loader: 'url?limit=10000&mimetype=image/jpg'
+    use: [
+      {
+        loader: "url-loader",
+        options: {limit: 10000, mimetype: "image/jpg"}
+      },
+    ],
   },
   {
     test: /\.png$/,
-    loader: 'url?limit=10000&mimetype=image/png'
+    use: [
+      {
+        loader: "url-loader",
+        options: {limit: 10000, mimetype: "image/png"}
+      },
+    ],
   },
   {
     test: /\.svg$/,
-    loader: 'url?limit=10000&mimetype=image/svg+xml'
+    use: [
+      {
+        loader: "url-loader",
+        options: {limit: 10000, mimetype: "image/svg+xml"}
+      },
+    ],
   },
-  {
-    test: /\.json$/,
-    loader: 'json'
-  }
 ];
 
 
 /*############## OPTIONS ##############*/
 
 module.exports = {
-  debug: false,
   devtool: DEBUG ? 'eval' : 'none',
-  noInfo: true,
   entry: {
     app: './src/index.js'
   },
   target: 'web',
   output: {
     path: __dirname + '/dist',
-    filename: !DEBUG ? 'js/[name]-[hash].js' : 'js/[name]-.js',
+    filename: !DEBUG ? 'js/[name]-[hash].js' : 'js/[name].js',
     chunkFilename: "js/[name]-[chunkhash].js",
     publicPath: !DEBUG ? '/ultralight/' : '/',
   },
   plugins: plugins,
-  module: {
-    loaders: loaders,
-    postcss: [ autoprefixer({ browsers: ['last 2 versions'] }) ],
-    eslint: {
-      failOnWarning: !DEBUG
-    }
-  },
+  module: {rules: rules},
   resolve: {
-    alias: {
-      src: path.resolve('src')
-    },
-    extensions: ['', '.js', '.scss', '.css']
+    modules: [
+      path.join(__dirname, "src"),
+      "node_modules",
+    ],
   }
 };

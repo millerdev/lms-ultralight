@@ -117,7 +117,7 @@ const PowerBar = props => {
 
 const PlayGroup = props => {
   const playctl = props.playctl
-  return <Menu.Menu position={props.position} icon>
+  return <Menu.Menu position={props.position}>
     <Menu.Item
         onClick={() => playctl.command("playlist", "index", "-1")}
         disabled={!playctl.playerid}
@@ -140,7 +140,7 @@ const PlayGroup = props => {
 }
 
 const VolumeGroup = ({playctl}) => {
-  return <Menu.Menu position="right" icon>
+  return <Menu.Menu position="right">
     <Menu.Item
         onClick={() => playctl.command("mixer", "volume", "-5")}
         disabled={!playctl.playerid}

@@ -7,7 +7,10 @@ import * as mod from '../src/touch'
 describe('TouchList', function () {
   function stateTest(name, act, startConfig, endConfig) {
     it(startConfig + " [" + name + "] -> " + endConfig, function () {
-      const touchlist = shallow(<mod.TouchList />).instance()
+      const touchlist = shallow(
+        <mod.TouchList />,
+        {disableLifecycleMethods: true},
+      ).instance()
       touchlist.setState(makeState(startConfig))
       act(touchlist)
       assert.equal(makeConfig(touchlist.state), endConfig)

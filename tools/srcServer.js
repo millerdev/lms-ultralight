@@ -15,7 +15,7 @@ webpackConfig.entry.app = ['webpack-hot-middleware/client?reload=true&noInfo=fal
 // add relevant plugins
 webpackConfig.plugins.push(
   new webpack.HotModuleReplacementPlugin(),
-  new webpack.NoErrorsPlugin()
+  new webpack.NoEmitOnErrorsPlugin()
 );
 
 const bundler = webpack(webpackConfig);
