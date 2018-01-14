@@ -41,6 +41,13 @@ let plugins = [
       postcss: [ autoprefixer({ browsers: ['last 2 versions'] }) ],
     },
   }),
+  new webpack.optimize.CommonsChunkPlugin({
+    name: 'vendor',
+    filename: 'vendor.[hash].js',
+    minChunks: module =>
+      module.context && module.context.indexOf('node_modules') >= 0,
+  }),
+  new webpack.optimize.ModuleConcatenationPlugin(),
 ];
 
 if (!DEBUG) {
@@ -50,7 +57,25 @@ if (!DEBUG) {
       allChunks: false,
       disable: DEBUG,
     }),
-    new webpack.optimize.UglifyJsPlugin({sourceMap: true}),
+    new webpack.optimize.UglifyJsPlugin({
+      sourceMap: true,
+      compress: {
+        warnings: false,
+        screw_ie8: true,
+        conditionals: true,
+        unused: true,
+        comparisons: true,
+        sequences: true,
+        dead_code: true,
+        evaluate: true,
+        if_return: true,
+        join_vars: true
+      },
+      output: {
+        comments: false
+      },
+    }),
+    new webpack.HashedModuleIdsPlugin(),
     new webpack.optimize.AggressiveMergingPlugin(),
     new webpack.optimize.MinChunkSizePlugin({minChunkSize: 5000}),
   ]);
