@@ -1,4 +1,4 @@
-# Ultralight (preview) - a Logitech Media Server skin
+# Ultralight - a Logitech Media Server skin
 
 Ultralight is a responsive skin for Logitech Media Server that works well
 on desktop and mobile browsers. 
