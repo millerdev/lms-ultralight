@@ -13,6 +13,10 @@ const PRODUCTION = 'production';
 const DEBUG = process.env.NODE_ENV !== PRODUCTION;
 const ENV = DEBUG ? DEVELOPMENT : PRODUCTION;
 
+// change 'eval' to 'source-map' for nicer debugging (and slower rebuilds)
+const devtool = DEBUG ? 'eval' : 'cheap-module-source-map'
+
+
 /*############## GLOBALS ##############*/
 
 const GLOBALS = {
@@ -54,11 +58,10 @@ if (!DEBUG) {
   plugins = plugins.concat([
     new ExtractTextPlugin({
       filename: 'css/[name]-[contenthash].css',
-      allChunks: false,
-      disable: DEBUG,
+      allChunks: true,
     }),
     new webpack.optimize.UglifyJsPlugin({
-      sourceMap: true,
+      sourceMap: devtool.indexOf("source-map") > -1,
       compress: {
         warnings: false,
         screw_ie8: true,
@@ -201,7 +204,7 @@ const rules = [
 /*############## OPTIONS ##############*/
 
 module.exports = {
-  devtool: DEBUG ? 'eval' : 'none',
+  devtool: devtool,
   entry: {
     app: './src/index.js'
   },
