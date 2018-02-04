@@ -4,7 +4,7 @@
 - fix auto-advance to next track after play previous then skip to end
   this appears to be a bug in LMS (can reproduce on stock web interface)
 
-- upgrade libraries
+x- upgrade libraries
 - get rid of immutable.js
 - replace semantic-ui-react with
   - https://material.io/ via https://github.com/jamesmfriedman/rmwc
