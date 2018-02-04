@@ -1,4 +1,4 @@
-import { List as IList, Map, Set, fromJS } from 'immutable'
+import { fromJS } from 'immutable'
 import _ from 'lodash'
 import qs from 'query-string'
 import React from 'react'
@@ -15,9 +15,9 @@ import { operationError, timer } from './util'
 
 export const SEARCH_RESULTS = "search results"
 
-export const defaultState = Map({
+export const defaultState = {
   isSearching: false,
-})
+}
 
 export const reducer = makeReducer({
   mediaSearch: (state, action, query, ...args) => {
@@ -26,21 +26,21 @@ export const reducer = makeReducer({
       return defaultState
     }
     return combine(
-      state.merge({isSearching: true}),
+      {...state, isSearching: true},
       [effect(doMediaSearch, query, ...args)],
     )
   },
   loadAndShowMediaInfo: (state, action, ...args) => {
     return combine(
-      state.merge({isSearching: true}),
+      {...state, isSearching: true},
       [effect(_loadAndShowMediaInfo, ...args)],
     )
   },
   doneSearching: state => {
-    return state.merge({isSearching: false})
+    return {...state, isSearching: false}
   },
   mediaError: (state, action, err, message) => combine(
-    state.merge({isSearching: false}),
+    {...state, isSearching: false},
     [effect(operationError, message || "Media error", err)],
   ),
 }, defaultState)
@@ -176,7 +176,7 @@ export const MediaSearch = props => {
   const path = basePath + "/:type(track|album|contributor|genre)/:id"
   return (
     <Route path={path} children={route => (
-      <RoutedMediaSearch {...props} {...props.search.toObject()} {...route} />
+      <RoutedMediaSearch {...props} {...props.search} {...route} />
     )} />
   )
 }
@@ -319,7 +319,7 @@ export class SearchResults extends React.PureComponent {
   constructor(props) {
     super(props)
     this.state = this.getItems(props.results)
-    _.merge(this.state, {selection: Set()})
+    _.merge(this.state, {selection: new Set()})
     this.hideTrackInfo = () => {}
   }
   componentWillReceiveProps(props) {
@@ -330,29 +330,25 @@ export class SearchResults extends React.PureComponent {
   getItems(results) {
     const itemsBySection = {}
     if (!results) {
-      return {items: IList(), itemsBySection}
+      return {items: [], itemsBySection}
     }
     let i = 0
     let items = []
     _.each(SECTIONS, section => {
       if (results[section + "s_count"]) {
         const sectionItems = _.map(results[section + "s_loop"],
-          item => _.assign({}, item, {index: i++, type: section})
+          item => ({...item, index: i++, type: section})
         )
         items = items.concat(sectionItems)
         itemsBySection[section] = sectionItems
       }
     })
-    return {items: fromJS(items), itemsBySection}
+    return {items, itemsBySection}
   }
   getSelected(item) {
     const selection = this.state.selection
     if (selection.has(item.index)) {
-      return this.state.items
-        .toSeq()
-        .filter(it => selection.has(it.get("index")))
-        .map(it => it.toObject())
-        .toArray()
+      return _.filter(this.state.items, it => selection.has(it.index))
     }
     return [item]
   }
@@ -382,7 +378,7 @@ export class SearchResults extends React.PureComponent {
     return <Media query="(max-width: 500px)">{ smallScreen =>
       <TouchList
           dataType={SEARCH_RESULTS}
-          items={this.state.items}
+          items={fromJS(this.state.items)}
           onSelectionChanged={this.onSelectionChanged.bind(this)}>
         {_.map(SECTIONS, section => {
           if (bySection.hasOwnProperty(section)) {
