@@ -10,7 +10,7 @@ import './menu.styl'
 export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ...props}) => (
   <div className="mainmenu">
     <PowerBar
-      players={players.toObject()}
+      players={players}
       onPlayerSelected={onPlayerSelected}
       {...props}
     />

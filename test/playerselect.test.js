@@ -1,10 +1,9 @@
-import { fromJS, Map } from 'immutable'
 import React from 'react'
 import { shallow } from 'enzyme'
 
 import * as mod from '../src/playerselect'
 
-const players = [
+const PLAYERS = [
   {playerid: "1:1:1:1", name: "One"},
   {playerid: "2:2:2:2", name: "Two"},
 ]
@@ -15,34 +14,31 @@ describe('playerselect', function () {
   describe('reducer', function () {
     describe('gotPlayers', function () {
       it('should add players to state', function () {
-        const action = actions.gotPlayers(players)
-        const result = mod.reducer(Map(), action)
-        assert.equal(result, fromJS({
-          players,
-          loading: false,
-          error: false,
-        }))
-      })
-
-      it('should set a flag on error', function () {
-        const state = fromJS({
-          players,
+        const action = actions.gotPlayers(PLAYERS)
+        const result = mod.reducer({}, action)
+        assert.deepEqual(result, {
+          players: PLAYERS,
           loading: false,
           error: false,
         })
-        const action = actions.gotPlayers()
+      })
+
+      it('should set a flag on error', function () {
+        const state = {
+          players: PLAYERS,
+          loading: false,
+          error: false,
+        }
+        const action = actions.gotPlayers(undefined)
         const result = mod.reducer(state, action)
-        assert.equal(result, state.set('error', true))
+        assert.deepEqual(result, {...state, error: true})
       })
     })
   })
 
   describe('<SelectPlayer />', function () {
     it('should transform players to options', function () {
-      const dom = shallow(
-        <mod.SelectPlayer
-          players={fromJS(players)}
-          />)
+      const dom = shallow(<mod.SelectPlayer players={PLAYERS} />)
       const dropdown = dom.find("Dropdown")
       assert.deepEqual(dropdown.props().options, [
         {value: "1:1:1:1", text: "One"},
@@ -54,7 +50,7 @@ describe('playerselect', function () {
     it('should set error flag on players error', function () {
       const dom = shallow(
         <mod.SelectPlayer
-          players={fromJS(players)}
+          players={PLAYERS}
           error={true}
           />)
       const dropdown = dom.find("Dropdown")

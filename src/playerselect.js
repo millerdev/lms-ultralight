@@ -1,4 +1,3 @@
-import { List, Map, fromJS } from 'immutable'
 import _ from 'lodash'
 import React from 'react'
 import { Dropdown } from 'semantic-ui-react'
@@ -7,27 +6,23 @@ import * as lms from './lmsclient'
 
 import makeReducer from './store'
 
-export const defaultState = Map({
-  players: List(),
+export const defaultState = {
+  players: [],
   loading: false,
   error: false,
-})
+}
 
 export const reducer = makeReducer({
-  loadingPlayers: state => {
-    return state.set('loading', true)
+  loadingPlayers: state => ({...state, loading: true}),
+  gotPlayers: (state, action, players) => {
+    const keeps = ["name", "playerid"]
+    return {
+      error: !players,
+      loading: false,
+      players: players ?
+        _.map(players, item => _.pick(item, keeps)) : state.players,
+    }
   },
-  gotPlayers: (state, action, players) => (
-    state.withMutations(map => {
-      map
-        .set('error', !players)
-        .set('loading', false)
-      if (players) {
-        const keeps = ["name", "playerid"]
-        map.set('players', fromJS(_.map(players, item => _.pick(item, keeps))))
-      }
-    })
-  ),
 }, defaultState)
 
 export const actions = reducer.actions
@@ -51,10 +46,10 @@ export const SelectPlayer = props => (
     placeholder="Select Player"
     onClick={() => maybeLoadPlayers(props.dispatch)}
     onChange={(e, { value }) => props.onPlayerSelected(value)}
-    options={props.players.toSeq().map(item => ({
-      text: item.get("name"),
-      value: item.get("playerid"),
-    })).toArray()}
+    options={_.map(props.players, item => ({
+      text: item.name,
+      value: item.playerid,
+    }))}
     value={props.playerid || ""}
     loading={props.loading}
     error={props.error}
