@@ -1,4 +1,3 @@
-import { Map } from 'immutable'
 import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
@@ -11,22 +10,22 @@ import * as search from './search'
 import makeReducer from './store'
 import { operationError, timer } from './util'
 
-export const defaultState = Map({
-  messages: Map(),
+export const defaultState = {
+  messages: {error: null},
   players: players.defaultState,
   search: search.defaultState,
-})
+}
 
 const messagesReducer = makeReducer({
   operationError: (state, action, message, context, showFor /* seconds */) => {
     window.console.log(message, context)  // HACK side effect
     return combine(
-      state.set("error", message),
+      {...state, error: message},
       [effect(hideOperationErrorAfter, showFor)],
     )
   },
   hideOperationError: state => {
-    return state.remove("error")
+    return {...state, error: null}
   },
 })
 
@@ -34,14 +33,14 @@ export const actions = messagesReducer.actions
 
 export function reducer(state=defaultState, action) {
   const [msgState, msgEffects] =
-    split(messagesReducer(state.get("messages"), action))
+    split(messagesReducer(state.messages, action))
   const [searchState, searchEffects] =
-    split(search.reducer(state.get("search"), action))
-  return combine(Map({
+    split(search.reducer(state.search, action))
+  return combine({
     messages: msgState,
-    players: players.reducer(state.get("players"), action),
+    players: players.reducer(state.players, action),
     search: searchState,
-  }), searchEffects.concat(msgEffects))
+  }, searchEffects.concat(msgEffects))
 }
 
 export const hideOperationErrorAfter = (() => {
@@ -116,9 +115,9 @@ export class MainMenu extends React.Component {
     const {menu, children, ...props} = this.props
     return <MainMenuUI
         playctl={this.playctl()}
-        players={menu.get("players")}
-        search={menu.get("search")}
-        messages={menu.get("messages").toObject()}
+        players={menu.players}
+        search={menu.search}
+        messages={menu.messages}
         onHideError={this.onHideError.bind(this)}
         onPlayerSelected={this.onPlayerSelected.bind(this)}
         showMediaInfo={this.showMediaInfo.bind(this)}

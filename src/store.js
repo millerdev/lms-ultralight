@@ -1,4 +1,3 @@
-import { Map } from 'immutable'
 import _ from 'lodash'
 import { createStore, compose } from 'redux'
 
@@ -64,7 +63,7 @@ export default function makeReducer(actionsToReducers, defaultState) {
   return reducer
 }
 
-export function makeStore(reducer, initialState=reducer.defaultState || Map()) {
+export function makeStore(reducer, initialState=reducer.defaultState || {}) {
   const store = createStore(reducer, initialState, enhancer)
   // disable adding more actions
   allActions = null

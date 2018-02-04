@@ -1,4 +1,3 @@
-import { Map } from 'immutable'
 import React from 'react'
 import { BrowserRouter as Router, withRouter } from 'react-router-dom'
 import { connect, Provider } from 'react-redux'
@@ -13,35 +12,36 @@ import * as player from './player'
 import * as playlist from './playlist'
 import { makeStore } from './store'
 
-const defaultState = Map({
+const defaultState = {
   menu: menu.defaultState,
   player: player.defaultState,
   playlist: playlist.defaultState,
-})
+}
 
 function reducer(state=defaultState, action) {
   const [menuState, menuEffects] =
-    split(menu.reducer(state.get("menu"), action))
+    split(menu.reducer(state.menu, action))
   const [playerState, playerEffects] =
-    split(player.reducer(state.get("player"), action))
+    split(player.reducer(state.player, action))
   const [playlistState, playlistEffects] =
-    split(playlist.reducer(state.get("playlist"), action))
-  return combine(Map({
+    split(playlist.reducer(state.playlist, action))
+  return combine({
     menu: menuState,
     player: playerState,
     playlist: playlistState,
-  }), menuEffects.concat(playerEffects).concat(playlistEffects))
+  }, menuEffects.concat(playerEffects).concat(playlistEffects))
 }
 
 const store = makeStore(reducer, defaultState)
-const MainMenu = withRouter(connect(state => state.toObject())(menu.MainMenu))
+const MainMenu = withRouter(connect(state => state)(menu.MainMenu))
 const Player = connect(state => {
-  const state_ = state.get("player").toObject()
-  state_.currentTrack = state.getIn(["playlist", "currentTrack"])
-  return state_
+  return {
+    ...state.player.toObject(),
+    currentTrack: state.playlist.get("currentTrack"),
+  }
 })(player.Player)
 const Playlist = connect(
-  state => state.get("playlist").toObject()
+  state => state.playlist.toObject()
 )(playlist.Playlist)
 
 const ultralight = /\/ultralight(\/?|$)/.test(window.location.pathname)
