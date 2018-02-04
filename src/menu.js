@@ -96,7 +96,7 @@ export class MainMenu extends React.Component {
   }
   playctl() {
     return playerControl(
-      this.props.player.get("playerid"),
+      this.props.player.playerid,
       this.props.dispatch,
       {
         player: this.props.player,

@@ -63,7 +63,7 @@ const MenuItems = ({player, playlist, ...props}) => (
       <MediaSearch
         {...props}
         basePath="/menu"
-        isPlaying={player.get("isPlaying")}
+        isPlaying={player.isPlaying}
         numTracks={playlist.get("numTracks")}
       />
     </Menu.Item>
@@ -79,7 +79,7 @@ const MainView = props => (
 )
 
 const PowerBar = props => {
-  const player = props.player.toObject()
+  const player = props.player
   return <Route path="/menu" children={({match: menuOpen}) => (
     <Menu className="power-bar" fixed="top" borderless>
       <Link to={ menuOpen ? "/" : "/menu" }>

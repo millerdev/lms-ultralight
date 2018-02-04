@@ -1,4 +1,3 @@
-import { Map } from 'immutable'
 import _ from 'lodash'
 import React from 'react'
 
@@ -12,7 +11,7 @@ export const STATUS_INTERVAL = 30  // seconds
 export const REPEAT_ONE = 1
 export const REPEAT_ALL = 2
 
-export const defaultState = Map({
+export const defaultState = {
   playerid: null,
   isPowerOn: false,
   isPlaying: false,
@@ -23,7 +22,7 @@ export const defaultState = Map({
   elapsedTime: 0,
   totalTime: null,
   localTime: null,
-})
+}
 
 export const reducer = makeReducer({
   gotPlayer: (state, action, status, {resetInterval=true}={}) => {
@@ -40,28 +39,25 @@ export const reducer = makeReducer({
       totalTime: isNumeric(status.duration) ? parseFloat(status.duration) : null,
       localTime: status.localTime,
     }
-    return combine(state.merge(data), [
+    return combine({...state, ...data}, [
       effect(advanceToNextTrackAfter, secondsToEndOfTrack(data), data.playerid),
       effect(loadPlayerAfter, resetInterval, data.playerid),
     ])
   },
   onPlayerControlScroll: (state, action, visible) => {
-    return state.set("isControlVisible", visible)
+    return {...state, isControlVisible: visible}
   },
   seek: (state, action, {playerid, value}, now=Date.now()) => {
-    if (state.get("playerid") === playerid) {
+    if (state.playerid === playerid) {
       return combine(
-        state.merge({elapsedTime: value, localTime: now}),
+        {...state, elapsedTime: value, localTime: now},
         [effect(seek, playerid, value)]
       )
     }
     return state
   },
   advanceToNextTrack: (state, action, playerid, now=Date.now()) => {
-    return state.merge({
-      elapsedTime: 0,
-      localTime: now,
-    })
+    return {...state, elapsedTime: 0, localTime: now}
   },
 }, defaultState)
 

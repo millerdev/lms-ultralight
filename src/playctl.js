@@ -28,7 +28,7 @@ export const playerControl = (playerid, dispatch, state) => {
   }
 
   self.togglePower = () => {
-    self.command("power", state.player.get("isPowerOn") ? 0 : 1)
+    self.command("power", state.player.isPowerOn ? 0 : 1)
   }
 
   self.command = (...args) => {
@@ -48,7 +48,7 @@ export const playerControl = (playerid, dispatch, state) => {
   self.playNext = item => {
     lms.playlistControl(playerid, "insert", item, dispatch)
       .then(success => {
-        if (success && !state.player.get("isPlaying")) {
+        if (success && !state.player.isPlaying) {
           lms.command(playerid, "playlist", "index", "+1")
             .then(() => loadPlayer(playerid))
             .catch(err => operationError("Play next error", err))
@@ -68,7 +68,7 @@ export const playerControl = (playerid, dispatch, state) => {
   self.playOrEnqueue = item => {
     if (!state.playlist.get("numTracks")) {
       self.playItems([item])
-    } else if (!state.player.get("isPlaying")) {
+    } else if (!state.player.isPlaying) {
       self.playNext(item)
     } else {
       self.addToPlaylist([item])

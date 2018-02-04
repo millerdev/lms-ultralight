@@ -35,10 +35,7 @@ function reducer(state=defaultState, action) {
 const store = makeStore(reducer, defaultState)
 const MainMenu = withRouter(connect(state => state)(menu.MainMenu))
 const Player = connect(state => {
-  return {
-    ...state.player.toObject(),
-    currentTrack: state.playlist.get("currentTrack"),
-  }
+  return {...state.player, currentTrack: state.playlist.get("currentTrack")}
 })(player.Player)
 const Playlist = connect(
   state => state.playlist.toObject()
