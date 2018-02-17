@@ -1,5 +1,5 @@
 import { shallow } from 'enzyme'
-import { fromJS, Map, Seq, Set } from 'immutable'
+import _ from 'lodash'
 import React from 'react'
 
 import { promiseChecker, rewire } from './util'
@@ -17,8 +17,8 @@ describe('playlist', function () {
       const gotPlayer = reduce.actions.gotPlayer
 
       it('should set current track and playlist metadata', function () {
-        const state = getState(reduce(mod.defaultState, gotPlayer(STATUS.toJS())))
-        assert.equal(state, STATE)
+        const state = getState(reduce(mod.defaultState, gotPlayer(STATUS)))
+        assert.deepEqual(state, STATE)
       })
 
       it('should clear playlist when playlist is empty', function () {
@@ -43,66 +43,70 @@ describe('playlist', function () {
           time: 0,
         }
         const state = getState(reduce(STATE, gotPlayer(data)))
-        assert.equal(state, mod.defaultState.set("playerid", PLAYERID))
+        assert.deepEqual(state, {...mod.defaultState, playerid: PLAYERID})
       })
 
       it('should clear selection on playerid change', function () {
-        const data = STATUS.set("playerid", PLAYERID + "1").toJS()
-        const state = STATE.set("selection", Set([1]))
+        const data = {...STATUS, playerid: PLAYERID + "1"}
+        const state = {...STATE, selection: new Set([1])}
         const result = getState(reduce(state, gotPlayer(data)))
-        assert.equal(result, state.merge({
+        assert.deepEqual(result, {...state,
           playerid: PLAYERID + "1",
-          selection: Set(),
-        }))
+          selection: new Set(),
+        })
       })
 
       it('should update playlist with playlist query', function () {
-        const state = getState(reduce(mod.defaultState, gotPlayer(STATUS.merge({
+        const state = getState(reduce(mod.defaultState, gotPlayer({
+          ...STATUS,
           isPlaylistUpdate: true,
           playlist_loop: PLAYLIST_1,
-        }).toJS())))
-        assert.equal(state, STATE.merge({
-          items: PLAYLIST_1,
-        }))
+        })))
+        assert.deepEqual(state, {...STATE, items: PLAYLIST_1})
       })
 
       it('should update playlist', function () {
-        const state = getState(reduce(mod.defaultState, gotPlayer(STATUS.merge({
+        const state = getState(reduce(mod.defaultState, gotPlayer({
+          ...STATUS,
           isPlaylistUpdate: true,
           playlist_loop: PLAYLIST_1,
-        }).toJS())))
-        assert.equal(state, STATE.set("items", PLAYLIST_1))
+        })))
+        assert.deepEqual(state, {...STATE, items: PLAYLIST_1})
       })
 
       it('should not change track info with playlist before current track', function () {
-        const state = getState(reduce(STATE, gotPlayer(STATUS.merge({
+        const state = getState(reduce(STATE, gotPlayer({
+          ...STATUS,
           isPlaylistUpdate: true,
           playlist_loop: PLAYLIST_0,
-        }).toJS())))
-        assert.equal(state, STATE.set("items", PLAYLIST_0))
+        })))
+        assert.deepEqual(state, {...STATE, items: PLAYLIST_0})
       })
 
       it('should not change track info with playlist after current track', function () {
-        const state = getState(reduce(STATE, gotPlayer(STATUS.merge({
+        const state = getState(reduce(STATE, gotPlayer({
+          ...STATUS,
           isPlaylistUpdate: true,
           playlist_loop: PLAYLIST_2,
-        }).toJS())))
-        assert.equal(state, STATE.set("items", STATE.get("items").concat(PLAYLIST_2)))
+        })))
+        assert.deepEqual(state, {...STATE, items: STATE.items.concat(PLAYLIST_2)})
       })
 
       it('should not fetch playlist on playlist update and playlist not changed', function () {
-        const effects = getEffects(reduce(STATE, gotPlayer(STATUS.merge({
+        const effects = getEffects(reduce(STATE, gotPlayer({
+          ...STATUS,
           isPlaylistUpdate: true,
           playlist_loop: PLAYLIST_2,
-        }).toJS())))
+        })))
         assert.deepEqual(effects, [])
       })
 
       it('should fetch playlist on playlist changed and not playlist update', function () {
-        const effects = getEffects(reduce(STATE, gotPlayer(STATUS.merge({
+        const effects = getEffects(reduce(STATE, gotPlayer({
+          ...STATUS,
           isPlaylistUpdate: false,
           playlist_tracks: 300,
-        }).toJS())))
+        })))
         assert.deepEqual(effects, [effect(
           mod.loadPlayer,
           PLAYERID,
@@ -111,11 +115,12 @@ describe('playlist', function () {
       })
 
       it('should fetch playlist on playlist changed and update after current track', function () {
-        const effects = getEffects(reduce(STATE, gotPlayer(STATUS.merge({
+        const effects = getEffects(reduce(STATE, gotPlayer({
+          ...STATUS,
           isPlaylistUpdate: true,
           playlist_loop: PLAYLIST_2,
           playlist_tracks: 300,
-        }).toJS())))
+        })))
         assert.deepEqual(effects, [effect(
           mod.loadPlayer,
           PLAYERID,
@@ -124,37 +129,42 @@ describe('playlist', function () {
       })
 
       it('should add items to end of playlist', function () {
-        const state = STATE.set("items", PLAYLIST_1)
-        const result = getState(reduce(state, gotPlayer(STATUS.merge({
+        const state = {...STATE, items: PLAYLIST_1}
+        const result = getState(reduce(state, gotPlayer({
+          ...STATUS,
           isPlaylistUpdate: true,
           playlist_loop: PLAYLIST_2,
-        }).toJS())))
-        assert.equal(result, STATE.merge({
+        })))
+        assert.deepEqual(result, {
+          ...STATE,
           currentIndex: 2,
           items: PLAYLIST_1.concat(PLAYLIST_2),
-        }))
+        })
       })
 
       it('should merge items with same index into playlist', function () {
-        const state = STATE.set("items", PLAYLIST_1)
-        const result = getState(reduce(state, gotPlayer(STATUS.merge({
+        const state = {...STATE, items: PLAYLIST_1}
+        const result = getState(reduce(state, gotPlayer({
+          ...STATUS,
           isPlaylistUpdate: true,
           playlist_loop: PLAYLIST_OVERLAP,
-        }).toJS())))
-        assert.equal(result, STATE.merge({
+        })))
+        assert.deepEqual(result, {
+          ...STATE,
           currentIndex: 2,
-          items: PLAYLIST_1.pop().concat(PLAYLIST_OVERLAP),
-        }))
+          items: PLAYLIST_1.slice(0, -1).concat(PLAYLIST_OVERLAP),
+        })
       })
     })
 
     describe('advanceToNextTrack', function () {
       const advanceToNextTrack = reduce.actions.advanceToNextTrack
       it('should load player status when next is unknown', function () {
-        const state1 = STATE.merge({
+        const state1 = {
+          ...STATE,
           currentIndex: 3,
           items: PLAYLIST_1.slice(2),
-        })
+        }
         const [state2, effects] =
           split(reduce(state1, advanceToNextTrack(PLAYERID)))
         assert.equal(state1, state2)
@@ -181,9 +191,9 @@ describe('playlist', function () {
           stripLastSelected(makeConfig(result)),
           stripLastSelected(endConfig)
         )
-        assert.equal(result, makeState(endConfig))
-        assert.equal(result.getIn(["currentTrack", "playlist index"]),
-                     result.get("currentIndex"))
+        assert.deepEqual(result, makeState(endConfig))
+        assert.equal(result.currentTrack["playlist index"],
+                     result.currentIndex)
         assert.deepEqual(effects, [])
       })
     }
@@ -247,7 +257,7 @@ describe('playlist', function () {
 
     it('should move single item down', function () {
       const foo = setup()
-      return mod.moveItems(Set([1]), 0, ...foo.args).then(moved => {
+      return mod.moveItems(new Set([1]), 0, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(1, 0),
         ])
@@ -257,7 +267,7 @@ describe('playlist', function () {
 
     it('should move single item up', function () {
       const foo = setup()
-      return mod.moveItems(Set([0]), 2, ...foo.args).then(moved => {
+      return mod.moveItems(new Set([0]), 2, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(0, 2),
         ])
@@ -267,7 +277,7 @@ describe('playlist', function () {
 
     it('should not move single item to own index', function () {
       const foo = setup()
-      return mod.moveItems(Set([1]), 1, ...foo.args).then(moved => {
+      return mod.moveItems(new Set([1]), 1, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [])
         assert(!moved, "should not have any moves")
       })
@@ -275,7 +285,7 @@ describe('playlist', function () {
 
     it('should not move single item to next index', function () {
       const foo = setup()
-      return mod.moveItems(Set([1]), 2, ...foo.args).then(moved => {
+      return mod.moveItems(new Set([1]), 2, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [])
         assert(!moved, "should not have any moves")
       })
@@ -283,7 +293,7 @@ describe('playlist', function () {
 
     it('should not move selected items up to next', function () {
       const foo = setup()
-      return mod.moveItems(Set([2, 3]), 4, ...foo.args).then(moved => {
+      return mod.moveItems(new Set([2, 3]), 4, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [])
         assert(!moved, "should not have any moves")
       })
@@ -291,7 +301,7 @@ describe('playlist', function () {
 
     it('should move unselected item above selection', function () {
       const foo = setup()
-      return mod.moveItems(Set([2, 3]), 1, ...foo.args).then(moved => {
+      return mod.moveItems(new Set([2, 3]), 1, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(1, 4),
         ])
@@ -301,7 +311,7 @@ describe('playlist', function () {
 
     it('should move unselected item below selection', function () {
       const foo = setup()
-      return mod.moveItems(Set([2, 3]), 5, ...foo.args).then(moved => {
+      return mod.moveItems(new Set([2, 3]), 5, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(4, 2),
         ])
@@ -311,7 +321,7 @@ describe('playlist', function () {
 
     it('should move (2) selected items down', function () {
       const foo = setup()
-      return mod.moveItems(Set([2, 3]), 0, ...foo.args).then(moved => {
+      return mod.moveItems(new Set([2, 3]), 0, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(2, 0),
           actions.playlistItemMoved(3, 1),
@@ -322,7 +332,7 @@ describe('playlist', function () {
 
     it('should move (2) selected items up', function () {
       const foo = setup()
-      return mod.moveItems(Set([2, 3]), 6, ...foo.args).then(moved => {
+      return mod.moveItems(new Set([2, 3]), 6, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(3, 6),
           actions.playlistItemMoved(2, 5),
@@ -333,7 +343,7 @@ describe('playlist', function () {
 
     it('should move (2) unselected items below (3) selected', function () {
       const foo = setup()
-      return mod.moveItems(Set([2, 3, 5]), 7, ...foo.args).then(moved => {
+      return mod.moveItems(new Set([2, 3, 5]), 7, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(4, 2),
           actions.playlistItemMoved(6, 3),
@@ -344,7 +354,7 @@ describe('playlist', function () {
 
     it('should move (2) unselected items down and up', function () {
       const foo = setup()
-      return mod.moveItems(Set([2, 3, 6, 7]), 5, ...foo.args).then(moved => {
+      return mod.moveItems(new Set([2, 3, 6, 7]), 5, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(4, 2),
           actions.playlistItemMoved(5, 8),
@@ -355,7 +365,7 @@ describe('playlist', function () {
 
     it('should move (1) unselected item down and (2) selected items down', function () {
       const foo = setup()
-      return mod.moveItems(Set([2, 3, 8, 9]), 5, ...foo.args).then(moved => {
+      return mod.moveItems(new Set([2, 3, 8, 9]), 5, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(4, 2),
           actions.playlistItemMoved(8, 5),
@@ -367,7 +377,7 @@ describe('playlist', function () {
 
     it('should move (2) selected items up and (1) unselected item down', function () {
       const foo = setup()
-      return mod.moveItems(Set([2, 3, 8, 9]), 7, ...foo.args).then(moved => {
+      return mod.moveItems(new Set([2, 3, 8, 9]), 7, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(3, 7),
           actions.playlistItemMoved(2, 6),
@@ -379,7 +389,7 @@ describe('playlist', function () {
 
     it('should move selected items down and up (with unmoved index)', function () {
       const foo = setup()
-      return mod.moveItems(Set([0, 1, 3, 9]), 3, ...foo.args).then(() => {
+      return mod.moveItems(new Set([0, 1, 3, 9]), 3, ...foo.args).then(() => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(2, 0),
           actions.playlistItemMoved(9, 4),
@@ -389,7 +399,7 @@ describe('playlist', function () {
 
     it('should move selected items down and up (with unmoved indices)', function () {
       const foo = setup()
-      return mod.moveItems(Set([0, 1, 3, 4, 9]), 3, ...foo.args).then(() => {
+      return mod.moveItems(new Set([0, 1, 3, 4, 9]), 3, ...foo.args).then(() => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(2, 0),
           actions.playlistItemMoved(9, 5),
@@ -404,7 +414,7 @@ describe('playlist', function () {
         return args[3] === 1 ? Promise.resolve() : Promise.reject()
       }}
       const foo = setup(lms)
-      return mod.moveItems(Set([0, 1]), 6, ...foo.args).then(() => {
+      return mod.moveItems(new Set([0, 1]), 6, ...foo.args).then(() => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemMoved(1, 6),
           operationError("Move error"),
@@ -419,8 +429,8 @@ describe('playlist', function () {
       const dispatch = action => dispatched.push(action)
       return {
         args: [
-          state.get("playerid"),
-          state.get("selection"),
+          state.playerid,
+          state.selection,
           dispatch,
           altLMS || lms,
         ],
@@ -435,17 +445,18 @@ describe('playlist', function () {
     const actions = mod.reducer.actions
 
     it('should not delete items if nothing is selected', function () {
-      const foo = setup(STATE.set("items", PLAYLIST_1))
+      const foo = setup({...STATE, items: PLAYLIST_1})
       return mod.deleteSelection(...foo.args).then(() => {
         assert.deepEqual(foo.dispatched, [])
       })
     })
 
     it('should delete selected item', function () {
-      const foo = setup(STATE.merge({
+      const foo = setup({
+        ...STATE,
         items: PLAYLIST_1,
-        selection: Set([1]),
-      }))
+        selection: new Set([1]),
+      })
       return mod.deleteSelection(...foo.args).then(() => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemDeleted(1)
@@ -454,10 +465,11 @@ describe('playlist', function () {
     })
 
     it('should delete multiple selected items', function () {
-      const foo = setup(STATE.merge({
+      const foo = setup({
+        ...STATE,
         items: PLAYLIST_1,
-        selection: Set([3, 1]),
-      }))
+        selection: new Set([3, 1]),
+      })
       return mod.deleteSelection(...foo.args).then(() => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemDeleted(3),
@@ -472,10 +484,11 @@ describe('playlist', function () {
           "lms.command args")
         return args[3] === 3 ? Promise.resolve() : Promise.reject()
       }}
-      const foo = setup(STATE.merge({
+      const foo = setup({
+        ...STATE,
         items: PLAYLIST_1,
-        selection: Set([3, 1]),
-      }), lms)
+        selection: new Set([3, 1]),
+      }, lms)
       return mod.deleteSelection(...foo.args).then(() => {
         assert.deepEqual(foo.dispatched, [
           actions.playlistItemDeleted(3),
@@ -489,22 +502,22 @@ describe('playlist', function () {
     const opts = {context: {addKeydownHandler: () => {}}}
 
     it('should setup empty selection state', function () {
-      const state = makeState("abcdef").toObject()
+      const state = makeState("abcdef")
       const dom = shallow(<mod.Playlist {...state} />, opts)
-      assert.equal(dom.state().selection, Set())
-      assert.equal(dom.find("TouchList").props().selection, Set())
+      assert.deepEqual(dom.state().selection, new Set())
+      assert.deepEqual(dom.find("TouchList").props().selection, new Set())
     })
 
     it('should map selection to touchlist indexes', function () {
-      const state = makeState("abCdEf", 10).toObject()
-      assert.equal(state.selection, Set([12, 14]))
+      const state = makeState("abCdEf", 10)
+      assert.deepEqual(state.selection, new Set([12, 14]))
       const dom = shallow(<mod.Playlist {...state} />, opts)
-      assert.equal(dom.state().selection, Set([2, 4]))
-      assert.equal(dom.find("TouchList").props().selection, Set([2, 4]))
+      assert.deepEqual(dom.state().selection, new Set([2, 4]))
+      assert.deepEqual(dom.find("TouchList").props().selection, new Set([2, 4]))
     })
 
     it('should convert selection indexes on delete', function () {
-      const state = makeState("abCdEf", 10).toObject()
+      const state = makeState("abCdEf", 10)
       state.dispatch = {}
       const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
       assert.equal(playlist.state.selection.size, 2)
@@ -513,7 +526,7 @@ describe('playlist', function () {
       rewire(module, {
         deleteSelection: (playerid, selection) => {
           assert.equal(playerid, PLAYERID)
-          assert.equal(selection, Set([12, 14]))  // verify selection
+          assert.deepEqual(selection, [12, 14])  // verify selection
           return promise
             .then(loadPlayer => loadPlayer())
             .catch(() => {/* ignore */})
@@ -531,7 +544,7 @@ describe('playlist', function () {
     })
 
     it('should clear playlist on delete with no selection', function () {
-      const state = makeState("abcdef", 10).toObject()
+      const state = makeState("abcdef", 10)
       state.dispatch = {}
       const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
       assert.equal(playlist.state.selection.size, 0)
@@ -558,27 +571,27 @@ describe('playlist', function () {
     })
 
     it('should convert selection indexes on change selection', function () {
-      const state = makeState("abCdef", 10).toObject()
+      const state = makeState("abCdef", 10)
       let dispatched = false
       state.dispatch = action => {
         assert.equal(action.type, "selectionChanged")
-        assert.deepEqual(action.args, [Set([12, 14, 15])])
+        assert.deepEqual(action.args, [new Set([12, 14, 15])])
         dispatched = true
       }
       const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
       assert.equal(playlist.state.selection.size, 1)
-      playlist.onSelectionChanged(Set([2, 4, 5]), false)
+      playlist.onSelectionChanged(new Set([2, 4, 5]), false)
       assert(dispatched, "dispatch not called")
     })
 
     it('should move item after last item in playlist', function () {
-      const state = makeState("abcdef", 10).toObject()
+      const state = makeState("abcdef", 10)
       state.dispatch = {}
       const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
       const promise = promiseChecker()
       rewire(module, {
         moveItems: (selection, index, playerid, dispatch) => {
-          assert.equal(selection, Set([11]))
+          assert.deepEqual(selection, new Set([11]))
           assert.equal(index, 16)
           assert.equal(playerid, PLAYERID)
           assert.equal(dispatch, state.dispatch)
@@ -593,13 +606,13 @@ describe('playlist', function () {
           assert(fetchPlaylist, 'fetchPlaylist is not true')
         },
       }, () => {
-        playlist.onMoveItems(Set([1]), 6)
+        playlist.onMoveItems(new Set([1]), 6)
       })
       promise.check()
     })
 
     it('should move item after last item in playlist', function () {
-      const state = makeState("abcdef", 10).toObject()
+      const state = makeState("abcdef", 10)
       state.dispatch = {}
       const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
       const items = [{}]
@@ -633,35 +646,40 @@ describe('playlist', function () {
 function makeState(config, firstIndex=0) {
   const index = c => indexMap[c.toLowerCase()]
   const match = /^((?:[a-z]|\([a-z]\))+)(?: \| ([a-z]*))?$/i.exec(config)
-  const playchars = Seq(match[1])
-    .filter(c => /[a-z]/i.test(c)).cacheResult()
-  const indexMap = playchars.toKeyedSeq()
-    .map(c => c.toLowerCase()).flip()
-    .map(i => i + firstIndex).toObject()
-  const currentChar = /\(([a-z])\)/i.exec(config) || {1: playchars.get(0)}
+  const playchars = _.filter(match[1].split(""), c => /[a-z]/i.test(c))
+  const indexMap = _(playchars)
+    .map((c, i) => [c.toLowerCase(), i + firstIndex])
+    .fromPairs()
+    .value()
+  const currentChar = /\(([a-z])\)/i.exec(config) || {1: playchars[0]}
   const current = index(currentChar[1])
-  const items = playchars.map(c => (Map({
+  const items = _.map(playchars, c => ({
     "url": "file:///" + c.toLowerCase(),
     "playlist index": index(c),
     "title": c.toLowerCase(),
-  }))).toList()
-  const data = {
+  }))
+  return {
+    ...STATE,
     items: items,
-    selection: playchars.filter(c => /[A-Z]/.test(c)).map(index).toSet(),
+    selection: new Set(
+      _(playchars)
+      .filter(c => /[A-Z]/.test(c))
+      .map(index)
+      .value()
+    ),
     //lastSelected: Seq(match[2]).map(index).toList(),
     currentIndex: current,
-    currentTrack: items.get(current),
-    numTracks: playchars.size,
+    currentTrack: items[current],
+    numTracks: playchars.length,
   }
-  return STATE.merge(data)
 }
 
 function makeConfig(state) {
-  const selection = state.get("selection")
-  const current = state.get("currentIndex")
-  const playchars = state.get("items").map(item => {
-    const i = item.get("playlist index")
-    const t = item.get("title")
+  const selection = state.selection
+  const current = state.currentIndex
+  const playchars = _.map(state.items, item => {
+    const i = item["playlist index"]
+    const t = item.title
     const c = i === current ? "(" + t + ")" : t
     return selection.has(i) ? c.toUpperCase() : c
   }).join("")
@@ -674,7 +692,7 @@ function makeConfig(state) {
 
 const PLAYERID = "1:1:1:1"
 
-const STATUS = fromJS({
+const STATUS = {
   "can_seek": 1,
   "digital_volume_control": 1,
   "duration": 371.373,
@@ -705,18 +723,18 @@ const STATUS = fromJS({
   "seq_no": 0,
   "signalstrength": 81,
   "time": 232.467967245102,
-})
+}
 
-const PLAYLIST_0 = fromJS([
+const PLAYLIST_0 = [
   {
     "url": "file:///...",
     "playlist index": 0,
     "title": "song 0",
     "id": 1000
   }
-])
+]
 
-const PLAYLIST_1 = fromJS([
+const PLAYLIST_1 = [
   {
     "url": "file:///...",
     "playlist index": 1,
@@ -733,10 +751,10 @@ const PLAYLIST_1 = fromJS([
     "title": "song 3",
     "id": 1003
   }
-])
+]
 
 
-const PLAYLIST_OVERLAP = fromJS([
+const PLAYLIST_OVERLAP = [
   {
     "url": "file:///...",
     "playlist index": 3,
@@ -753,9 +771,9 @@ const PLAYLIST_OVERLAP = fromJS([
     "title": "song 6",
     "id": 1006
   }
-])
+]
 
-const PLAYLIST_2 = fromJS([
+const PLAYLIST_2 = [
   {
     "url": "file:///...",
     "playlist index": 4,
@@ -772,18 +790,19 @@ const PLAYLIST_2 = fromJS([
     "title": "song 6",
     "id": 1006
   }
-])
+]
 
-const STATE = mod.defaultState.merge({
+const STATE = {
+  ...mod.defaultState,
   playerid: PLAYERID,
   timestamp: 1482495558.93241,
   numTracks: 7,
   currentIndex: 2,
-  currentTrack: Map({
+  currentTrack: {
     "id": 30349,
     "title": "Metallic Rain",
     "playlist index": 2,
     "url": "file:///.../Vangelis%20-%20Direct/03%20Metallic%20Rain.flac",
-  }),
-  items: STATUS.get("playlist_loop"),
-})
+  },
+  items: STATUS.playlist_loop,
+}

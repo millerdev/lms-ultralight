@@ -35,10 +35,10 @@ function reducer(state=defaultState, action) {
 const store = makeStore(reducer, defaultState)
 const MainMenu = withRouter(connect(state => state)(menu.MainMenu))
 const Player = connect(state => {
-  return {...state.player, currentTrack: state.playlist.get("currentTrack")}
+  return {...state.player, currentTrack: state.playlist.currentTrack}
 })(player.Player)
 const Playlist = connect(
-  state => state.playlist.toObject()
+  state => state.playlist
 )(playlist.Playlist)
 
 const ultralight = /\/ultralight(\/?|$)/.test(window.location.pathname)

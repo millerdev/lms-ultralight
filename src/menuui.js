@@ -64,7 +64,7 @@ const MenuItems = ({player, playlist, ...props}) => (
         {...props}
         basePath="/menu"
         isPlaying={player.isPlaying}
-        numTracks={playlist.get("numTracks")}
+        numTracks={playlist.numTracks}
       />
     </Menu.Item>
   </Menu>

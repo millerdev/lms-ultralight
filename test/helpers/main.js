@@ -9,6 +9,13 @@ chai.should()
 chai.config.includeStack = true
 chai.use(require('chai-eql-immutable'))
 
+Set.prototype.toString = function () {
+    return "Set([" + [...this] + "])"
+}
+Map.prototype.toString = function () {
+    return "Map([" + [...this] + "])"
+}
+
 assert.equal = function (a, b, message) {
     const Iterable = require("immutable").Iterable
     if (Iterable.isIterable(a) && Iterable.isIterable(b)) {

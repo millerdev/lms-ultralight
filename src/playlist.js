@@ -1,4 +1,3 @@
-import { List as IList, Map, Range, Set, fromJS } from 'immutable'
 import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
@@ -18,16 +17,16 @@ const IX = "playlist index"
 export const SINGLE = "single"
 export const TO_LAST = "to last"
 
-export const defaultState = Map({
+export const defaultState = {
   playerid: null,
-  items: IList(),
+  items: [],
   timestamp: null,
   numTracks: 0,
   currentIndex: null,
-  currentTrack: Map(),
-  selection: Set(),
+  currentTrack: {},
+  selection: new Set(),
   fullTrackInfo: {},
-})
+}
 
 export const reducer = makeReducer({
   "ref:gotPlayer": (state, action, status, {ignoreChange=false}={}) => {
@@ -40,44 +39,45 @@ export const reducer = makeReducer({
     }
     if (list) {
       const index = parseInt(status.playlist_cur_index)
-      const changed = !ignoreChange && isPlaylistChanged(state.toObject(), data)
+      const changed = !ignoreChange && isPlaylistChanged(state, data)
       const gotCurrent = index >= list[0][IX] && index <= list[list.length - 1][IX]
       data.currentIndex = index
       if (status.isPlaylistUpdate || changed) {
         // TODO merge will return wrong result if all items in playlist have
         // changed but only a subset is loaded in this update
-        data.items = mergePlaylist(state.get("items"), list)
+        data.items = mergePlaylist(state.items, list)
         if (gotCurrent) {
-          data.currentTrack = fromJS(list[index - list[0][IX]])
+          data.currentTrack = list[index - list[0][IX]]
         }
       } else {
-        data.currentTrack = fromJS(list[0] || {})
+        data.currentTrack = list[0] || {}
       }
       if (changed && (!status.isPlaylistUpdate || !gotCurrent)) {
         effects.push(effect(loadPlayer, data.playerid, true))
       }
     } else {
-      data.items = IList()
+      data.items = []
       data.currentIndex = null
-      data.currentTrack = Map()
+      data.currentTrack = {}
     }
-    if (!list || state.get("playerid") !== data.playerid) {
-      data.selection = Set()
+    if (!list || state.playerid !== data.playerid) {
+      data.selection = new Set()
     }
-    return combine(state.merge(data), effects)
+    return combine({...state, ...data}, effects)
   },
   "ref:advanceToNextTrack": (state, action, playerid) => {
-    const items = state.get("items")
-    const index = state.get("currentIndex")
+    const items = state.items
+    const index = state.currentIndex
     const nextIndex = index === null ? null : (index + 1)
     const nextTrack = nextIndex === null ? null :
-      items.find(item => item.get(IX) === nextIndex)
+      _.find(items, item => item[IX] === nextIndex)
     const effects = []
     if (nextIndex !== null && nextTrack) {
-      state = state.merge({
+      state = {
+        ...state,
         currentTrack: nextTrack,
         currentIndex: nextIndex,
-      })
+      }
     } else {
       effects.push(effect(
         loadPlayer,
@@ -88,8 +88,8 @@ export const reducer = makeReducer({
     return combine(state, effects)
   },
   playlistItemMoved: (state, action, fromIndex, toIndex) => {
-    const selection = state.get("selection")
-    let currentIndex = state.get("currentIndex")
+    const selection = state.selection
+    let currentIndex = state.currentIndex
     let between, stop, step
     if (fromIndex < toIndex) {
       between = i => i > fromIndex && i < toIndex
@@ -106,50 +106,60 @@ export const reducer = makeReducer({
       currentIndex -= step
     }
     const reindex = i => between(i) ? i - step : i
-    const deselect = Range(fromIndex, stop, step)
-      .takeWhile(i => i === fromIndex || selection.has(i))
-      .toSet()
-    return state.merge({
-      items: moveItem(state.get("items"), fromIndex, toIndex),
-      selection: selection.subtract(deselect).map(reindex).toSet(),
+    const deselect = new Set(
+      _.takeWhile(
+        _.range(fromIndex, stop, step),
+        i => i === fromIndex || selection.has(i)
+      )
+    )
+    return {
+      ...state,
+      items: moveItem(state.items, fromIndex, toIndex),
+      selection: new Set(
+        [...selection].filter(x => !deselect.has(x)).map(reindex)
+      ),
       currentIndex: currentIndex,
-      currentTrack: state.get("currentTrack").set(IX, currentIndex),
-    })
+      currentTrack: {...state.currentTrack, [IX]: currentIndex},
+    }
   },
   playlistItemDeleted: (state, action, index) => {
-    const oldItems = state.get("items")
+    const oldItems = state.items
     const items = deleteItem(oldItems, index)
-    if (items.equals(oldItems)) {
+    if (items === oldItems) {
       return state
     }
     const reindex = x => x > index ? x -= 1 : x
     const data = {
       items,
-      numTracks: state.get("numTracks") - 1,
-      selection: state.get("selection").remove(index).map(reindex),
+      numTracks: state.numTracks - 1,
+      selection: new Set(
+        [...state.selection]
+        .filter(x => x !== index)
+        .map(reindex)
+      ),
     }
-    const currentIndex = state.get("currentIndex")
+    const currentIndex = state.currentIndex
     if (index <= currentIndex) {
       data.currentIndex = currentIndex - 1
-      data.currentTrack = state.get("currentTrack").set(IX, currentIndex - 1)
+      data.currentTrack = {...state.currentTrack, [IX]: currentIndex - 1}
     }
-    return state.merge(data)
+    return {...state, ...data}
   },
   selectionChanged: (state, action, selection) => {
-    return state.set("selection", selection)
+    return {...state, selection}
   },
-  clearSelection: state => state.set("selection", Set()),
+  clearSelection: state => ({...state, selection: new Set()}),
   loadedTrackInfo: (state, action, info) => {
     const now = new Date()
     const infos = {}
     // clone, keeping only unexpired info
-    _.forOwn(state.get("fullTrackInfo"), (value, key) => {
+    _.forOwn(state.fullTrackInfo, (value, key) => {
       if (value && value.expirationDate > now) {
         infos[key] = value
       }
     })
     infos[info.id] = info
-    return state.set("fullTrackInfo", infos)
+    return {...state, fullTrackInfo: infos}
   }
 }, defaultState)
 
@@ -174,7 +184,7 @@ function insertPlaylistItems(playerid, items, index, dispatch, numTracks) {
           // HACK will new items be in the playlist when moveItems is called?
           dispatch(actions.gotPlayer(data))
           if (index < numTracks) {
-            const selection = Range(numTracks, data.playlist_tracks)
+            const selection = new Set(_.range(numTracks, data.playlist_tracks))
             return moveItems(selection, index, playerid, dispatch, lms)
           }
         })
@@ -217,13 +227,12 @@ export function moveItems(selection, toIndex, playerid, dispatch, lms) {
         })
     }
     function getMoves(selected) {
-      selected.cacheResult()
-      const len = selected.size
-      let min = _.min([toIndex, selected.min()])
-      let max = _.max([toIndex - 1, selected.max()]) + 1
+      const len = selected.length
+      let min = _.min([toIndex, _.min(selected)])
+      let max = _.max([toIndex - 1, _.max(selected)]) + 1
       const invert = max - min - len < len
       if (invert) {
-        return Range(min, max)
+        return _.range(min, max)
           .filter(i => !selection.has(i))
           .map(i => i < toIndex ? [i, min++] : [i, max])
       }
@@ -233,12 +242,10 @@ export function moveItems(selection, toIndex, playerid, dispatch, lms) {
     const isValidMove = (from, to) => from !== to && from + 1 !== to
     let items
     if (selection.size) {
-      const selected = selection.toSeq().sort()
+      const selected = [...selection].sort()
       const botMoves = getMoves(selected.filter(i => i < toIndex).reverse())
       const topMoves = getMoves(selected.filter(i => i >= toIndex))
-      items = botMoves.concat(topMoves)
-        .filter(([f, t]) => isValidMove(f, t))
-        .toArray()
+      items = botMoves.concat(topMoves).filter(([f, t]) => isValidMove(f, t))
       if (!items.length) {
         return resolve(false)
       }
@@ -267,36 +274,32 @@ export function deleteSelection(playerid, selection, dispatch, lms) {
           resolve()
         })
     }
-    const items = selection
-      .toSeq()
-      .sortBy(index => -index)
-      .toArray()
-    remove(items)
+    remove([...selection].sort(index => -index))
   })
 }
 
 function isPlaylistChanged(prev, next) {
-  const playlistSig = obj => Map({
-    playerid: obj.playerid,
-    timestamp: obj.timestamp,
-    numTracks: obj.numTracks,
-  })
-  return !playlistSig(prev).equals(playlistSig(next))
+  const playlistSig = obj => [
+    obj.playerid,
+    obj.timestamp,
+    obj.numTracks,
+  ].join("  ")
+  return playlistSig(prev) !== playlistSig(next)
 }
 
 /**
  * Merge array of playlist items into existing playlist
  *
- * @param list - List of Maps.
+ * @param list - Array of playlist items.
  * @param array - Array of objects.
- * @returns Merged List of Maps.
+ * @returns Merged Array of playlist items.
  */
 function mergePlaylist(list, array) {
   function next() {
     if (i < len) {
       const obj = array[i]
       i += 1
-      return Map(obj)
+      return obj
     }
     return null
   }
@@ -308,12 +311,12 @@ function mergePlaylist(list, array) {
   let i = 0
   let newItem = next()
   list.forEach(item => {
-    const index = item.get(IX)
-    while (newItem && newItem.get(IX) < index) {
+    const index = item[IX]
+    while (newItem && newItem[IX] < index) {
       merged.push(newItem)
       newItem = next()
     }
-    if (newItem && newItem.get(IX) !== index) {
+    if (newItem && newItem[IX] !== index) {
       merged.push(item)
     }
   })
@@ -321,7 +324,7 @@ function mergePlaylist(list, array) {
     merged.push(newItem)
     newItem = next()
   }
-  return IList(merged)
+  return merged
 }
 
 export function loadTrackInfo(trackId) {
@@ -340,38 +343,35 @@ export function loadTrackInfo(trackId) {
 /**
  * Delete item from playlist and re-index other items
  *
- * @param list - List of Maps.
+ * @param list - Array of playlist items.
  * @param index - Index of item to delete.
- * @returns List of Maps.
+ * @returns Array of playlist items.
  */
 export function deleteItem(list, index) {
-  return list.toSeq()
-    .filter(item => item.get(IX) !== index)
-    .map(item => {
-      const ix = item.get(IX)
-      if (ix > index) {
-        item = item.set(IX, ix - 1)
-      }
-      return item
-    })
-    .toList()
+  if (_.find(list, item => item[IX] === index)) {
+    return list
+      .filter(item => item[IX] !== index)
+      .map(item => {
+        const ix = item[IX]
+        return ix > index ? {...item, [IX]: ix - 1} : item
+      })
+  }
+  return list
 }
 
 /**
  * Move item in playlist and re-index other items
  *
- * @param list - List of Maps.
+ * @param list - Array of playlist items.
  * @param fromIndex - Index of item being moved.
  * @param toIndex - Index to which item is to be moved.
- * @returns List of Maps.
+ * @returns Array of playlist items.
  */
 export function moveItem(list, fromIndex, toIndex) {
-  const to = toIndex > fromIndex ? toIndex - 1 : toIndex
-  return list.toSeq()
-    .filter(item => item.get(IX) !== fromIndex)
-    .splice(to, 0, list.get(fromIndex))
-    .map((item, i) => item.set(IX, i))
-    .toList()
+  const fromObj = list[fromIndex]
+  list = list.filter(item => item[IX] !== fromIndex)
+  list.splice(toIndex > fromIndex ? toIndex - 1 : toIndex, 0, fromObj)
+  return list.map((item, i) => ({...item, [IX]: i}))
 }
 
 export class Playlist extends React.Component {
@@ -389,23 +389,21 @@ export class Playlist extends React.Component {
     this.hideTrackInfo = () => {}
   }
   getTouchlistSelection(props) {
-    const indexMap = props.items
-      .toKeyedSeq()
-      .map(item => item.get(IX))
-      .flip()
-      .toObject()
-    return props.selection.map(i => indexMap[i])
+    const indexMap = _.fromPairs(
+      props.items.map((item, i) => [item[IX], i])
+    )
+    return new Set([...props.selection].map(ix => indexMap[ix]))
   }
   componentWillReceiveProps(props) {
-    if (!props.selection.equals(this.props.selection)) {
+    if (props.selection !== this.props.selection) {
       this.setState({selection: this.getTouchlistSelection(props)})
     }
   }
   toPlaylistIndex(touchlistIndex, maybeAtEnd=false) {
-    if (maybeAtEnd && touchlistIndex === this.props.items.size) {
-      return this.props.items.getIn([touchlistIndex - 1, IX]) + 1
+    if (maybeAtEnd && touchlistIndex === this.props.items.length) {
+      return this.props.items[touchlistIndex - 1][IX] + 1
     }
-    return this.props.items.getIn([touchlistIndex, IX])
+    return this.props.items[touchlistIndex][IX]
   }
   playTrackAtIndex(playlistIndex) {
     const { playerid, dispatch } = this.props
@@ -435,7 +433,7 @@ export class Playlist extends React.Component {
   }
   onMoveItems(selection, toIndex) {
     const { playerid, dispatch } = this.props
-    const plSelection = selection.map(i => this.toPlaylistIndex(i))
+    const plSelection = new Set([...selection].map(i => this.toPlaylistIndex(i)))
     const plToIndex = this.toPlaylistIndex(toIndex, true)
     moveItems(plSelection, plToIndex, playerid, dispatch, lms)
       .then(() => loadPlayer(playerid, true))
@@ -453,10 +451,11 @@ export class Playlist extends React.Component {
     this.setState({promptForDelete: prompt})
   }
   deleteItems() {
-    const plSelection = this.state.selection.map(i => this.toPlaylistIndex(i))
+    // NOTE: plSelection is an array, unlike most selections (works here)
+    const plSelection = [...this.state.selection].map(i => this.toPlaylistIndex(i))
     const { playerid, dispatch } = this.props
     this.setState({promptForDelete: ""})
-    if (plSelection.size) {
+    if (plSelection.length) {
       deleteSelection(playerid, plSelection, dispatch, lms)
         .then(() => loadPlayer(playerid, true))
         .catch(err => operationError("Delete error", err))
@@ -476,7 +475,7 @@ export class Playlist extends React.Component {
     }
   }
   onSelectionChanged(selection, isTouch) {
-    const plSelection = selection.map(i => this.toPlaylistIndex(i))
+    const plSelection = new Set([...selection].map(i => this.toPlaylistIndex(i)))
     this.props.dispatch(actions.selectionChanged(plSelection))
     this.setInfoIndex(-1)
     this.hideTrackInfo()
@@ -500,8 +499,7 @@ export class Playlist extends React.Component {
           onLongTouch={this.onLongTouch.bind(this)}
           onMoveItems={this.onMoveItems.bind(this)}
           onSelectionChanged={this.onSelectionChanged.bind(this)}>
-        {props.items.toSeq().map((item, index) => {
-          item = item.toObject()
+        {props.items.map((item, index) => {
           return <PlaylistItem
             item={item}
             playTrack={this.playTrackAtIndex.bind(this, item[IX])}
@@ -516,7 +514,7 @@ export class Playlist extends React.Component {
             dispatch={props.dispatch}
             key={index + ' ' + item.id}
           />
-        }).toArray()}
+        })}
       </TouchList>
       <Button.Group basic size="small">
         <Button

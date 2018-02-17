@@ -66,7 +66,7 @@ export const playerControl = (playerid, dispatch, state) => {
   }
 
   self.playOrEnqueue = item => {
-    if (!state.playlist.get("numTracks")) {
+    if (!state.playlist.numTracks) {
       self.playItems([item])
     } else if (!state.player.isPlaying) {
       self.playNext(item)

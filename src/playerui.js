@@ -165,7 +165,7 @@ export const PlayerUI = props => (
     </div>
     <CurrentTrackInfo
       playerid={props.playerid}
-      tags={props.currentTrack.toObject()}
+      tags={props.currentTrack}
       disabled={!props.playerid} />
     {props.children}
   </div>

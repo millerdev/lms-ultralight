@@ -66,7 +66,7 @@ export class TouchList extends React.Component {
       this.setState({dropTypes})
     }
     if (props.selection) {
-      if (!props.selection.equals(this.state.selection)) {
+      if (!_.isEqual(props.selection, this.state.selection)) {
         this.setState({
           selection: props.selection,
           lastSelected: this.state.lastSelected
