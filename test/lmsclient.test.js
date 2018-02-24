@@ -1,6 +1,5 @@
 import axios from 'axios'
 import MockAdapter from 'axios-mock-adapter'
-import { fromJS } from 'immutable'
 
 import * as lms from '../src/lmsclient'
 
@@ -24,15 +23,14 @@ describe('lmsclient', function () {
 
   it('getPlayerStatus should return player status with playerid', function (done) {
     const status = PLAYER_STATUS
-    const resp = {result: status.toJS()}
     const before = Date.now()
-    mock.onPost("/jsonrpc.js").reply(200, JSON.stringify(resp))
+    mock.onPost("/jsonrpc.js").reply(200, JSON.stringify({result: status}))
     lms.getPlayerStatus("<id>").then(data => {
-      const result = status.merge({
+      assert.deepEqual(data, {
+        ...status,
         playerid: "<id>",
         localTime: data.localTime,
-      }).toJS()
-      assert.deepEqual(data, result)
+      })
       assert.typeOf(data.localTime, "Number")
       assert.isAtLeast(data.localTime, before)
       assert.isAtMost(data.localTime, Date.now())
@@ -40,7 +38,7 @@ describe('lmsclient', function () {
   })
 })
 
-const PLAYER_STATUS = fromJS({
+const PLAYER_STATUS = {
   "can_seek": 1,
   "digital_volume_control": 1,
   "duration": 371.373,
@@ -71,4 +69,4 @@ const PLAYER_STATUS = fromJS({
   "signalstrength": 81,
   "time": 232.467967245102,
   "isPlaylistUpdate": false,
-})
+}
