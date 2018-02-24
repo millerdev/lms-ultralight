@@ -1,4 +1,3 @@
-import { fromJS } from 'immutable'
 import _ from 'lodash'
 import qs from 'query-string'
 import React from 'react'
@@ -107,7 +106,7 @@ const _loadAndShowMediaInfo = (item, history, location, basePath) => {
       } else {
         // adapt to MediaSearchResult format
         result[drill.type + "s_count"] = result.count || 0
-        result[drill.type + "s_loop"] = _.map(result[drill.loop],
+        result[drill.type + "s_loop"] = result[drill.loop].map(
           item => _.assign({
             [drill.type + "_id"]: item.id,
             [drill.type]: drill.title ? item[drill.title] : item.title,
@@ -336,7 +335,7 @@ export class SearchResults extends React.PureComponent {
     let items = []
     _.each(SECTIONS, section => {
       if (results[section + "s_count"]) {
-        const sectionItems = _.map(results[section + "s_loop"],
+        const sectionItems = results[section + "s_loop"].map(
           item => ({...item, index: i++, type: section})
         )
         items = items.concat(sectionItems)
@@ -348,7 +347,7 @@ export class SearchResults extends React.PureComponent {
   getSelected(item) {
     const selection = this.state.selection
     if (selection.has(item.index)) {
-      return _.filter(this.state.items, it => selection.has(it.index))
+      return this.state.items.filter(it => selection.has(it.index))
     }
     return [item]
   }
@@ -378,16 +377,16 @@ export class SearchResults extends React.PureComponent {
     return <Media query="(max-width: 500px)">{ smallScreen =>
       <TouchList
           dataType={SEARCH_RESULTS}
-          items={fromJS(this.state.items)}
+          items={this.state.items}
           onSelectionChanged={this.onSelectionChanged.bind(this)}>
-        {_.map(SECTIONS, section => {
+        {SECTIONS.map(section => {
           if (bySection.hasOwnProperty(section)) {
             const items = bySection[section]
             return [
               <List.Item key={section}>
                 <List.Header>{SECTION_NAMES[section]}</List.Header>
               </List.Item>
-            ].concat(_.map(items, item =>
+            ].concat(items.map(item =>
               <SearchResult
                 smallScreen={smallScreen}
                 showMediaInfo={this.props.showMediaInfo}

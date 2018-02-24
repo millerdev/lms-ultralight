@@ -1,5 +1,5 @@
 import { shallow } from 'enzyme'
-import { Map, Seq } from 'immutable'
+import _ from 'lodash'
 import React from 'react'
 
 import * as mod from '../src/touch'
@@ -13,8 +13,8 @@ describe('TouchList', function () {
       ).instance()
       touchlist.setState(makeState(startConfig))
       act(touchlist)
-      assert.equal(makeConfig(touchlist.state), endConfig)
-      assert.equal(Map(touchlist.state), Map(makeState(endConfig)))
+      assert.deepEqual(makeConfig(touchlist.state), endConfig)
+      assert.deepEqual(touchlist.state, makeState(endConfig))
     })
   }
 
@@ -54,22 +54,22 @@ describe('TouchList', function () {
  * - letters after " | " are lastSelected items
  */
 function makeState(config) {
-  const index = c => indexMap.get(c.toLowerCase())
+  const index = c => indexMap[c.toLowerCase()]
   const match = /^((?:[a-z]|\([a-z]\))+)(?: \| ([a-z]*))?$/i.exec(config)
-  const playchars = Seq(match[1]).filter(c => /[a-z]/i.test(c)).cacheResult()
-  const indexMap = playchars
-    .map(c => c.toLowerCase()).toKeyedSeq().flip().toMap()
-  const current = index(/\(([a-z])\)/i.exec(config)[1])
-  const items = playchars.map((c, i) => Map({
+  const playchars = match[1].split("").filter(c => /[a-z]/i.test(c))
+  const indexMap = _.fromPairs(playchars.map((c, i) => [c.toLowerCase(), i]))
+  const currentChar = /\(([a-z])\)/i.exec(config) || {1: playchars[0]}
+  const current = index(currentChar[1])
+  const items = playchars.map((c, i) => ({
     "index": i,
     "title": c.toLowerCase(),
-  })).toList()
+  }))
   return {
     dropIndex: -1,
     dropTypes: {},
     items: items,
-    selection: playchars.filter(c => /[A-Z]/.test(c)).map(index).toSet(),
-    lastSelected: Seq(match[2]).map(index).toList(),
+    selection: new Set(playchars.filter(c => /[A-Z]/.test(c)).map(index)),
+    lastSelected: (match[2] || "").split("").map(index),
     currentIndex: current,
   }
 }
@@ -78,13 +78,11 @@ function makeConfig(state) {
   const selection = state.selection
   const current = state.currentIndex
   const playchars = state.items.map(item => {
-    const i = item.get("index")
-    const t = item.get("title")
+    const i = item.index
+    const t = item.title
     const c = i === current ? "(" + t + ")" : t
     return selection.has(i) ? c.toUpperCase() : c
   }).join("")
-  const last = state.lastSelected.map(i =>
-    state.items.getIn([i, "title"])
-  ).join("")
+  const last = state.lastSelected.map(i => state.items[i].title).join("")
   return playchars + (last ? " | " + last : "")
 }

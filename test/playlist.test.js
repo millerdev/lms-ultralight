@@ -647,10 +647,9 @@ function makeState(config, firstIndex=0) {
   const index = c => indexMap[c.toLowerCase()]
   const match = /^((?:[a-z]|\([a-z]\))+)(?: \| ([a-z]*))?$/i.exec(config)
   const playchars = _.filter(match[1].split(""), c => /[a-z]/i.test(c))
-  const indexMap = _(playchars)
-    .map((c, i) => [c.toLowerCase(), i + firstIndex])
-    .fromPairs()
-    .value()
+  const indexMap = _.fromPairs(
+    playchars.map((c, i) => [c.toLowerCase(), i + firstIndex])
+  )
   const currentChar = /\(([a-z])\)/i.exec(config) || {1: playchars[0]}
   const current = index(currentChar[1])
   const items = _.map(playchars, c => ({

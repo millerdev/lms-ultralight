@@ -79,7 +79,7 @@ export class VolumeSlider extends React.Component {
     this.setVolume = _.throttle((command, value) => {
       command("mixer", "volume", value)
     }, 500)
-    this.marks = _.fromPairs(_.map(_.range(10, 100, 10), n => [n, ""]))
+    this.marks = _.fromPairs(_.range(10, 100, 10).map(n => [n, ""]))
   }
   render() {
     const props = this.props
