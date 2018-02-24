@@ -3,6 +3,7 @@ import Media from 'react-media'
 import { Link, Route, Switch } from 'react-router-dom'
 import { Icon, Menu, Message, Sidebar, Transition } from 'semantic-ui-react'
 
+import * as pkg from '../package.json'
 import * as players from './playerselect'
 import { MediaSearch } from './search'
 import './menu.styl'
@@ -67,6 +68,7 @@ const MenuItems = ({player, playlist, ...props}) => (
         numTracks={playlist.numTracks}
       />
     </Menu.Item>
+    <Menu.Item disabled>v{pkg.version}</Menu.Item>
   </Menu>
 )
 
