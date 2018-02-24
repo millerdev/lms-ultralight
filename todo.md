@@ -5,7 +5,6 @@
   this appears to be a bug in LMS (can reproduce on stock web interface)
 
 x- upgrade libraries
-- get rid of immutable.js
 - replace semantic-ui-react with
   - https://material.io/ via https://github.com/jamesmfriedman/rmwc
   - or https://ant.design/docs/react/introduce

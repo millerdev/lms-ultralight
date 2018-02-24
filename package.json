@@ -12,7 +12,6 @@
   "dependencies": {
     "axios": "^0.17.1",
     "font-awesome": "^4.7.0",
-    "immutable": "^3.8.1",
     "lodash": "^4.17.2",
     "prop-types": "^15.6.0",
     "query-string": "^5.0.1",
@@ -38,7 +37,6 @@
     "babel-preset-react": "^6.5.0",
     "browser-sync": "^2.23.5",
     "chai": "^4.1.2",
-    "chai-eql-immutable": "0.0.3",
     "copy-webpack-plugin": "^4.3.1",
     "css-loader": "^0.28.8",
     "enzyme": "^3.3.0",
