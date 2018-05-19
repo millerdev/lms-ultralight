@@ -17,8 +17,8 @@
   - fix spacing in control bar (rw/play/ff volume repeat/random)
   - show track info segment with slide down transition (hide with slide up)
 
-- sort album tracks by track number in media browser
 - add menu item to browse and load playlists
+x- sort album tracks by track number in media browser
 - hotkey help screen
 - hotkey for menu
 - add current tack icon, title, artist to menu bar

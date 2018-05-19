@@ -93,10 +93,11 @@ const _loadAndShowMediaInfo = (item, history, location, basePath) => {
     return operationError("Unknown media item", item)
   }
   const item_id = item[item.type + "_id"]
-  const params = [drill.param + ":" + item_id]
-  if (drill.tags) {
-    params.push("tags:" + drill.tags)
-  }
+  const params = [drill.param + ":" + item_id].concat(
+    ["tags", "sort"]
+    .filter(name => drill.hasOwnProperty(name))
+    .map(name => name + ":" + drill[name])
+  )
   // TODO pagination
   return lms.command("::", drill.cmd, 0, 100, ...params)
     .then(json => {
@@ -154,7 +155,8 @@ const NEXT_SECTION = {
     param: "album_id",
     type: "track",
     loop: "titles_loop",
-    tags: "acj",  // artist, coverid, artwork_track_id
+    tags: "acjt",  // artist, coverid, artwork_track_id, track
+    sort: "tracknum",
   },
   track: {
     cmd: "songinfo",
