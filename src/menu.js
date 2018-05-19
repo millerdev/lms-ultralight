@@ -6,14 +6,14 @@ import { combine, effect, split, IGNORE_ACTION } from './effects'
 import { MainMenuUI } from './menuui'
 import { playerControl, loadPlayer } from './playctl'
 import * as players from './playerselect'
-import * as search from './search'
+import * as library from './library'
 import makeReducer from './store'
 import { operationError, timer } from './util'
 
 export const defaultState = {
   messages: {error: null},
   players: players.defaultState,
-  search: search.defaultState,
+  library: library.defaultState,
 }
 
 const messagesReducer = makeReducer({
@@ -34,13 +34,13 @@ export const actions = messagesReducer.actions
 export function reducer(state=defaultState, action) {
   const [msgState, msgEffects] =
     split(messagesReducer(state.messages, action))
-  const [searchState, searchEffects] =
-    split(search.reducer(state.search, action))
+  const [libraryState, libraryEffects] =
+    split(library.reducer(state.library, action))
   return combine({
     messages: msgState,
     players: players.reducer(state.players, action),
-    search: searchState,
-  }, searchEffects.concat(msgEffects))
+    library: libraryState,
+  }, libraryEffects.concat(msgEffects))
 }
 
 export const hideOperationErrorAfter = (() => {
@@ -82,7 +82,7 @@ export class MainMenu extends React.Component {
     this.keydownHandlers[code] = handler
   }
   showMediaInfo(item) {
-    const actions = require("./search").reducer.actions
+    const actions = library.reducer.actions
     const {dispatch, history, location} = this.props
     dispatch(actions.loadAndShowMediaInfo(item, history, location, "/menu"))
   }
@@ -116,7 +116,7 @@ export class MainMenu extends React.Component {
     return <MainMenuUI
         playctl={this.playctl()}
         players={menu.players}
-        search={menu.search}
+        library={menu.library}
         messages={menu.messages}
         onHideError={this.onHideError.bind(this)}
         onPlayerSelected={this.onPlayerSelected.bind(this)}

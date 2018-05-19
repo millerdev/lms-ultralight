@@ -4,10 +4,10 @@
 - fix auto-advance to next track after play previous then skip to end
   this appears to be a bug in LMS (can reproduce on stock web interface)
 
-x- upgrade libraries
+- upgrade libraries
 - replace semantic-ui-react with
   - https://blog.bitsrc.io/11-react-component-libraries-you-should-know-178eb1dd6aa4
-  - https://material.io/ via https://github.com/jamesmfriedman/rmwc
+  - https://material.io/ via https://github.com/jamesmfriedman/rmwc (con: no CSS?)
   - https://ant.design/docs/react/introduce
 
 - after switch to material.io
@@ -18,6 +18,7 @@ x- upgrade libraries
   - show track info segment with slide down transition (hide with slide up)
 
 - sort album tracks by track number in media browser
+- add menu item to browse and load playlists
 - hotkey help screen
 - hotkey for menu
 - add current tack icon, title, artist to menu bar
@@ -33,7 +34,7 @@ x- upgrade libraries
   - infinite scroll - http://devblog.orgsync.com/react-list/
 
 - add more content types to search
-  - playlists?
+  - playlists? - looks like this is possible (cmd "playlists search:<term>")
   - folders/files?
 - enter/return key should accept delete confirmation
 - swipe to delete track(s) (delete multiple if selected)

@@ -170,19 +170,19 @@ const SECONDARY_INFO = {
 
 const actions = reducer.actions
 
-export const MediaSearch = props => {
+export const MediaBrowse = props => {
   const {basePath} = props
   const path = basePath + "/:type(track|album|contributor|genre)/:id"
   return (
     <Route path={path} children={route => (
-      <RoutedMediaSearch {...props} {...props.search} {...route} />
+      <RoutedMediaBrowse {...props} {...props.search} {...route} />
     )} />
   )
 }
 
 const IGNORE_DIFF = {playctl: true, match: true, showMediaInfo: true}
 
-export class RoutedMediaSearch extends React.Component {
+export class RoutedMediaBrowse extends React.Component {
   constructor(props) {
     super(props)
     this.timer = timer()

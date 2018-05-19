@@ -7,7 +7,7 @@ import { promiseChecker, rewire } from './util'
 import { effect, getEffects, getState, split } from '../src/effects'
 import * as mod from '../src/playlist'
 import {__RewireAPI__ as module} from '../src/playlist'
-import { SEARCH_RESULTS } from '../src/search'
+import { SEARCH_RESULTS } from '../src/library'
 import { operationError } from '../src/util'
 
 describe('playlist', function () {

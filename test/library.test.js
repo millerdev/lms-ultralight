@@ -1,13 +1,13 @@
 import { shallow } from 'enzyme'
 import React from 'react'
 
-import * as mod from '../src/search'
+import * as mod from '../src/library'
 
-describe('search', function () {
-  describe("RoutedMediaSearch component", function () {
+describe('library', function () {
+  describe("RoutedMediaBrowse component", function () {
     it('should handle querystring media queries', function () {
       const dispatch = makeDispatch()
-      shallow(<mod.RoutedMediaSearch
+      shallow(<mod.RoutedMediaBrowse
         dispatch={dispatch}
         basePath="/test"
         location={{pathname: "/test", search: "?q=something&foo=bar"}}
