@@ -2,7 +2,7 @@ import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
 import Media from 'react-media'
-import { Button, Confirm, List, Segment } from 'semantic-ui-react'
+import { Button, Confirm, Input, List, Segment } from 'semantic-ui-react'
 
 import { DragHandle, MediaInfo, TrackInfoIcon } from './components'
 import { effect, combine } from './effects'
@@ -379,7 +379,7 @@ export class Playlist extends React.Component {
     super(props)
     this.state = {
       infoIndex: -1,
-      promptForDelete: "",
+      prompt: {},
       touching: false,
       selection: this.getTouchlistSelection(props),
     }
@@ -387,6 +387,7 @@ export class Playlist extends React.Component {
     context.addKeydownHandler(8 /* backspace */, onDelete)
     context.addKeydownHandler(46 /* delete */, onDelete)
     this.hideTrackInfo = () => {}
+    this.saver = playlistSaver(this.afterSavePlaylist.bind(this))
   }
   getTouchlistSelection(props) {
     const indexMap = _.fromPairs(
@@ -448,13 +449,17 @@ export class Playlist extends React.Component {
     } else {
       prompt = "Clear playlist"
     }
-    this.setState({promptForDelete: prompt})
+    this.setState({prompt: {
+      content: prompt + "?",
+      yesText: (prompt || "").replace(/ .*$/, ""),
+      action: this.deleteItems.bind(this),
+    }})
   }
   deleteItems() {
     // NOTE: plSelection is an array, unlike most selections (works here)
     const plSelection = [...this.state.selection].map(i => this.toPlaylistIndex(i))
     const { playerid, dispatch } = this.props
-    this.setState({promptForDelete: ""})
+    this.setState({prompt: {}})
     if (plSelection.length) {
       deleteSelection(playerid, plSelection, dispatch, lms)
         .then(() => loadPlayer(playerid, true))
@@ -466,6 +471,14 @@ export class Playlist extends React.Component {
         .catch(err => operationError("Cannot clear playlist", err))
         .then(dispatch)
     }
+  }
+  onSavePlaylist() {
+    this.saver.load(this.props.playerid, prompt => {
+      this.setState({prompt})
+    })
+  }
+  afterSavePlaylist() {
+    this.setState({prompt: {}})
   }
   onDrop(data, dataType, index) {
     if (dataType === SEARCH_RESULTS) {
@@ -518,17 +531,22 @@ export class Playlist extends React.Component {
       </TouchList>
       <Button.Group basic size="small">
         <Button
+          icon="save"
+          content="Save Playlist"
+          labelPosition="left"
+          onClick={() => this.onSavePlaylist()} />
+        <Button
           icon="remove"
           content={selection.size ? "Delete" : "Clear Playlist"}
           labelPosition="left"
           onClick={() => this.onDeleteItems()} />
       </Button.Group>
       <Confirm
-        open={Boolean(this.state.promptForDelete)}
-        content={this.state.promptForDelete + "?"}
-        confirmButton={(this.state.promptForDelete || "").replace(/ .*$/, "")}
-        onCancel={() => this.setState({promptForDelete: ""})}
-        onConfirm={this.deleteItems.bind(this)} />
+        open={Boolean(this.state.prompt.action)}
+        content={this.state.prompt.content}
+        confirmButton={this.state.prompt.yesText}
+        onCancel={() => this.setState({prompt: {}})}
+        onConfirm={this.state.prompt.action} />
     </div>
   }
 }
@@ -648,4 +666,46 @@ const SongTitle = ({item, smallScreen}) => {
     {track}
     <span>{title}</span>
   </span>
+}
+
+
+function playlistSaver(afterSave) {
+  function handleRef(ref) {
+    state.ref = ref
+    focus()
+  }
+  function focus() {
+    if (state.ref) {
+      if (state.savedName) {
+        state.ref.inputRef.value = state.name = state.savedName
+        state.ref.inputRef.select()
+        state.savedName = ""
+      }
+      state.ref.focus()
+    }
+  }
+  function load(playerid, callback) {
+    state.playerid = playerid
+    lms.command(playerid, "playlist", "name", "?").then(({data}) => {
+      state.savedName = data ? data.result._name || "" : ""
+      callback({
+        content: input,
+        yesText: "Save",
+        action: savePlaylist,
+      })
+      focus()
+    })
+  }
+  function savePlaylist() {
+    lms.command(state.playerid, "playlist", "save", state.name)
+    afterSave()
+  }
+  const state = {ref: null, name: "", savedName: ""}
+  const input = <Input
+    label="Save as"
+    onChange={(e, {value}) => { state.name = value }}
+    ref={handleRef}
+    fluid
+  />
+  return {load}
 }

@@ -6,8 +6,9 @@
 
 x- upgrade libraries
 - replace semantic-ui-react with
+  - https://blog.bitsrc.io/11-react-component-libraries-you-should-know-178eb1dd6aa4
   - https://material.io/ via https://github.com/jamesmfriedman/rmwc
-  - or https://ant.design/docs/react/introduce
+  - https://ant.design/docs/react/introduce
 
 - after switch to material.io
   - fix buttons stay in hover state after click
