@@ -3,7 +3,7 @@ import qs from 'query-string'
 import React from 'react'
 import Media from 'react-media'
 import { Link, Route } from 'react-router-dom'
-import { Breadcrumb, Input, List, Segment } from 'semantic-ui-react'
+import { Breadcrumb, Input, List, Menu, Segment } from 'semantic-ui-react'
 
 import { MediaInfo, PlaylistButtons, TrackInfoIcon } from './components'
 import { effect, combine } from './effects'
@@ -19,6 +19,12 @@ export const defaultState = {
 }
 
 export const reducer = makeReducer({
+  mediaBrowse: (state, action, name, ...args) => {
+    return combine(
+      {...state, isSearching: true},
+      [effect(doMediaBrowse, name, ...args)],
+    )
+  },
   mediaSearch: (state, action, query, ...args) => {
     if (!query) {
       afterMediaSearch(null, query, ...args)
@@ -52,6 +58,30 @@ const getDefaultNavState = basePath => ({
   previous: null,
 })
 
+const doMediaBrowse = (name, history, location, basePath) => {
+  const section = BROWSE_SECTIONS[name]
+  const params = ["tags", "sort"]
+    .filter(name => section.hasOwnProperty(name))
+    .map(name => name + ":" + section[name])
+  // TODO pagination
+  return lms.command("::", section.cmd, 0, 100, ...params)
+    .then(json => {
+      const result = json.data.result
+      adaptMediaResult(result, section)
+      const path = basePath + "/" + section.name + "/"
+      const state = {
+        name: section.title,
+        section: section.name,
+        result,
+        linkTo: {pathname: path},
+        previous: getDefaultNavState(basePath),
+      }
+      history.push(path, state)
+      return actions.doneSearching()
+    })
+    .catch(error => actions.mediaError(error))
+}
+
 /**
  * Media search effect
  *
@@ -66,6 +96,9 @@ const doMediaSearch = (query, ...args) => {
     .catch(error => actions.mediaError(error))
 }
 
+/**
+ * Update history with search path/query
+ */
 const afterMediaSearch = (result, query, history, location, basePath) => {
   const path = basePath + (query ? "?q=" + query : "")
   const state = {
@@ -98,25 +131,19 @@ const _loadAndShowMediaInfo = (item, history, location, basePath) => {
     .filter(name => drill.hasOwnProperty(name))
     .map(name => name + ":" + drill[name])
   )
+  const cmd = _.isArray(drill.cmd) ? drill.cmd : [drill.cmd]
   // TODO pagination
-  return lms.command("::", drill.cmd, 0, 100, ...params)
+  return lms.command("::", ...cmd, 0, 100, ...params)
     .then(json => {
       const result = json.data.result
       if (drill.type === "info") {
         result.info = _.reduce(result.songinfo_loop, _.assign, {})
       } else {
-        // adapt to MediaSearchResult format
-        result[drill.type + "s_count"] = result.count || 0
-        result[drill.type + "s_loop"] = result[drill.loop].map(
-          item => _.assign({
-            [drill.type + "_id"]: item.id,
-            [drill.type]: drill.title ? item[drill.title] : item.title,
-          }, item)
-        )
+        adaptMediaResult(result, drill)
       }
-      const path = basePath + "/" + item.type + "/" + item_id
+      const path = basePath + "/" + item.type + "/" + (item_id || "")
       const name = item[item.type]
-      const state = {
+      const state = item.getState ? item.getState(result, item, basePath) : {
         name: name || (result.info && result.info.title) || "Media",
         query: "",
         result,
@@ -134,6 +161,32 @@ const _loadAndShowMediaInfo = (item, history, location, basePath) => {
     })
     .catch(error => actions.mediaError(error))
 }
+
+const adaptMediaResult = (result, drill) => {
+  // adapt to SearchResult format
+  result[drill.type + "s_count"] = result.count || 0
+  result[drill.type + "s_loop"] = result[drill.loop].map(
+    item => _.assign({
+      [drill.type + "_id"]: item.id,
+      [drill.type]: drill.title ? item[drill.title] : item.title,
+    }, item)
+  )
+}
+
+const BROWSE_SECTIONS = _.chain({
+  playlists: {
+    playlist: "Playlists",
+    cmd: "playlists",
+    type: "playlist",
+    loop: "playlists_loop",
+  }
+}).map((info, name) => {
+  info.name = name
+  if (!info.title) {
+    info.title = _.upperFirst(name)
+  }
+  return [name, info]
+}).fromPairs().value()
 
 const NEXT_SECTION = {
   genre: {
@@ -163,8 +216,16 @@ const NEXT_SECTION = {
     param: "track_id",
     type: "info",
     tags: "aAcCdefgiIjJkKlLmMnopPDUqrROSstTuvwxXyY",
-  }
+  },
+  playlist: {
+    cmd: ["playlists", "tracks"],
+    param: "playlist_id",
+    type: "track",
+    loop: "playlisttracks_loop",
+    tags: "acjt",  // artist, coverid, artwork_track_id, track
+  },
 }
+
 const SECONDARY_INFO = {
   album: item => item.artist || "",
   track: item => item.artist || "",
@@ -174,7 +235,7 @@ const actions = reducer.actions
 
 export const MediaBrowse = props => {
   const {basePath} = props
-  const path = basePath + "/:type(track|album|contributor|genre)/:id"
+  const path = basePath + "/:type(track|album|contributor|genre|playlist)/:id"
   return (
     <Route path={path} children={route => (
       <RoutedMediaBrowse {...props} {...props.search} {...route} />
@@ -222,6 +283,10 @@ export class RoutedMediaBrowse extends React.Component {
         ))
       }
     }
+  }
+  onBrowse(event, item) {
+    const {history, location, basePath, dispatch} = this.props
+    dispatch(actions.mediaBrowse(item.name, history, location, basePath))
   }
   onSearch(query) {
     this.timer.clear()
@@ -280,6 +345,18 @@ export class RoutedMediaBrowse extends React.Component {
           showMediaInfo={props.showMediaInfo}
         /> : null
       }
+      { !result ?
+        <Menu
+          onItemClick={this.onBrowse.bind(this)}
+          items={_.map(BROWSE_SECTIONS, (section, name) => ({
+            name,
+            content: section.title,
+            key: name,
+          }))}
+          className="browse-sections"
+          borderless fluid vertical
+        /> : null
+      }
     </div>
   }
 }
@@ -309,11 +386,12 @@ export class MediaNav extends React.PureComponent {
   }
 }
 
-const SECTIONS = ["contributor", "album", "track"]
+const SECTIONS = ["contributor", "album", "track", "playlist"]
 const SECTION_NAMES = {
   contributor: "Artists",
   album: "Albums",
   track: "Songs",
+  playlist: "Playlists",
 }
 
 export class SearchResults extends React.PureComponent {
@@ -388,7 +466,7 @@ export class SearchResults extends React.PureComponent {
               <List.Item key={section}>
                 <List.Header>{SECTION_NAMES[section]}</List.Header>
               </List.Item>
-            ].concat(items.map(item =>
+            ].concat(items.map((item, i) =>
               <SearchResult
                 smallScreen={smallScreen}
                 showMediaInfo={this.props.showMediaInfo}
@@ -398,7 +476,7 @@ export class SearchResults extends React.PureComponent {
                 addToPlaylist={this.addToPlaylist.bind(this)}
                 playOrEnqueue={this.playOrEnqueue.bind(this)}
                 item={item}
-                key={item.type + "-" + item[item.type + "_id"]} />
+                key={item.type + "-" + item[item.type + "_id"] + "-" + i} />
             ))
           }
         })}
