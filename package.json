@@ -26,6 +26,7 @@
     "semantic-ui-react": "^0.77.2"
   },
   "devDependencies": {
+    "ajv": "^5.5.2",
     "autoprefixer": "^7.2.5",
     "axios-mock-adapter": "^1.7.1",
     "babel-core": "^6.26.0",
