@@ -3,6 +3,7 @@
 - fix playlist loads (maximum) first 100 tracks
 - fix auto-advance to next track after play previous then skip to end
   this appears to be a bug in LMS (can reproduce on stock web interface)
+- fix delete not deleting all selected items
 
 - upgrade libraries
 - replace semantic-ui-react with
@@ -18,6 +19,14 @@
   - show track info segment with slide down transition (hide with slide up)
 
 - add menu item to browse and load playlists
+  - fix starting on page /ultralight/playlists/ (should not show main menu)
+  - refactor library.js
+    - eliminate duplication in BROWSE_SECTIONS and NEXT_SECTION
+    - eliminate duplication in doMediaBrowse and _loadAndShowMediaInfo
+    - try to eliminate the need for adapting the JSON received from LMS
+      to a different internal format used by ultralight
+- switch to hashtag router (react-router, maybe not recommended)
+- implement pagination
 x- sort album tracks by track number in media browser
 - hotkey help screen
 - hotkey for menu
