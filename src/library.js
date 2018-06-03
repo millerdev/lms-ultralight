@@ -397,27 +397,24 @@ export class BrowserItems extends React.Component {
   render() {
     const props = this.props
     const {result} = props.location.state || {}
-    return <div>
-      { result && result.info ?
-        <MediaInfo
-          item={result.info}
-          playctl={props.playctl}
-          imageSize="tiny"
-        /> : null
-      }
-      { result && result.count ?
-        <MediaItems
-          {...props}
-          results={result}
-          showMediaInfo={props.showMediaInfo}
-        /> : null
-      }
-      { !result ?
-        <BrowseMenu
-          basePath={props.basePath}
-          onBrowse={this.onBrowse.bind(this)}
-        /> : null }
-    </div>
+    if (result && result.info) {
+      return <MediaInfo
+        item={result.info}
+        playctl={props.playctl}
+        imageSize="tiny"
+      />
+    }
+    if (result && result.count) {
+      return <MediaItems
+        {...props}
+        items={result}
+        showMediaInfo={props.showMediaInfo}
+      />
+    }
+    return <BrowseMenu
+      basePath={props.basePath}
+      onBrowse={this.onBrowse.bind(this)}
+    />
   }
 }
 
@@ -446,13 +443,13 @@ const SECTION_NAMES = {
 export class MediaItems extends React.PureComponent {
   constructor(props) {
     super(props)
-    this.state = this.getItems(props.results)
+    this.state = this.getItems(props.items)
     _.merge(this.state, {selection: new Set()})
     this.hideTrackInfo = () => {}
   }
   componentWillReceiveProps(props) {
-    if (this.props.results !== props.results) {
-      this.setState(this.getItems(props.results))
+    if (this.props.items !== props.items) {
+      this.setState(this.getItems(props.items))
     }
   }
   getItems(results) {
