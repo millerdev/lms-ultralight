@@ -147,7 +147,7 @@ const _loadAndShowMediaInfo = (item, history, location, basePath) => {
       }
       const path = basePath + "/" + item.type + "/" + (item_id || "")
       const name = item[item.type]
-      const state = item.getState ? item.getState(result, item, basePath) : {
+      const state = {
         name: name || (result.info && result.info.title) || "Media",
         query: "",
         result,
