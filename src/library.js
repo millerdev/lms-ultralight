@@ -68,7 +68,7 @@ const doMediaBrowse = (name, history, location, basePath) => {
     .then(json => {
       const result = json.data.result
       adaptMediaResult(result, section)
-      const path = basePath + "/" + section.name + "/"
+      const path = basePath + "/" + section.name
       const state = {
         name: section.title,
         section: section.name,
@@ -76,7 +76,11 @@ const doMediaBrowse = (name, history, location, basePath) => {
         linkTo: {pathname: path},
         previous: getDefaultNavState(basePath),
       }
-      history.push(path, state)
+      if (matchPath(location.pathname, {path, exact: true})) {
+        history.replace(path, state)
+      } else {
+        history.push(path, state)
+      }
       return actions.doneSearching()
     })
     .catch(error => actions.mediaError(error))
@@ -108,7 +112,7 @@ const afterMediaSearch = (result, query, history, location, basePath) => {
     linkTo: {pathname: basePath, search: query ? "?q=" + query : ""},
     previous: query ? getDefaultNavState(basePath) : null,
   }
-  if (query && location.pathname === basePath) {
+  if (query && matchPath(location.pathname, {path: basePath, exact: true})) {
     history.replace(path, state)
   } else {
     history.push(path, state)
@@ -422,7 +426,7 @@ const BrowseMenu = ({ basePath, onBrowse }) => (
     {_.map(BROWSE_SECTIONS, (section, name) => (
       <Menu.Item
         key={name}
-        href={basePath + "/" + name + "/"}
+        href={basePath + "/" + name}
         onClick={e => {e.preventDefault(); onBrowse(name)}}
       >
         {section.title}

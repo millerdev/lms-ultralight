@@ -19,7 +19,6 @@
   - show track info segment with slide down transition (hide with slide up)
 
 - add menu item to browse and load playlists
-  - fix starting on page /ultralight/playlists/ (should not show main menu)
   - refactor library.js
     - eliminate duplication in BROWSE_SECTIONS and NEXT_SECTION
     - eliminate duplication in doMediaBrowse and _loadAndShowMediaInfo
