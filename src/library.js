@@ -2,7 +2,7 @@ import _ from 'lodash'
 import qs from 'query-string'
 import React from 'react'
 import Media from 'react-media'
-import { Link, Route } from 'react-router-dom'
+import { Link, Route, matchPath } from 'react-router-dom'
 import { Breadcrumb, Input, List, Menu, Segment } from 'semantic-ui-react'
 
 import { MediaInfo, PlaylistButtons, TrackInfoIcon } from './components'
@@ -175,7 +175,6 @@ const adaptMediaResult = (result, drill) => {
 
 const BROWSE_SECTIONS = _.chain({
   playlists: {
-    playlist: "Playlists",
     cmd: "playlists",
     type: "playlist",
     loop: "playlists_loop",
@@ -233,23 +232,27 @@ const SECONDARY_INFO = {
 
 const actions = reducer.actions
 
-export const MediaBrowse = props => {
-  const {basePath} = props
-  const path = basePath + "/:type(track|album|contributor|genre|playlist)/:id"
+export const MediaBrowser = props => {
   return (
-    <Route path={path} children={route => (
-      <RoutedMediaBrowse {...props} {...props.search} {...route} />
+    <Route children={route => (
+      <div>
+        <SearchInput
+          {...route}
+          basePath={props.basePath}
+          dispatch={props.dispatch}
+          isSearching={props.isSearching}
+        />
+        <MediaNav state={route.location.state} />
+        <MediaItems {...props} {...route} />
+      </div>
     )} />
   )
 }
 
-const IGNORE_DIFF = {playctl: true, match: true, showMediaInfo: true}
-
-export class RoutedMediaBrowse extends React.Component {
+export class SearchInput extends React.Component {
   constructor(props) {
     super(props)
     this.timer = timer()
-    this.updateLocationState(props)
   }
   componentDidMount() {
     this.focusInput()
@@ -257,47 +260,16 @@ export class RoutedMediaBrowse extends React.Component {
   componentWillUnmount() {
     this.timer.clear()
   }
-  shouldComponentUpdate(props) {
-    return _.some(this.props, (value, key) =>
-        !IGNORE_DIFF[key] && props[key] !== value) ||
-      !_.isEqual(_.keys(props), _.keys(this.props))
-  }
-  updateLocationState(props) {
-    const {basePath, match, history, location, isSearching} = props
-    const state = location.state || {}
-    if (match && match.params.id) {
-      if (!isSearching) {
-        if (!state.result) {
-          const {params: {type, id}} = match
-          this.props.showMediaInfo({type, [type + "_id"]: id})
-        }
-      }
-    } else if (location.search) {
-      const params = qs.parse(location.search)
-      if (params.q && state.query !== params.q && !isSearching) {
-        props.dispatch(actions.mediaSearch(
-          params.q,
-          history,
-          location,
-          basePath,
-        ))
-      }
-    }
-  }
-  onBrowse(event, item) {
-    const {history, location, basePath, dispatch} = this.props
-    dispatch(actions.mediaBrowse(item.name, history, location, basePath))
-  }
   onSearch(query) {
     this.timer.clear()
     this.timer.after(350, () => {
-      const {history, location, basePath, dispatch} = this.props
+      const {dispatch, history, location, basePath} = this.props
       dispatch(actions.mediaSearch(query, history, location, basePath))
     }).catch(() => { /* ignore error on clear */ })
   }
   onClearSearch() {
-    const {history, location, basePath} = this.props
-    this.props.dispatch(actions.mediaSearch("", history, location, basePath))
+    const {dispatch, history, location, basePath} = this.props
+    dispatch(actions.mediaSearch("", history, location, basePath))
     this.input.inputRef.value = ""
     this.input.focus()
   }
@@ -314,50 +286,20 @@ export class RoutedMediaBrowse extends React.Component {
     }
   }
   render() {
-    const props = this.props
-    const {name, result, previous} = props.location.state || {}
     const inputHasValue = !!(this.input && this.input.inputRef.value)
-    return <div>
-      <Input
-        ref={this.setSearchInput.bind(this)}
-        onChange={(e, {value}) => this.onSearch(value)}
-        className="icon"
-        icon={{
-          name: inputHasValue ? "x" : "search",
-          link: inputHasValue,
-          onClick: () => this.onClearSearch(),
-        }}
-        loading={props.isSearching}
-        placeholder="Search..."
-        fluid />
-      <MediaNav name={name} previous={previous} />
-      { result && result.info ?
-        <MediaInfo
-          item={result.info}
-          playctl={props.playctl}
-          imageSize="tiny"
-        /> : null
-      }
-      { result && result.count ?
-        <SearchResults
-          {...props}
-          results={result}
-          showMediaInfo={props.showMediaInfo}
-        /> : null
-      }
-      { !result ?
-        <Menu
-          onItemClick={this.onBrowse.bind(this)}
-          items={_.map(BROWSE_SECTIONS, (section, name) => ({
-            name,
-            content: section.title,
-            key: name,
-          }))}
-          className="browse-sections"
-          borderless fluid vertical
-        /> : null
-      }
-    </div>
+    return <Input
+      ref={this.setSearchInput.bind(this)}
+      onChange={(e, {value}) => this.onSearch(value)}
+      className="icon"
+      icon={{
+        name: inputHasValue ? "x" : "search",
+        link: inputHasValue,
+        onClick: () => this.onClearSearch(),
+      }}
+      loading={this.props.isSearching}
+      placeholder="Search..."
+      fluid
+    />
   }
 }
 
@@ -373,7 +315,7 @@ export class MediaNav extends React.PureComponent {
     return items
   }
   render() {
-    const {name, previous} = this.props
+    const {name, previous} = this.props.state || {}
     return !previous ? null : (
       <Segment className="nav" size="small">
         <Breadcrumb
@@ -385,6 +327,109 @@ export class MediaNav extends React.PureComponent {
     )
   }
 }
+
+const IGNORE_DIFF = {playctl: true, match: true, showMediaInfo: true}
+
+export class MediaItems extends React.Component {
+  constructor(props) {
+    super(props)
+    const state = props.location.state || {}
+    if (!props.isSearching && !state.result) {
+      this.updateLocationState(props)
+    }
+  }
+  shouldComponentUpdate(props) {
+    return _.some(this.props, (value, key) =>
+        !IGNORE_DIFF[key] && props[key] !== value) ||
+      !_.isEqual(_.keys(props), _.keys(this.props))
+  }
+  /**
+   * Load location state if missing
+   *
+   * Asynchronously fetch menu content when loading a path typed into
+   * the address bar or from a bookmark or other external link.
+   */
+  updateLocationState(props) {
+    const {basePath, location} = props
+    const state = location.state || {}
+
+    const types = _.keys(NEXT_SECTION).join("|")
+    const itemMatch = matchPath(location.pathname, {
+      path: basePath + "/:type(" + types + ")/:id",
+      exact: true,
+    })
+    if (itemMatch) {
+      const {params: {type, id}} = itemMatch
+      props.showMediaInfo({type, [type + "_id"]: id})
+      return
+    }
+
+    const sections = _.keys(BROWSE_SECTIONS).join("|")
+    const sectionMatch = matchPath(location.pathname, {
+      path: basePath + "/:section(" + sections + ")",
+      exact: true,
+    })
+    if (sectionMatch) {
+      this.onBrowse(sectionMatch.params.section)
+      return
+    }
+
+    if (location.search) {
+      const params = qs.parse(location.search)
+      if (params.q && state.query !== params.q) {
+        props.dispatch(actions.mediaSearch(
+          params.q,
+          props.history,
+          location,
+          basePath,
+        ))
+      }
+    }
+  }
+  onBrowse(section) {
+    const {dispatch, history, location, basePath} = this.props
+    dispatch(actions.mediaBrowse(section, history, location, basePath))
+  }
+  render() {
+    const props = this.props
+    const {result} = props.location.state || {}
+    return <div>
+      { result && result.info ?
+        <MediaInfo
+          item={result.info}
+          playctl={props.playctl}
+          imageSize="tiny"
+        /> : null
+      }
+      { result && result.count ?
+        <SearchResults
+          {...props}
+          results={result}
+          showMediaInfo={props.showMediaInfo}
+        /> : null
+      }
+      { !result ?
+        <BrowseMenu
+          basePath={props.basePath}
+          onBrowse={this.onBrowse.bind(this)}
+        /> : null }
+    </div>
+  }
+}
+
+const BrowseMenu = ({ basePath, onBrowse }) => (
+  <Menu className="browse-sections" borderless fluid vertical>
+    {_.map(BROWSE_SECTIONS, (section, name) => (
+      <Menu.Item
+        key={name}
+        href={basePath + "/" + name + "/"}
+        onClick={e => {e.preventDefault(); onBrowse(name)}}
+      >
+        {section.title}
+      </Menu.Item>
+    ))}
+  </Menu>
+)
 
 const SECTIONS = ["contributor", "album", "track", "playlist"]
 const SECTION_NAMES = {

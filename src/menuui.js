@@ -5,7 +5,7 @@ import { Icon, Menu, Message, Sidebar, Transition } from 'semantic-ui-react'
 
 import * as pkg from '../package.json'
 import * as players from './playerselect'
-import { MediaBrowse } from './library'
+import { MediaBrowser } from './library'
 import './menu.styl'
 
 export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ...props}) => (
@@ -61,8 +61,9 @@ export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ..
 const MenuItems = ({player, playlist, ...props}) => (
   <Menu borderless fluid vertical className="menu-items">
     <Menu.Item name="library">
-      <MediaBrowse
+      <MediaBrowser
         {...props}
+        {...props.library}
         basePath="/menu"
         isPlaying={player.isPlaying}
         numTracks={playlist.numTracks}
