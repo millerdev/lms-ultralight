@@ -1,32 +1,12 @@
 # TODO
 
-- fix playlist loads (maximum) first 100 tracks
-- fix auto-advance to next track after play previous then skip to end
-  this appears to be a bug in LMS (can reproduce on stock web interface)
-- fix delete not deleting all selected items
-
 - upgrade libraries
-- replace semantic-ui-react with
-  - https://blog.bitsrc.io/11-react-component-libraries-you-should-know-178eb1dd6aa4
-  - https://material.io/ via https://github.com/jamesmfriedman/rmwc (con: no CSS?)
-  - https://ant.design/docs/react/introduce
 
-- after switch to material.io
-  - fix buttons stay in hover state after click
-  - fix track icon weirdness on touch to show info (info icon persists)
-  - fix spacing in progress/seek bar
-  - fix spacing in control bar (rw/play/ff volume repeat/random)
-  - show track info segment with slide down transition (hide with slide up)
+- fix playlist loads (maximum) first 100 tracks
+- fix delete not deleting all selected items
+- fix /ultralight/menu... paths 404 when hosted by LMS
 
-- add menu item to browse and load playlists
-  - refactor library.js
-    - eliminate duplication in BROWSE_SECTIONS and NEXT_SECTION
-    - eliminate duplication in doMediaBrowse and _loadAndShowMediaInfo
-    - try to eliminate the need for adapting the JSON received from LMS
-      to a different internal format used by ultralight
-- switch to hashtag router (react-router, maybe not recommended)
 - implement pagination
-x- sort album tracks by track number in media browser
 - hotkey help screen
 - hotkey for menu
 - add current tack icon, title, artist to menu bar
@@ -48,6 +28,21 @@ x- sort album tracks by track number in media browser
 - swipe to delete track(s) (delete multiple if selected)
 - get better slider controls? (maybe not since upgrade)
 - add volume buttons to end of slider when < ?480px?
+
+- fix auto-advance to next track after play previous then skip to end
+  this appears to be a bug in LMS (can reproduce on stock web interface)
+
+- replace semantic-ui-react with
+  - https://blog.bitsrc.io/11-react-component-libraries-you-should-know-178eb1dd6aa4
+  - https://material.io/ via https://github.com/jamesmfriedman/rmwc (con: no CSS?)
+  - https://ant.design/docs/react/introduce
+
+- after switch to material.io
+  - fix buttons stay in hover state after click
+  - fix track icon weirdness on touch to show info (info icon persists)
+  - fix spacing in progress/seek bar
+  - fix spacing in control bar (rw/play/ff volume repeat/random)
+  - show track info segment with slide down transition (hide with slide up)
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Links
