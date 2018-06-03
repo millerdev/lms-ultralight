@@ -35,13 +35,13 @@ let plugins = [
   // this plugin injects your resources to the index file
   new HTMLWebpackPlugin({
     filename: 'index.html',
-    showErrors: DEBUG,
+    showErrors: !DEBUG,
     template: 'src/static/index.html',
     inject: 'body'
   }),
   new webpack.LoaderOptionsPlugin({
     options: {
-      eslint: { failOnWarning: DEBUG },
+      eslint: { failOnWarning: !DEBUG },
       postcss: [ autoprefixer({ browsers: ['last 2 versions'] }) ],
     },
   }),
