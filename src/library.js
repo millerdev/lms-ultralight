@@ -511,11 +511,12 @@ export class SearchResults extends React.PureComponent {
         {SECTIONS.map(section => {
           if (bySection.hasOwnProperty(section)) {
             const items = bySection[section]
-            return [
+            const elements = _.keys(bySection).length === 1 ? [] : [
               <List.Item key={section}>
                 <List.Header>{SECTION_NAMES[section]}</List.Header>
               </List.Item>
-            ].concat(items.map((item, i) =>
+            ]
+            return elements.concat(items.map((item, i) =>
               <SearchResult
                 smallScreen={smallScreen}
                 showMediaInfo={this.props.showMediaInfo}
