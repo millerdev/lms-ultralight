@@ -535,39 +535,45 @@ export class SearchResults extends React.PureComponent {
   }
 }
 
-const SearchResult = props => {
-  const item = props.item
-  const smallScreen = props.smallScreen
-  const gap = smallScreen ? null : "gap-left"
-  let secondaryInfo = ""
-  if (smallScreen && SECONDARY_INFO.hasOwnProperty(item.type)) {
-    secondaryInfo = SECONDARY_INFO[item.type](item)
+export class SearchResult extends React.Component {
+  shouldComponentUpdate(props) {
+    return this.props.item !== props.item
   }
-  return <TouchList.Item
-      onDoubleClick={() => props.playOrEnqueue(item)}
-      index={item.index}
-      draggable>
-    <List.Content>
-      <List.Description className="title">
-        <TrackInfoIcon
-          {...props}
-          icon={item.type === "track" ? null : "plus square outline"}
-          onClick={() => props.showMediaInfo(item)}
-          smallScreen={smallScreen}
-        />
-        <span className={gap}>{item[item.type]}</span>
-        { smallScreen && secondaryInfo ?
-          <div className="deemphasize">{secondaryInfo}</div> : null
-        }
-      </List.Description>
-    </List.Content>
-    <List.Content className="playlist-controls tap-zone">
-      <List.Description>
-        <PlaylistButtons
-          play={() => props.playItem(item)}
-          playNext={props.playNext ? () => props.playNext(item) : null}
-          addToPlaylist={() => props.addToPlaylist(item)} />
-      </List.Description>
-    </List.Content>
-  </TouchList.Item>
+  render() {
+    const props = this.props
+    const item = props.item
+    const smallScreen = props.smallScreen
+    const gap = smallScreen ? null : "gap-left"
+    let secondaryInfo = ""
+    if (smallScreen && SECONDARY_INFO.hasOwnProperty(item.type)) {
+      secondaryInfo = SECONDARY_INFO[item.type](item)
+    }
+    return <TouchList.Item
+        onDoubleClick={() => props.playOrEnqueue(item)}
+        index={item.index}
+        draggable>
+      <List.Content>
+        <List.Description className="title">
+          <TrackInfoIcon
+            {...props}
+            icon={item.type === "track" ? null : "plus square outline"}
+            onClick={() => props.showMediaInfo(item)}
+            smallScreen={smallScreen}
+          />
+          <span className={gap}>{item[item.type]}</span>
+          { smallScreen && secondaryInfo ?
+            <div className="deemphasize">{secondaryInfo}</div> : null
+          }
+        </List.Description>
+      </List.Content>
+      <List.Content className="playlist-controls tap-zone">
+        <List.Description>
+          <PlaylistButtons
+            play={() => props.playItem(item)}
+            playNext={props.playNext ? () => props.playNext(item) : null}
+            addToPlaylist={() => props.addToPlaylist(item)} />
+        </List.Description>
+      </List.Content>
+    </TouchList.Item>
+  }
 }
