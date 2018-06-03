@@ -7,7 +7,7 @@ import { Button, Confirm, Input, List, Segment } from 'semantic-ui-react'
 import { DragHandle, MediaInfo, TrackInfoIcon } from './components'
 import { effect, combine } from './effects'
 import * as lms from './lmsclient'
-import { SEARCH_RESULTS } from './library'
+import { MEDIA_ITEMS } from './library'
 import makeReducer from './store'
 import { TouchList } from './touch'
 import { formatTime, operationError } from './util'
@@ -481,7 +481,7 @@ export class Playlist extends React.Component {
     this.setState({prompt: {}})
   }
   onDrop(data, dataType, index) {
-    if (dataType === SEARCH_RESULTS) {
+    if (dataType === MEDIA_ITEMS) {
       const {playerid, dispatch, numTracks} = this.props
       const plIndex = this.toPlaylistIndex(index, true)
       insertPlaylistItems(playerid, data, plIndex, dispatch, numTracks)
@@ -506,7 +506,7 @@ export class Playlist extends React.Component {
           className="playlist"
           items={props.items}
           selection={selection}
-          dropTypes={[SEARCH_RESULTS]}
+          dropTypes={[MEDIA_ITEMS]}
           onDrop={this.onDrop.bind(this)}
           onTap={this.onTap.bind(this)}
           onLongTouch={this.onLongTouch.bind(this)}

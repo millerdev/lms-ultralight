@@ -12,7 +12,7 @@ import makeReducer from './store'
 import { TouchList } from './touch'
 import { operationError, timer } from './util'
 
-export const SEARCH_RESULTS = "search results"
+export const MEDIA_ITEMS = "media items"
 
 export const defaultState = {
   isSearching: false,
@@ -67,7 +67,7 @@ const doMediaBrowse = (name, history, location, basePath) => {
   return lms.command("::", section.cmd, 0, 100, ...params)
     .then(json => {
       const result = json.data.result
-      adaptMediaResult(result, section)
+      adaptMediaItems(result, section)
       const path = basePath + "/" + section.name
       const state = {
         name: section.title,
@@ -143,7 +143,7 @@ const _loadAndShowMediaInfo = (item, history, location, basePath) => {
       if (drill.type === "info") {
         result.info = _.reduce(result.songinfo_loop, _.assign, {})
       } else {
-        adaptMediaResult(result, drill)
+        adaptMediaItems(result, drill)
       }
       const path = basePath + "/" + item.type + "/" + (item_id || "")
       const name = item[item.type]
@@ -166,8 +166,8 @@ const _loadAndShowMediaInfo = (item, history, location, basePath) => {
     .catch(error => actions.mediaError(error))
 }
 
-const adaptMediaResult = (result, drill) => {
-  // adapt to SearchResult format
+const adaptMediaItems = (result, drill) => {
+  // adapt to MediaItem format
   result[drill.type + "s_count"] = result.count || 0
   result[drill.type + "s_loop"] = result[drill.loop].map(
     item => _.assign({
@@ -246,8 +246,8 @@ export const MediaBrowser = props => {
           dispatch={props.dispatch}
           isSearching={props.isSearching}
         />
-        <MediaNav state={route.location.state} />
-        <MediaItems {...props} {...route} />
+        <BrowserHistory state={route.location.state} />
+        <BrowserItems {...props} {...route} />
       </div>
     )} />
   )
@@ -307,7 +307,7 @@ export class SearchInput extends React.Component {
   }
 }
 
-export class MediaNav extends React.PureComponent {
+export class BrowserHistory extends React.PureComponent {
   navItems(state, active=true) {
     const items = state.previous ? this.navItems(state.previous, false) : []
     const loc = _.assign({state}, state.linkTo)
@@ -334,7 +334,7 @@ export class MediaNav extends React.PureComponent {
 
 const IGNORE_DIFF = {playctl: true, match: true, showMediaInfo: true}
 
-export class MediaItems extends React.Component {
+export class BrowserItems extends React.Component {
   constructor(props) {
     super(props)
     const state = props.location.state || {}
@@ -406,7 +406,7 @@ export class MediaItems extends React.Component {
         /> : null
       }
       { result && result.count ?
-        <SearchResults
+        <MediaItems
           {...props}
           results={result}
           showMediaInfo={props.showMediaInfo}
@@ -443,7 +443,7 @@ const SECTION_NAMES = {
   playlist: "Playlists",
 }
 
-export class SearchResults extends React.PureComponent {
+export class MediaItems extends React.PureComponent {
   constructor(props) {
     super(props)
     this.state = this.getItems(props.results)
@@ -505,7 +505,7 @@ export class SearchResults extends React.PureComponent {
     const selection = this.state.selection
     return <Media query="(max-width: 500px)">{ smallScreen =>
       <TouchList
-          dataType={SEARCH_RESULTS}
+          dataType={MEDIA_ITEMS}
           items={this.state.items}
           onSelectionChanged={this.onSelectionChanged.bind(this)}>
         {SECTIONS.map(section => {
@@ -517,7 +517,7 @@ export class SearchResults extends React.PureComponent {
               </List.Item>
             ]
             return elements.concat(items.map((item, i) =>
-              <SearchResult
+              <MediaItem
                 smallScreen={smallScreen}
                 showMediaInfo={this.props.showMediaInfo}
                 playItem={this.playItem.bind(this)}
@@ -535,7 +535,7 @@ export class SearchResults extends React.PureComponent {
   }
 }
 
-export class SearchResult extends React.Component {
+export class MediaItem extends React.Component {
   shouldComponentUpdate(props) {
     return this.props.item !== props.item
   }

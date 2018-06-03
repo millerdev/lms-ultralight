@@ -4,10 +4,10 @@ import React from 'react'
 import * as mod from '../src/library'
 
 describe('library', function () {
-  describe("MediaItems component", function () {
+  describe("BrowserItems component", function () {
     it('should handle querystring media queries', function () {
       const dispatch = makeDispatch()
-      shallow(<mod.MediaItems
+      shallow(<mod.BrowserItems
         dispatch={dispatch}
         basePath="/test"
         location={{pathname: "/test", search: "?q=something&foo=bar"}}

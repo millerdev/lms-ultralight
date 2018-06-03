@@ -7,7 +7,7 @@ import { promiseChecker, rewire } from './util'
 import { effect, getEffects, getState, split } from '../src/effects'
 import * as mod from '../src/playlist'
 import {__RewireAPI__ as module} from '../src/playlist'
-import { SEARCH_RESULTS } from '../src/library'
+import { MEDIA_ITEMS } from '../src/library'
 import { operationError } from '../src/util'
 
 describe('playlist', function () {
@@ -627,7 +627,7 @@ describe('playlist', function () {
           asserted = true
         },
       }, () => {
-        playlist.onDrop(items, SEARCH_RESULTS, 6)
+        playlist.onDrop(items, MEDIA_ITEMS, 6)
       })
       assert(asserted, 'rewire assertions not run')
     })
