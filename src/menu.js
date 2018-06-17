@@ -74,14 +74,14 @@ export class MainMenu extends React.Component {
   }
   getChildContext() {
     return {
-      addKeydownHandler: this.addKeydownHandler.bind(this),
-      showMediaInfo: this.showMediaInfo.bind(this),
+      addKeydownHandler: this.addKeydownHandler,
+      showMediaInfo: this.showMediaInfo,
     }
   }
-  addKeydownHandler(code, handler) {
+  addKeydownHandler = (code, handler) => {
     this.keydownHandlers[code] = handler
   }
-  showMediaInfo(item) {
+  showMediaInfo = item => {
     const actions = library.reducer.actions
     const {dispatch, history, location} = this.props
     dispatch(actions.loadAndShowMediaInfo(item, history, location, "/menu"))
@@ -104,26 +104,29 @@ export class MainMenu extends React.Component {
       },
     )
   }
-  onPlayerSelected(playerid) {
+  onPlayerSelected = playerid => {
     localStorage.currentPlayer = playerid
     loadPlayer(playerid, true).then(this.props.dispatch)
   }
-  onHideError() {
+  onHideError = () => {
     this.props.dispatch(actions.hideOperationError())
   }
   render() {
     const {menu, children, ...props} = this.props
-    return <MainMenuUI
+    return (
+      <MainMenuUI
         playctl={this.playctl()}
         players={menu.players}
         library={menu.library}
         messages={menu.messages}
-        onHideError={this.onHideError.bind(this)}
-        onPlayerSelected={this.onPlayerSelected.bind(this)}
-        showMediaInfo={this.showMediaInfo.bind(this)}
-        {...props}>
-      {children}
-    </MainMenuUI>
+        onHideError={this.onHideError}
+        onPlayerSelected={this.onPlayerSelected}
+        showMediaInfo={this.showMediaInfo}
+        {...props}
+      >
+        {children}
+      </MainMenuUI>
+    )
   }
 }
 
