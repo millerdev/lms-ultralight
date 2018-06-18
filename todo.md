@@ -6,7 +6,42 @@
 - fix delete not deleting all selected items
 - fix /ultralight/menu... paths 404 when hosted by LMS
 
+- ui rearrange
+  - player bar
+    - components
+      - play/pause button
+      - track art
+      - track details (title, artist)
+      - volume up/down
+      - blue progress line along edge of player bar
+    - integrate into top bar on large screens
+      - click track details to increase size of top bar to include full player
+        with scrollable playlist below
+    - bottom of screen on small screens
+      - click track details to switch to full player view with back button
+        - click back button to return to playlist view
+  - show full player
+    - track art/details are a clickable tile that shows full player controls
+      - next/play/pause/prev
+      - volume
+      - repeat/shuffle
+      - album art
+      - track details
+      - progress
+  - reduce sice of playlist when expanding menu (rather than pushing off the side)
+  - scroll currently playing playlist item near top of screen
+    - scroll slowly at first 5s to allow manual intervention/override
 - implement pagination
+  - load more playlist items on scroll (virtualized list)
+    - option: react-beautiful-dnd
+      - pattern for multi-drag
+        https://github.com/atlassian/react-beautiful-dnd/blob/master/docs/patterns/multi-drag.md
+      - he's working on virtualization as of June 10, 2018
+        https://github.com/atlassian/react-beautiful-dnd/issues/68
+    - option: react-sortable-hoc + react-tiny-virtual-list
+      https://github.com/clauderic/react-sortable-hoc/
+      https://github.com/clauderic/react-tiny-virtual-list/
+      - need to implement multi-drag (no pattern provided)
 - hotkey help screen
 - hotkey for menu
 - add current tack icon, title, artist to menu bar

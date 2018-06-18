@@ -53,5 +53,6 @@ export const SelectPlayer = props => (
     value={props.playerid || ""}
     loading={props.loading}
     error={props.error}
-    selection />
+    selectOnNavigation={false}
+    compact selection />
 )

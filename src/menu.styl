@@ -12,6 +12,18 @@
   .sidebar
     border-right: 1px solid #D6D6D6
 
+  .player-bar
+    &.embedded
+      border: none
+      box-shadow: none
+    .track-info
+      border: none
+      box-shadow: none
+      overflow: hidden
+
+      .tags
+        padding-left: 0.5em
+
   .menu-items.ui.borderless.menu
     padding-top: 3.4em
     margin: 0
@@ -63,6 +75,7 @@
     z-index: 210
 
   .mainview.ui.grid
-    /* HACK adjust to fixed top menu - Semantic UI bug? */
+    /* HACK adjust to fixed top/bottom menu - Semantic UI bug? */
     margin: 0
     padding-top: 3.4em !important
+    padding-bottom: 3em !important

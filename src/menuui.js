@@ -1,61 +1,69 @@
 import React from 'react'
 import Media from 'react-media'
 import { Link, Route, Switch } from 'react-router-dom'
-import { Icon, Menu, Message, Sidebar, Transition } from 'semantic-ui-react'
+import { Icon, Image, Menu, Message, Sidebar, Transition } from 'semantic-ui-react'
 
+import * as lms from './lmsclient'
 import * as pkg from '../package.json'
 import * as players from './playerselect'
 import { MediaBrowser } from './library'
 import './menu.styl'
 
 export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ...props}) => (
-  <div className="mainmenu">
-    <PowerBar
-      players={players}
-      onPlayerSelected={onPlayerSelected}
-      {...props}
-    />
-    <Transition
-        visible={!!messages.error}
-        animation="slide down"
-        duration={500}
-        unmountOnHide>
-      <Message
-          className="messages"
-          onDismiss={onHideError}
-          onClick={onHideError}
-          size="small"
-          negative>
-        <Message.Content>
-          <Icon name="warning" size="large" />
-          {messages.error}
-        </Message.Content>
-      </Message>
-    </Transition>
-    <Media query="(max-width: 500px)">
-    { smallScreen => smallScreen ?
-      <Switch>
-        <Route path="/menu" render={() => <MenuItems {...props} />} />
-        <Route render={() => <MainView {...props} />} />
-      </Switch> :
-      <div>
-        <Route path="/menu" children={({match: menuOpen}) => (
-          <Sidebar
-              as="div"
-              className="sidebar"
-              animation="push"
-              width="wide"
-              visible={!!menuOpen}>
-            <MenuItems {...props} />
-          </Sidebar>
-        )} />
-        <Sidebar.Pusher>
-          <MainView {...props} />
-        </Sidebar.Pusher>
-      </div>
-    }
-    </Media>
-  </div>
+  <Media query="(max-width: 500px)">{ smallScreen =>
+    <div className="mainmenu">
+      <PowerBar
+        players={players}
+        onPlayerSelected={onPlayerSelected}
+        {...props}
+      >
+        { !smallScreen ? <PlayerBar {...props} /> : null }
+      </PowerBar>
+      <Transition
+          visible={!!messages.error}
+          animation="slide down"
+          duration={500}
+          unmountOnHide>
+        <Message
+            className="messages"
+            onDismiss={onHideError}
+            onClick={onHideError}
+            size="small"
+            negative>
+          <Message.Content>
+            <Icon name="warning" size="large" />
+            {messages.error}
+          </Message.Content>
+        </Message>
+      </Transition>
+      { smallScreen ?
+        <Switch>
+          <Route path="/menu" render={() => <MenuItems {...props} />} />
+          <Route render={() => (
+            <div>
+              <MainView {...props} />
+              <PlayerBar {...props} bottom />
+            </div>
+          )} />
+        </Switch> :
+        <div>
+          <Route path="/menu" children={({match: menuOpen}) => (
+            <Sidebar
+                as="div"
+                className="sidebar"
+                animation="push"
+                width="wide"
+                visible={!!menuOpen}>
+              <MenuItems {...props} />
+            </Sidebar>
+          )} />
+          <Sidebar.Pusher>
+            <MainView {...props} />
+          </Sidebar.Pusher>
+        </div>
+      }
+    </div>
+  }</Media>
 )
 
 const MenuItems = ({player, playlist, ...props}) => (
@@ -90,56 +98,57 @@ const PowerBar = props => {
           <Icon name="content" size="large" />
         </Menu.Item>
       </Link>
-      { player.isControlVisible && !menuOpen ?
-        <Menu.Item fitted>
-          <players.SelectPlayer
-            playerid={player.playerid}
-            onPlayerSelected={props.onPlayerSelected}
-            dispatch={props.dispatch}
-            {...props.players} />
-        </Menu.Item> :
-        <PlayGroup
-          playctl={props.playctl}
-          isPlaying={player.isPlaying} />
-      }
-      {player.isControlVisible && !menuOpen ?
-        <Menu.Menu position="right">
-          <Menu.Item
-              fitted="vertically"
-              active={player.isPowerOn}
-              onClick={props.playctl.togglePower}
-              disabled={!player.playerid}>
-            <Icon name="power" size="large" />
-          </Menu.Item>
-        </Menu.Menu> :
-        <VolumeGroup playctl={props.playctl} />
-      }
+      <Menu.Item fitted>
+        <players.SelectPlayer
+          playerid={player.playerid}
+          onPlayerSelected={props.onPlayerSelected}
+          dispatch={props.dispatch}
+          {...props.players} />
+      </Menu.Item>
+      {props.children}
+      <Menu.Menu position="right">
+        <Menu.Item
+            fitted="vertically"
+            active={player.isPowerOn}
+            onClick={props.playctl.togglePower}
+            disabled={!player.playerid}>
+          <Icon name="power" size="large" />
+        </Menu.Item>
+      </Menu.Menu>
     </Menu>
   )} />
 }
 
-const PlayGroup = props => {
+const PlayerBar = props => {
+  const player = props.player
   const playctl = props.playctl
-  return <Menu.Menu position={props.position}>
-    <Menu.Item
-        onClick={() => playctl.command("playlist", "index", "-1")}
+  const tags = props.playlist.currentTrack
+  const playerid = props.player.playerid
+  return (
+    <Menu
+      className={"player-bar" + (!props.bottom ? " embedded" : "")}
+      fixed={ props.bottom ? "bottom" : null }
+      borderless
+    >
+      <Menu.Item
+        onClick={() => playctl.command(player.isPlaying ? "pause" : "play")}
         disabled={!playctl.playerid}
-        fitted>
-      <Icon size="large" name="backward" />
-    </Menu.Item>
-    <Menu.Item
-        onClick={() => playctl.command(props.isPlaying ? "pause" : "play")}
-        disabled={!playctl.playerid}
-        fitted="vertically">
-      <Icon size="large" name={props.isPlaying ? "pause" : "play"} />
-    </Menu.Item>
-    <Menu.Item
-        onClick={() => playctl.command("playlist", "index", "+1")}
-        disabled={!playctl.playerid}
-        fitted>
-      <Icon size="large" name="forward" />
-    </Menu.Item>
-  </Menu.Menu>
+        fitted="vertically"
+      >
+        <Icon size="large" name={player.isPlaying ? "pause" : "play"} />
+      </Menu.Item>
+      <Menu borderless fluid className="track-info">
+        <Menu.Item fitted>
+          <Image size="mini" src={lms.getImageUrl(tags, playerid)} />
+          <div className="tags">
+            <div>{tags.title}</div>
+            <div>{tags.artist} - {tags.album}</div>
+          </div>
+        </Menu.Item>
+      </Menu>
+      { props.bottom ? <VolumeGroup playctl={playctl} /> : null }
+    </Menu>
+  )
 }
 
 const VolumeGroup = ({playctl}) => {
