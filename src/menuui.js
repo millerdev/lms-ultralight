@@ -19,23 +19,7 @@ export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ..
       >
         { !smallScreen ? <PlayerBar {...props} /> : null }
       </PowerBar>
-      <Transition
-          visible={!!messages.error}
-          animation="slide down"
-          duration={500}
-          unmountOnHide>
-        <Message
-            className="messages"
-            onDismiss={onHideError}
-            onClick={onHideError}
-            size="small"
-            negative>
-          <Message.Content>
-            <Icon name="warning" size="large" />
-            {messages.error}
-          </Message.Content>
-        </Message>
-      </Transition>
+      <Toaster messages={messages} onHideError={onHideError} />
       { smallScreen ?
         <Switch>
           <Route path="/menu" render={() => <MenuItems {...props} />} />
@@ -150,6 +134,26 @@ const PlayerBar = props => {
     </Menu>
   )
 }
+
+const Toaster = ({messages, onHideError}) => (
+  <Transition
+      visible={!!messages.error}
+      animation="slide down"
+      duration={500}
+      unmountOnHide>
+    <Message
+        className="messages"
+        onDismiss={onHideError}
+        onClick={onHideError}
+        size="small"
+        negative>
+      <Message.Content>
+        <Icon name="warning" size="large" />
+        {messages.error}
+      </Message.Content>
+    </Message>
+  </Transition>
+)
 
 const VolumeGroup = ({playctl}) => {
   return <Menu.Menu position="right">
