@@ -15,7 +15,6 @@ export const defaultState = {
   playerid: null,
   isPowerOn: false,
   isPlaying: false,
-  isControlVisible: true,
   repeatMode: 0,
   shuffleMode: 0,
   volumeLevel: 0,
@@ -43,9 +42,6 @@ export const reducer = makeReducer({
       effect(advanceToNextTrackAfter, secondsToEndOfTrack(data), data.playerid),
       effect(loadPlayerAfter, resetInterval, data.playerid),
     ])
-  },
-  onPlayerControlScroll: (state, action, visible) => {
-    return {...state, isControlVisible: visible}
   },
   seek: (state, action, {playerid, value}, now=Date.now()) => {
     if (state.playerid === playerid) {
@@ -124,17 +120,14 @@ export class Player extends React.Component {
   onSeek(playerid, value) {
     this.props.dispatch(actions.seek({playerid, value}))
   }
-  onPlayerControlScroll(visible) {
-    this.props.dispatch(actions.onPlayerControlScroll(visible))
-  }
   render() {
     const props = this.props
     const command = this.command.bind(this, props.playerid)
     return (
       <PlayerUI
-          onControlVisibilityChange={this.onPlayerControlScroll.bind(this)}
-          command={command}
-          {...props}>
+        {...props}
+        command={command}
+      >
         <LiveSeekBar
           isPlaying={props.isPlaying}
           localTime={props.localTime}

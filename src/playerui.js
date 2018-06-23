@@ -2,7 +2,7 @@ import _ from 'lodash'
 import Slider from 'rc-slider'
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Button, Item, Visibility } from 'semantic-ui-react'
+import { Button, Item } from 'semantic-ui-react'
 import 'rc-slider/assets/index.css'
 
 import { drillable } from './components'
@@ -103,26 +103,20 @@ export const PlayerUI = props => (
     <div className="ui grid">
       <div className="middle aligned row">
         <div className="left floated eight wide mobile four wide tablet two wide computer column">
-          <Visibility
-            fireOnMount
-            onTopPassed={() => props.onControlVisibilityChange(false)}
-            onTopVisible={() => props.onControlVisibilityChange(true)}
-            once={false}>
-            <Button.Group basic size="small">
-              <Button
-                icon="backward"
-                onClick={() => props.command("playlist", "index", "-1")}
-                disabled={!props.playerid} />
-              <Button
-                icon={props.isPlaying ? "pause" : "play"}
-                onClick={() => props.command(props.isPlaying ? "pause" : "play")}
-                disabled={!props.playerid} />
-              <Button
-                icon="forward"
-                onClick={() => props.command("playlist", "index", "+1")}
-                disabled={!props.playerid} />
-            </Button.Group>
-          </Visibility>
+          <Button.Group basic size="small">
+            <Button
+              icon="backward"
+              onClick={() => props.command("playlist", "index", "-1")}
+              disabled={!props.playerid} />
+            <Button
+              icon={props.isPlaying ? "pause" : "play"}
+              onClick={() => props.command(props.isPlaying ? "pause" : "play")}
+              disabled={!props.playerid} />
+            <Button
+              icon="forward"
+              onClick={() => props.command("playlist", "index", "+1")}
+              disabled={!props.playerid} />
+          </Button.Group>
         </div>
         <div className="computer tablet only eight wide tablet twelve wide computer column">
           <VolumeSlider {...props} />
