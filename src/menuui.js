@@ -1,10 +1,13 @@
 import React from 'react'
 import Media from 'react-media'
+import { connect } from 'react-redux'
+import ResizeAware from 'react-resize-aware'
 import { Link, Route, Switch } from 'react-router-dom'
 import { Icon, Image, Menu, Message, Sidebar, Transition } from 'semantic-ui-react'
 
 import * as lms from './lmsclient'
 import * as pkg from '../package.json'
+import * as player from './player'
 import * as players from './playerselect'
 import { MediaBrowser } from './library'
 import './menu.styl'
@@ -25,7 +28,7 @@ export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ..
           <Route path="/menu" render={() => <MenuItems {...props} />} />
           <Route render={() => (
             <div>
-              <MainView {...props} />
+              <MainView {...props} smallScreen={smallScreen} />
               <PlayerBar {...props} bottom />
             </div>
           )} />
@@ -65,13 +68,41 @@ const MenuItems = ({player, playlist, ...props}) => (
   </Menu>
 )
 
-const MainView = props => (
-  <div className="mainview ui grid">
-    <div className="sixteen wide column">
-      {props.children}
-    </div>
-  </div>
-)
+const Player = connect(state => {
+  return {...state.player, currentTrack: state.playlist.currentTrack}
+})(player.Player)
+
+class MainView extends React.Component {
+  constructor() {
+    super()
+    this.state = {playerHeight: 0}
+  }
+  onPlayerResize = ({height}) => {
+    if (this.state.playerHeight !== height) {
+      this.setState({playerHeight: height})
+    }
+  }
+  render() {
+    return (
+      <div className="mainview ui grid">
+        <ResizeAware
+          style={{position: 'fixed'}}
+          className="fixed-top"
+          onResize={this.onPlayerResize}
+          onlyEvent
+        >
+          <Player />
+        </ResizeAware>
+        <div
+          className="sixteen wide column"
+          style={{marginTop: this.state.playerHeight}}
+        >
+          {this.props.children}
+        </div>
+      </div>
+    )
+  }
+}
 
 const PowerBar = props => {
   const player = props.player

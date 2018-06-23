@@ -34,9 +34,6 @@ function reducer(state=defaultState, action) {
 
 const store = makeStore(reducer, defaultState)
 const MainMenu = withRouter(connect(state => state)(menu.MainMenu))
-const Player = connect(state => {
-  return {...state.player, currentTrack: state.playlist.currentTrack}
-})(player.Player)
 const Playlist = connect(
   state => state.playlist
 )(playlist.Playlist)
@@ -48,7 +45,6 @@ const App = () => (
   <Provider store={store}>
     <Router basename={basename}>
       <MainMenu>
-        <Player />
         <Playlist />
         {/* <DevTools /> */}
       </MainMenu>

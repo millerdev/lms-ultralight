@@ -20,6 +20,7 @@
     "react-dom": "^16.4.0",
     "react-media": "^1.6.1",
     "react-redux": "^5.0.1",
+    "react-resize-aware": "^2.7.1",
     "react-router-dom": "^4.2.2",
     "redux": "^3.6.0",
     "semantic-ui-css": "^2.2.4",

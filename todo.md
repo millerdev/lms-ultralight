@@ -7,6 +7,22 @@
 - fix /ultralight/menu... paths 404 when hosted by LMS
 
 - ui rearrange
+  - responsive
+    - components
+      - large screen (>500px)
+        - top player bar
+        or
+        - top player controls sticky below top bar
+      - small screen (<=500px)
+        - bottom player bar
+        or
+        - full screen player controls
+    - need to use fixed menus because otherwise we'd need to use JS to resize
+      the container element to match viewport size (ugly)
+    - problem: variable height top/bottom menus obscure primary content
+      - need to adjust margins of primary content based on size of menus
+        - use componentDidMount + ref to get size
+        - use inline stlye={obj} in element to set style
   - player bar
     - components
       - play/pause button
