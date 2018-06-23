@@ -27,6 +27,7 @@ const CurrentTrackInfo = (props, {showMediaInfo}) => (
     <Item>
       <Item.Image size="tiny" src={lms.getImageUrl(props.tags, props.playerid)} />
       <Item.Content>
+        {props.children}
         <Item.Header>{props.tags.title}</Item.Header>
         <Item.Meta>{drillable(props.tags, "artist", showMediaInfo)}</Item.Meta>
         <Item.Meta>{drillable(props.tags, "album", showMediaInfo)}</Item.Meta>
@@ -160,7 +161,14 @@ export const PlayerUI = props => (
     <CurrentTrackInfo
       playerid={props.playerid}
       tags={props.currentTrack}
-      disabled={!props.playerid} />
+      disabled={!props.playerid}
+    >
+      <Button.Group basic size="small" style={{float: "right"}}>
+        <Button
+          icon="window minimize"
+          onClick={props.toggleMiniPlayer} />
+      </Button.Group>
+    </CurrentTrackInfo>
     {props.children}
   </div>
 )

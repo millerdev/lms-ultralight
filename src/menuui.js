@@ -20,7 +20,7 @@ export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ..
         onPlayerSelected={onPlayerSelected}
         {...props}
       >
-        { !smallScreen ? <PlayerBar {...props} /> : null }
+        { !smallScreen && props.miniPlayer && <PlayerBar {...props} /> }
       </PowerBar>
       <Toaster messages={messages} onHideError={onHideError} />
       { smallScreen ?
@@ -28,8 +28,8 @@ export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ..
           <Route path="/menu" render={() => <MenuItems {...props} />} />
           <Route render={() => (
             <div>
-              <MainView {...props} smallScreen={smallScreen} />
-              <PlayerBar {...props} bottom />
+              <MainView {...props} smallScreen />
+              { props.miniPlayer && <PlayerBar {...props} bottom /> }
             </div>
           )} />
         </Switch> :
@@ -83,21 +83,27 @@ class MainView extends React.Component {
     }
   }
   render() {
+    const props = this.props
     return (
       <div className="mainview ui grid">
-        <ResizeAware
-          style={{position: 'fixed'}}
-          className="fixed-top"
-          onResize={this.onPlayerResize}
-          onlyEvent
-        >
-          <Player />
-        </ResizeAware>
+        { !props.miniPlayer &&
+          <ResizeAware
+            style={{position: 'fixed'}}
+            className="fixed-top"
+            onResize={this.onPlayerResize}
+            onlyEvent
+          >
+            <Player toggleMiniPlayer={props.toggleMiniPlayer} />
+          </ResizeAware>
+        }
         <div
           className="sixteen wide column"
-          style={{marginTop: this.state.playerHeight}}
+          style={{
+            marginTop: props.miniPlayer ? 0 : this.state.playerHeight,
+            marginBottom: props.smallScreen && props.miniPlayer ? "3em" : 0,
+          }}
         >
-          {this.props.children}
+          {props.children}
         </div>
       </div>
     )
@@ -153,7 +159,7 @@ const PlayerBar = props => {
         <Icon size="large" name={player.isPlaying ? "pause" : "play"} />
       </Menu.Item>
       <Menu borderless fluid className="track-info">
-        <Menu.Item fitted>
+        <Menu.Item onClick={props.toggleMiniPlayer} fitted>
           <Image size="mini" src={lms.getImageUrl(tags, playerid)} />
           <div className="tags">
             <div>{tags.title}</div>

@@ -55,6 +55,8 @@ export const hideOperationErrorAfter = (() => {
 export class MainMenu extends React.Component {
   constructor() {
     super()
+    const mini = JSON.parse(localStorage.getItem("menu.miniPlayer"))
+    this.state = {miniPlayer: mini === undefined ? true : mini}
     this.keydownHandlers = {}
   }
   componentDidMount() {
@@ -94,6 +96,11 @@ export class MainMenu extends React.Component {
       this.keydownHandlers[event.keyCode]()
     }
   }
+  toggleMiniPlayer = () => {
+    const value = !this.state.miniPlayer
+    localStorage.setItem("menu.miniPlayer", value)
+    this.setState({miniPlayer: value})
+  }
   playctl() {
     return playerControl(
       this.props.player.playerid,
@@ -115,6 +122,7 @@ export class MainMenu extends React.Component {
     const {menu, children, ...props} = this.props
     return (
       <MainMenuUI
+        {...props}
         playctl={this.playctl()}
         players={menu.players}
         library={menu.library}
@@ -122,7 +130,8 @@ export class MainMenu extends React.Component {
         onHideError={this.onHideError}
         onPlayerSelected={this.onPlayerSelected}
         showMediaInfo={this.showMediaInfo}
-        {...props}
+        miniPlayer={this.state.miniPlayer}
+        toggleMiniPlayer={this.toggleMiniPlayer}
       >
         {children}
       </MainMenuUI>

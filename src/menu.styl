@@ -13,6 +13,8 @@
     border-right: 1px solid #D6D6D6
 
   .player-bar
+    &.menu .item:hover
+      background-color: inherit
     &.embedded
       border: none
       box-shadow: none
@@ -78,7 +80,6 @@
     /* HACK adjust to fixed top/bottom menu - Semantic UI bug? */
     margin: 0
     padding-top: 3.4em !important
-    padding-bottom: 3em !important
 
     .fixed-top
       position: fixed
