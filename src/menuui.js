@@ -167,7 +167,9 @@ const PlayerBar = props => {
           </div>
         </Menu.Item>
       </Menu>
-      { props.bottom ? <VolumeGroup playctl={playctl} /> : null }
+      <Media query="(min-width: 600px)">
+        { wide => (wide || props.bottom) && <VolumeGroup playctl={playctl} /> || null }
+      </Media>
     </Menu>
   )
 }
