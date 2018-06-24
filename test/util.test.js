@@ -19,4 +19,32 @@ describe("util", function () {
       assert.equal(util.formatTime(input), output)
     })
   })
+
+  describe("timer", () => {
+    it("should report active", () => {
+      const tx = util.timer()
+      assert.isNotOk(tx.isActive(), "should not be active initially")
+
+      tx.after(10000, () => {})
+      assert.isOk(tx.isActive(), "should be active after adding timer")
+
+      tx.clear()
+      assert.isNotOk(tx.isActive(), "should not be active after clear")
+
+      return tx.after(1, () => {
+        assert.isNotOk(tx.isActive(), "should not be active after timeout")
+      })
+    })
+
+    it("should not reject on clear", () => {
+      const tx = util.timer()
+      const promise = tx.after(1, () => true).catch(() => {
+        assert(0, "unexpected rejection")
+      }).then(value => {
+        assert.isUndefined(value, "expected undefined resolution")
+      })
+      tx.clear()
+      return promise
+    })
+  })
 })

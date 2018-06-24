@@ -269,7 +269,7 @@ export class SearchInput extends React.Component {
     this.timer.after(350, () => {
       const {dispatch, history, location, basePath} = this.props
       dispatch(actions.mediaSearch(query, history, location, basePath))
-    }).catch(() => { /* ignore error on clear */ })
+    })
   }
   onClearSearch() {
     const {dispatch, history, location, basePath} = this.props

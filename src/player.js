@@ -141,40 +141,30 @@ export class Player extends React.Component {
 }
 
 export class LiveSeekBar extends React.Component {
-  constructor() {
-    super()
+  constructor(props) {
+    super(props)
     this.timer = timer()
-    this.state = {elapsed: 0}
   }
-  hasUpdate(props) {
-    return props.isPlaying && props.localTime
-  }
-  componentWillReceiveProps(props) {
-    this.timer.clear()
-    if (this.hasUpdate(props)) {
-      const update = () => {
-        const now = new Date()
-        const playtime = props.elapsed + (now - props.localTime) / 1000
-        const wait = Math.round((1 - playtime % 1) * 1000)
-        const floored = Math.floor(playtime)
-        const elapsed = _.min([floored, props.total || floored])
-        if (this.state.elapsed !== elapsed) {
-          this.setState({elapsed})
-        }
-        this.timer.after(wait, update).catch(() => {})
-      }
-      update()
+  getElapsedWait(props) {
+    if (!props.isPlaying || !props.localTime) {
+      return [props.elapsed || 0, null]
     }
+    const now = new Date()
+    const playtime = props.elapsed + (now - props.localTime) / 1000
+    const wait = Math.round((1 - playtime % 1) * 1000)
+    const floored = Math.floor(playtime)
+    const elapsed = _.min([floored, props.total || floored])
+    return [elapsed, wait]
   }
   componentWillUnmount() {
     this.timer.clear()
   }
   render () {
-    const props = this.props
-    return <SeekBar
-      elapsed={this.hasUpdate(props) ? this.state.elapsed : props.elapsed}
-      total={props.total}
-      onSeek={props.onSeek}
-      disabled={props.disabled} />
+    const [elapsed, wait] = this.getElapsedWait(this.props)
+    this.timer.clear()
+    if (wait !== null) {
+      this.timer.after(wait, this.forceUpdate.bind(this))
+    }
+    return <SeekBar {...this.props} elapsed={elapsed} />
   }
 }
