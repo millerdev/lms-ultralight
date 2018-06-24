@@ -145,12 +145,19 @@ const PlayerBar = props => {
   const playctl = props.playctl
   const tags = props.playlist.currentTrack
   const playerid = props.player.playerid
-  return (
+  return <Media query="(min-width: 700px)">{ wider =>
     <Menu
       className={"player-bar" + (!props.bottom ? " embedded" : "")}
       fixed={ props.bottom ? "bottom" : null }
       borderless
     >
+      { wider && <Menu.Item
+        onClick={() => playctl.command("playlist", "index", "-1")}
+        disabled={!playctl.playerid}
+        fitted="vertically"
+      >
+        <Icon size="large" name="backward" />
+      </Menu.Item> }
       <Menu.Item
         onClick={() => playctl.command(player.isPlaying ? "pause" : "play")}
         disabled={!playctl.playerid}
@@ -158,6 +165,13 @@ const PlayerBar = props => {
       >
         <Icon size="large" name={player.isPlaying ? "pause" : "play"} />
       </Menu.Item>
+      { wider && <Menu.Item
+        onClick={() => playctl.command("playlist", "index", "+1")}
+        disabled={!playctl.playerid}
+        fitted="vertically"
+      >
+        <Icon size="large" name="forward" />
+      </Menu.Item> }
       <Menu borderless fluid className="track-info">
         <Menu.Item onClick={props.toggleMiniPlayer} fitted>
           <Image size="mini" src={lms.getImageUrl(tags, playerid)} />
@@ -171,7 +185,7 @@ const PlayerBar = props => {
         { wide => (wide || props.bottom) && <VolumeGroup playctl={playctl} /> || null }
       </Media>
     </Menu>
-  )
+  }</Media>
 }
 
 const Toaster = ({messages, onHideError}) => (
