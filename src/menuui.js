@@ -148,8 +148,8 @@ const PlayerBar = props => {
   const playerid = props.player.playerid
   return <Media query="(min-width: 700px)">{ wider =>
     <Menu
-      className={"player-bar" + (!props.bottom ? " embedded" : "")}
-      fixed={ props.bottom ? "bottom" : null }
+      className="player-bar"
+      fixed={ props.bottom && "bottom" }
       borderless
     >
       { wider && <Menu.Item
