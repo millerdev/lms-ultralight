@@ -14,6 +14,9 @@
       border: none
       box-shadow: none
 
+    .volume-level.progress-indicator
+      top: 0
+
     .song-time.progress-indicator
       top: calc(3.4em - 3px)
 
@@ -31,6 +34,10 @@
 
       .item:hover
         background-color: inherit
+
+
+    .volume-level.progress-indicator
+      bottom: 0
 
   .menu-items.ui.borderless.menu
     padding-top: 3.4em
@@ -85,7 +92,7 @@
   .progress-indicator
     position: fixed
     height: 2px
-    background-color: blue
+    background-color: #96dbfa
 
   .mainview.ui.grid
     /* HACK adjust to fixed top/bottom menu - Semantic UI bug? */

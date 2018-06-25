@@ -11,6 +11,7 @@ import * as pkg from '../package.json'
 import * as player from './player'
 import * as players from './playerselect'
 import { MediaBrowser } from './library'
+import { timer } from './util'
 import './menu.styl'
 
 export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ...props}) => (
@@ -136,6 +137,7 @@ const PowerBar = props => {
           <Icon name="power" size="large" />
         </Menu.Item>
       </Menu.Menu>
+      { props.showPlayer && <VolumeLevel value={player.volumeLevel} /> }
       { props.showPlayer && <SongProgress {...player} /> }
     </Menu>
   )} />
@@ -186,6 +188,7 @@ const PlayerBar = props => {
         { wide => (wide || props.bottom) && <VolumeGroup playctl={playctl} /> || null }
       </Media>
       { props.bottom && <SongProgress {...player} /> }
+      { props.bottom && <VolumeLevel value={player.volumeLevel} /> }
     </Menu>
   }</Media>
 }
@@ -200,6 +203,28 @@ const SongProgress = props => (
     total={props.totalTime}
   />
 )
+
+class VolumeLevel extends React.PureComponent {
+  constructor(props) {
+    super(props)
+    this.timer = timer()
+    this.state = {visible: false}
+  }
+  componentDidUpdate(prevProps) {
+    if (prevProps.value !== this.props.value) {
+      this.setState({visible: true})
+      this.timer.clear()
+      this.timer.after(1000, () => this.setState({visible: false}))
+    }
+  }
+  render() {
+    return this.state.visible && <ProgressIndicator
+      className="volume-level"
+      elapsed={this.props.value}
+      total={100}
+    />
+  }
+}
 
 const Toaster = ({messages, onHideError}) => (
   <Transition
