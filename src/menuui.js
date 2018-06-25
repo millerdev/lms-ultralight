@@ -19,10 +19,9 @@ export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ..
       <PowerBar
         players={players}
         onPlayerSelected={onPlayerSelected}
+        showPlayer={!smallScreen && props.miniPlayer}
         {...props}
-      >
-        { !smallScreen && props.miniPlayer && <PlayerBar {...props} /> }
-      </PowerBar>
+      />
       <Toaster messages={messages} onHideError={onHideError} />
       { smallScreen ?
         <Switch>
@@ -127,7 +126,7 @@ const PowerBar = props => {
           dispatch={props.dispatch}
           {...props.players} />
       </Menu.Item>
-      {props.children}
+      { props.showPlayer && <PlayerBar {...props} /> }
       <Menu.Menu position="right">
         <Menu.Item
             fitted="vertically"
@@ -137,14 +136,7 @@ const PowerBar = props => {
           <Icon name="power" size="large" />
         </Menu.Item>
       </Menu.Menu>
-      { props.miniPlayer && <LiveSeekBar
-        component={ProgressIndicator}
-        className="song-time"
-        isPlaying={player.isPlaying}
-        localTime={player.localTime}
-        elapsed={player.elapsedTime}
-        total={player.totalTime}
-      /> }
+      { props.showPlayer && <SongProgress {...player} /> }
     </Menu>
   )} />
 }
@@ -193,9 +185,21 @@ const PlayerBar = props => {
       <Media query="(min-width: 600px)">
         { wide => (wide || props.bottom) && <VolumeGroup playctl={playctl} /> || null }
       </Media>
+      { props.bottom && <SongProgress {...player} /> }
     </Menu>
   }</Media>
 }
+
+const SongProgress = props => (
+  <LiveSeekBar
+    component={ProgressIndicator}
+    className="song-time"
+    isPlaying={props.isPlaying}
+    localTime={props.localTime}
+    elapsed={props.elapsedTime}
+    total={props.totalTime}
+  />
+)
 
 const Toaster = ({messages, onHideError}) => (
   <Transition
