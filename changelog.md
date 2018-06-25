@@ -1,5 +1,22 @@
 # Ultralight change log
 
+## 2018-06-25 - v0.3.0
+
+- Add button to save playlist.
+- Sort album list in menu by track number.
+- Add Playlists item to menu.
+- Add dynamic player controls.
+  - Bottom menu on small screens.
+  - Integrate into top menu on larger screens.
+    - More controls appear as space allows.
+  - Switch to full player by clicking track art/details in menu.
+  - Switch to mini player by clicking button to right of track details.
+- Add track progress and volume level indicators to player bar.
+
+## 2018-02-24 - v0.2.1
+
+- Add version number in sidebar.
+
 ## 2018-01-13 - v0.2.0
 
 - Add menu with media library search.
