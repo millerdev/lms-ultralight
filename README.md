@@ -10,15 +10,8 @@ Features
 - Basic player controls.
 - Responsive layout adjusts to various screen sizes.
 - Drag/drop to sort tracks in playlist, even multiple tracks at once.
-- Select and delete multiple items at once (requires keyboard with Delete or
-  Backspace key).
-
-There is no support for adding items to the playlist yet, so it is recommended
-to not set ultralight as the default skin. Instead, use the default skin to
-browse the media library and add items to the playlist, and use ultralight on
-your mobile device and/or to rearrange or delete items in the playlist. A media
-library browser will hopefully be developed someday.
-
+- Drag/drop items from search results into playlist.
+- Select and delete multiple items at once.
 
 ## Installation
 
