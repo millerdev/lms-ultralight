@@ -5,6 +5,7 @@ import ResizeAware from 'react-resize-aware'
 import { Link, Route, Switch } from 'react-router-dom'
 import { Icon, Image, Menu, Message, Sidebar, Transition } from 'semantic-ui-react'
 
+import { LiveSeekBar, ProgressIndicator } from './components'
 import * as lms from './lmsclient'
 import * as pkg from '../package.json'
 import * as player from './player'
@@ -136,6 +137,14 @@ const PowerBar = props => {
           <Icon name="power" size="large" />
         </Menu.Item>
       </Menu.Menu>
+      { props.miniPlayer && <LiveSeekBar
+        component={ProgressIndicator}
+        className="song-time"
+        isPlaying={player.isPlaying}
+        localTime={player.localTime}
+        elapsed={player.elapsedTime}
+        total={player.totalTime}
+      /> }
     </Menu>
   )} />
 }

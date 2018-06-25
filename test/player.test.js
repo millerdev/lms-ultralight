@@ -1,6 +1,4 @@
-import { shallow } from 'enzyme'
 import _ from 'lodash'
-import React from 'react'
 
 import { effect, getEffects, getState, split, IGNORE_ACTION } from '../src/effects'
 import * as mod from '../src/player'
@@ -283,14 +281,6 @@ describe('player', function () {
       return Promise.all(promises).then(waits => {
         assert.deepEqual(waits, [1000, 2000, 4000, 8000, 16000, 30000, 30000, 30000])
       })
-    })
-  })
-
-  describe('LiveSeekBar', function () {
-    it('should load with elapsed time', function () {
-      const dom = shallow(<mod.LiveSeekBar elapsed={100} total={400} />)
-      const seeker = dom.find("SeekBar")
-      assert.deepEqual(seeker.props().elapsed, 100)
     })
   })
 })

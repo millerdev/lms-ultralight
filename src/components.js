@@ -5,7 +5,7 @@ import { Button, Dimmer, Icon, Image, Item, Loader } from 'semantic-ui-react'
 
 import './components.styl'
 import * as lms from './lmsclient'
-import { formatTime } from './util'
+import { formatTime, timer } from './util'
 
 export const MediaInfo = (props, context) => {
   const showMediaInfo = props.showMediaInfo || context.showMediaInfo
@@ -226,3 +226,38 @@ export const DragHandle = () => (
     <Icon name="content" fitted />
   </span>
 )
+
+export class LiveSeekBar extends React.Component {
+  constructor(props) {
+    super(props)
+    this.timer = timer()
+  }
+  getElapsedWait(props) {
+    if (!props.isPlaying || !props.localTime) {
+      return [props.elapsed || 0, null]
+    }
+    const now = new Date()
+    const playtime = props.elapsed + (now - props.localTime) / 1000
+    const wait = Math.round((1 - playtime % 1) * 1000)
+    const floored = Math.floor(playtime)
+    const elapsed = _.min([floored, props.total || floored])
+    return [elapsed, wait]
+  }
+  componentWillUnmount() {
+    this.timer.clear()
+  }
+  render () {
+    const [elapsed, wait] = this.getElapsedWait(this.props)
+    this.timer.clear()
+    if (wait !== null) {
+      this.timer.after(wait, this.forceUpdate.bind(this))
+    }
+    return <this.props.component {...this.props} elapsed={elapsed} />
+  }
+}
+
+export const ProgressIndicator = props => {
+  const cls = (props.className || "") + " progress-indicator"
+  const percent = (props.elapsed / props.total) * 100
+  return <div className={cls} style={{width: percent + "%"}} />
+}

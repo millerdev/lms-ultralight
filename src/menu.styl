@@ -9,6 +9,9 @@
       .menu
         max-height: none
 
+    .song-time.progress-indicator
+      top: calc(3.4em - 3px)
+
   .sidebar
     border-right: 1px solid #D6D6D6
 
@@ -76,6 +79,11 @@
     margin: 0.5em
     width: calc(100% - 1em)
     z-index: 210
+
+  .progress-indicator
+    position: fixed
+    height: 2px
+    background-color: blue
 
   .mainview.ui.grid
     /* HACK adjust to fixed top/bottom menu - Semantic UI bug? */

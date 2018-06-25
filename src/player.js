@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import React from 'react'
 
+import { LiveSeekBar } from './components'
 import { effect, combine, IGNORE_ACTION } from './effects'
 import makeReducer from './store'
 import * as lms from './lmsclient'
@@ -129,6 +130,7 @@ export class Player extends React.Component {
         command={command}
       >
         <LiveSeekBar
+          component={SeekBar}
           isPlaying={props.isPlaying}
           localTime={props.localTime}
           elapsed={props.elapsedTime}
@@ -137,34 +139,5 @@ export class Player extends React.Component {
           disabled={!props.playerid} />
       </PlayerUI>
     )
-  }
-}
-
-export class LiveSeekBar extends React.Component {
-  constructor(props) {
-    super(props)
-    this.timer = timer()
-  }
-  getElapsedWait(props) {
-    if (!props.isPlaying || !props.localTime) {
-      return [props.elapsed || 0, null]
-    }
-    const now = new Date()
-    const playtime = props.elapsed + (now - props.localTime) / 1000
-    const wait = Math.round((1 - playtime % 1) * 1000)
-    const floored = Math.floor(playtime)
-    const elapsed = _.min([floored, props.total || floored])
-    return [elapsed, wait]
-  }
-  componentWillUnmount() {
-    this.timer.clear()
-  }
-  render () {
-    const [elapsed, wait] = this.getElapsedWait(this.props)
-    this.timer.clear()
-    if (wait !== null) {
-      this.timer.after(wait, this.forceUpdate.bind(this))
-    }
-    return <SeekBar {...this.props} elapsed={elapsed} />
   }
 }
