@@ -1,5 +1,9 @@
 # Ultralight change log
 
+## 2018-06-25 - v0.3.1
+
+- Upgrade packages to fix security vulnerabilities.
+
 ## 2018-06-25 - v0.3.0
 
 - Add button to save playlist.
