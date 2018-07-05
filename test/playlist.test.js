@@ -478,6 +478,21 @@ describe('playlist', function () {
       })
     })
 
+    it('should delete multiple selected items in reverse order', function () {
+      const foo = setup({
+        ...STATE,
+        items: PLAYLIST_1,
+        selection: new Set([2, 1, 3]),
+      })
+      return mod.deleteSelection(...foo.args).then(() => {
+        assert.deepEqual(foo.dispatched, [
+          actions.playlistItemDeleted(3),
+          actions.playlistItemDeleted(2),
+          actions.playlistItemDeleted(1),
+        ])
+      })
+    })
+
     it('should abort deletion on lms failure', function () {
       const lms = {command: (...args) => {
         assert.deepEqual([PLAYERID, "playlist", "delete"], args.slice(0, 3),
@@ -487,7 +502,7 @@ describe('playlist', function () {
       const foo = setup({
         ...STATE,
         items: PLAYLIST_1,
-        selection: new Set([3, 1]),
+        selection: new Set([1, 3]),
       }, lms)
       return mod.deleteSelection(...foo.args).then(() => {
         assert.deepEqual(foo.dispatched, [

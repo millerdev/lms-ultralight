@@ -274,7 +274,7 @@ export function deleteSelection(playerid, selection, dispatch, lms) {
           resolve()
         })
     }
-    remove([...selection].sort(index => -index))
+    remove(_.sortBy([...selection], index => -index))
   })
 }
 
