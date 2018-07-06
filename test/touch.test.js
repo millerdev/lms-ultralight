@@ -7,14 +7,24 @@ import * as mod from '../src/touch'
 describe('TouchList', function () {
   function stateTest(name, act, startConfig, endConfig) {
     it(startConfig + " [" + name + "] -> " + endConfig, function () {
+      const [state, selection, lastSelected] = makeState(startConfig)
+      let newSelection = null
       const touchlist = shallow(
-        <mod.TouchList />,
+        <mod.TouchList
+          items={state.items}
+          selection={selection}
+          onSelectionChanged={sel => { newSelection = sel }}
+        />,
         {disableLifecycleMethods: true},
       ).instance()
-      touchlist.setState(makeState(startConfig))
+      touchlist.setState(state)
+      touchlist.lastSelected = lastSelected
       act(touchlist)
-      assert.deepEqual(makeConfig(touchlist.state), endConfig)
-      assert.deepEqual(touchlist.state, makeState(endConfig))
+      assert.deepEqual(makeConfig(touchlist, newSelection), endConfig)
+      const [endState, endSelection, endLastSelected] = makeState(endConfig)
+      assert.deepEqual(touchlist.state, endState)
+      assert.deepEqual(newSelection, endSelection)
+      assert.deepEqual(touchlist.lastSelected, endLastSelected)
     })
   }
 
@@ -45,7 +55,7 @@ describe('TouchList', function () {
 })
 
 /**
- * Make playlist state for given configuration
+ * Make playlist state, selection, and lastSelected for given configuration
  *
  * Configuration syntax:
  * - items are letters (abcd...)
@@ -64,18 +74,24 @@ function makeState(config) {
     "index": i,
     "title": c.toLowerCase(),
   }))
-  return {
-    dropIndex: -1,
-    dropTypes: {},
-    items: items,
-    selection: new Set(playchars.filter(c => /[A-Z]/.test(c)).map(index)),
-    lastSelected: (match[2] || "").split("").map(index),
-    currentIndex: current,
-  }
+  return [
+    // state
+    {
+      dropIndex: -1,
+      dropTypes: {},
+      items: items,
+      currentIndex: current,
+    },
+    // selection
+    new Set(playchars.filter(c => /[A-Z]/.test(c)).map(index)),
+    // lastSelected
+    (match[2] || "").split("").map(index),
+  ]
 }
 
-function makeConfig(state) {
-  const selection = state.selection
+function makeConfig(touchlist, selection) {
+  const state = touchlist.state
+  const lastSelected = touchlist.lastSelected
   const current = state.currentIndex
   const playchars = state.items.map(item => {
     const i = item.index
@@ -83,6 +99,6 @@ function makeConfig(state) {
     const c = i === current ? "(" + t + ")" : t
     return selection.has(i) ? c.toUpperCase() : c
   }).join("")
-  const last = state.lastSelected.map(i => state.items[i].title).join("")
+  const last = lastSelected.map(i => state.items[i].title).join("")
   return playchars + (last ? " | " + last : "")
 }

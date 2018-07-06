@@ -187,7 +187,6 @@ describe('playlist', function () {
         const state = makeState(startConfig)
         const [result, effects] = split(getState(reduce(state, action)))
         assert.equal(
-          // ingore lastSelected since it's now maintained by TouchList
           stripLastSelected(makeConfig(result)),
           stripLastSelected(endConfig)
         )
@@ -519,7 +518,6 @@ describe('playlist', function () {
     it('should setup empty selection state', function () {
       const state = makeState("abcdef")
       const dom = shallow(<mod.Playlist {...state} />, opts)
-      assert.deepEqual(dom.state().selection, new Set())
       assert.deepEqual(dom.find("TouchList").props().selection, new Set())
     })
 
@@ -527,7 +525,6 @@ describe('playlist', function () {
       const state = makeState("abCdEf", 10)
       assert.deepEqual(state.selection, new Set([12, 14]))
       const dom = shallow(<mod.Playlist {...state} />, opts)
-      assert.deepEqual(dom.state().selection, new Set([2, 4]))
       assert.deepEqual(dom.find("TouchList").props().selection, new Set([2, 4]))
     })
 
@@ -535,7 +532,7 @@ describe('playlist', function () {
       const state = makeState("abCdEf", 10)
       state.dispatch = {}
       const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
-      assert.equal(playlist.state.selection.size, 2)
+      assert.equal(playlist.props.selection.size, 2)
 
       const promise = promiseChecker()
       rewire(module, {
@@ -562,7 +559,7 @@ describe('playlist', function () {
       const state = makeState("abcdef", 10)
       state.dispatch = {}
       const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
-      assert.equal(playlist.state.selection.size, 0)
+      assert.equal(playlist.props.selection.size, 0)
 
       const promise = promiseChecker()
       rewire(module, {
@@ -594,7 +591,7 @@ describe('playlist', function () {
         dispatched = true
       }
       const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
-      assert.equal(playlist.state.selection.size, 1)
+      assert.equal(playlist.props.selection.size, 1)
       playlist.onSelectionChanged(new Set([2, 4, 5]), false)
       assert(dispatched, "dispatch not called")
     })
@@ -681,7 +678,6 @@ function makeState(config, firstIndex=0) {
       .map(index)
       .value()
     ),
-    //lastSelected: Seq(match[2]).map(index).toList(),
     currentIndex: current,
     currentTrack: items[current],
     numTracks: playchars.length,
@@ -697,9 +693,6 @@ function makeConfig(state) {
     const c = i === current ? "(" + t + ")" : t
     return selection.has(i) ? c.toUpperCase() : c
   }).join("")
-//  const last = state.get("lastSelected").map(i =>
-//    state.getIn(["items", i, "title"])
-//  ).join("")
   const last = "ignored"
   return playchars + (last ? " | " + last : "")
 }

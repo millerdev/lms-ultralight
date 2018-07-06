@@ -381,7 +381,6 @@ export class Playlist extends React.Component {
       infoIndex: -1,
       prompt: {},
       touching: false,
-      selection: this.getTouchlistSelection(props),
     }
     const onDelete = this.onDeleteItems.bind(this)
     context.addKeydownHandler(8 /* backspace */, onDelete)
@@ -395,11 +394,17 @@ export class Playlist extends React.Component {
     )
     return new Set([...props.selection].map(ix => indexMap[ix]))
   }
-  componentWillReceiveProps(props) {
-    if (props.selection !== this.props.selection) {
-      this.setState({selection: this.getTouchlistSelection(props)})
+  getSelection = _.memoize(
+    () => this.getTouchlistSelection(this.props),
+    () => {
+      const newSelection = this.props.selection
+      const cache = this.getSelection.cache
+      if (newSelection && cache && newSelection !== cache.selection) {
+        cache.delete("selection")
+      }
+      return "selection"
     }
-  }
+  )
   toPlaylistIndex(touchlistIndex, maybeAtEnd=false) {
     if (maybeAtEnd && touchlistIndex === this.props.items.length) {
       return this.props.items[touchlistIndex - 1][IX] + 1
@@ -442,7 +447,7 @@ export class Playlist extends React.Component {
       .then(dispatch)
   }
   onDeleteItems() {
-    const number = this.state.selection.size
+    const number = this.getSelection().size
     let prompt
     if (number) {
       prompt = "Delete " + number + " song" + (number > 1 ? "s" : "")
@@ -457,7 +462,7 @@ export class Playlist extends React.Component {
   }
   deleteItems() {
     // NOTE: plSelection is an array, unlike most selections (works here)
-    const plSelection = [...this.state.selection].map(i => this.toPlaylistIndex(i))
+    const plSelection = [...this.getSelection()].map(i => this.toPlaylistIndex(i))
     const { playerid, dispatch } = this.props
     this.setState({prompt: {}})
     if (plSelection.length) {
@@ -500,7 +505,7 @@ export class Playlist extends React.Component {
   render() {
     const props = this.props
     const hideInfo = this.setHideTrackInfoCallback.bind(this)
-    const selection = this.state.selection
+    const selection = this.getSelection()
     return <div>
       <TouchList
           className="playlist"

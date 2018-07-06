@@ -41,13 +41,15 @@ export const TO_LAST = "to last"
  */
 export class TouchList extends React.Component {
   constructor(props) {
+    if (!props.items) {
+      throw new Error("TouchList.props.items must be an indexed collection")
+    }
     super(props)
     this.id = _.uniqueId("touch-list-")
-    this.state = {
-      dropTypes: {},
-      selection: props.selection || new Set(),
-      lastSelected: [],
-    }
+    // use internal selection if selection not provided
+    this.internalSelection = props.selection ? null : new Set()
+    this.oldSelection = this.getSelection()
+    this.lastSelected = []
     this.slide = makeSlider(this)
   }
   componentDidMount() {
@@ -56,39 +58,33 @@ export class TouchList extends React.Component {
   componentWillUnmount() {
     this.slide.setTouchHandlers(null)
   }
-  componentWillReceiveProps(props) {
-    if (!props.items) {
-      throw new Error("TouchList.props.items must be an indexed collection")
+  componentDidUpdate() {
+    const newSelection = this.getSelection()
+    if (!_.isEqual(newSelection, this.oldSelection)) {
+      const lastSelected = this.lastSelected.filter(i => newSelection.has(i))
+      this._updateItemSelections(newSelection, lastSelected)
     }
-    const dropTypes = _.zipObject(props.dropTypes)
-    if (!_.isEqual(dropTypes, this.state.dropTypes)) {
-      this.setState({dropTypes})
-    }
-    if (props.selection) {
-      if (!_.isEqual(props.selection, this.state.selection)) {
-        this.setState({
-          selection: props.selection,
-          lastSelected: this.state.lastSelected
-            .filter(index => props.selection.has(index)),
-        })
-      }
-    } else if (!this.props.items || !_.isEqual(this.props.items, props.items)) {
-      this.setState({selection: new Set(), lastSelected: []})
-    }
+    return null
   }
   getChildContext() {
     return {
-      TouchList_selection: this.state.selection,
-      TouchList_onItemSelected: this.onItemSelected.bind(this),
+      TouchList_isSelected: this.isSelected,
+      TouchList_onItemSelected: this.onItemSelected,
       TouchList_slide: this.slide,
     }
+  }
+  getSelection() {
+    return this.internalSelection || this.props.selection
+  }
+  isSelected = (index) => {
+    return this.getSelection().has(index)
   }
   getDragData(index) {
     const items = this.props.items
     let selected
     if (index < items.length) {
-      if (this.state.selection.has(index)) {
-        selected = [...this.state.selection]
+      if (this.isSelected(index)) {
+        selected = [...this.getSelection()]
           .sort()
           .map(index => items[index])
       } else {
@@ -100,7 +96,7 @@ export class TouchList extends React.Component {
     return selected
   }
   getAllowedDropType(possibleTypes) {
-    const dropTypes = this.state.dropTypes
+    const dropTypes = _.zipObject(this.props.dropTypes)
     return _.find(possibleTypes, value => dropTypes.hasOwnProperty(value))
   }
   onTap(index, event) {
@@ -109,33 +105,34 @@ export class TouchList extends React.Component {
       return this.props.onTap(item, index, event)
     }
   }
-  onItemSelected(index, modifier, isTouch=false) {
-    this.selectionChanged(({selection, lastSelected}) => {
-      if (!modifier) {
-        return {selection: new Set([index]), lastSelected: [index]}
-      }
-      if (modifier === SINGLE) {
-        if (!selection.has(index)) {
-          selection = new Set(selection).add(index)
-          lastSelected = [...lastSelected, index]
-        } else {
-          selection = new Set(selection)
-          selection.delete(index)
-          if (_.last(lastSelected) === index) {
-            lastSelected = lastSelected.slice(0, -1)
-          }
-        }
-      } else if (modifier === TO_LAST) {
-        const from = _.last(lastSelected) || 0
-        const step = from <= index ? 1 : -1
-        selection = new Set([
-          ...selection,
-          ..._.range(from, index + step, step),
-        ])
+  onItemSelected = (index, modifier, isTouch=false) => {
+    if (!modifier) {
+      this.selectionChanged(new Set([index]), [index], isTouch)
+      return
+    }
+    let selection = this.getSelection()
+    let lastSelected = this.lastSelected
+    if (modifier === SINGLE) {
+      if (!selection.has(index)) {
+        selection = new Set(selection).add(index)
         lastSelected = [...lastSelected, index]
+      } else {
+        selection = new Set(selection)
+        selection.delete(index)
+        if (_.last(lastSelected) === index) {
+          lastSelected = lastSelected.slice(0, -1)
+        }
       }
-      return {selection, lastSelected}
-    }, undefined, isTouch)
+    } else if (modifier === TO_LAST) {
+      const from = _.last(lastSelected) || 0
+      const step = from <= index ? 1 : -1
+      selection = new Set([
+        ...selection,
+        ..._.range(from, index + step, step),
+      ])
+      lastSelected = [...lastSelected, index]
+    }
+    this.selectionChanged(selection, lastSelected, isTouch)
   }
   onLongTouch(index) {
     if (this.props.onLongTouch) {
@@ -154,42 +151,36 @@ export class TouchList extends React.Component {
     this.selectionChanged(new Set(), [])
   }
   selectionChanged(selection, lastSelected, isTouch=false) {
-    if (_.isFunction(selection)) {
-      this.setState((state, props) => {
-        const func = props.onSelectionChanged
-        const newState = selection(state)
-        this._updateItemSelections(state, newState)
-        if (func && !_.isEqual(newState.selection, props.selection)) {
-          func(newState.selection, isTouch)
-        }
-        // maybe broken: setState completes after onSelectionChanged
-        return newState
-      })
-    } else {
-      if (!_.isEqual(selection, this.state.selection)) {
-        const func = this.props.onSelectionChanged
-        this._updateItemSelections(this.state, {selection})
-        this.setState({selection, lastSelected})
-        if (func && !_.isEqual(selection, this.props.selection)) {
-          func(selection, isTouch)
-        }
-      } else if (!_.isEqual(lastSelected, this.state.lastSelected)) {
-        this.setState({lastSelected})
+    if (!_.isEqual(selection, this.oldSelection)) {
+      this._updateItemSelections(selection, lastSelected)
+      const func = this.props.onSelectionChanged
+      if (func) {
+        func(selection, isTouch)
       }
+    } else if (!_.isEqual(lastSelected, this.lastSelected)) {
+      this.lastSelected = lastSelected
     }
   }
-  _updateItemSelections(oldState, newState) {
+  _updateItemSelections(newSelection, lastSelected) {
     function diff(set1, set2) {
       return new Set([...set1].filter(x => !set2.has(x)))
     }
-    const selected = diff(newState.selection, oldState.selection)
-    const deselected = diff(oldState.selection, newState.selection)
+    if (this.internalSelection) {
+      this.internalSelection = newSelection
+    }
+    // this.oldSelection mirrors the state of the DOM
+    // can they ever get out of sync?
+    const selected = diff(newSelection, this.oldSelection)
+    const deselected = diff(this.oldSelection, newSelection)
     if (selected.size) {
-      this.slide.select(selected)
+      this.slide.selectionDidChange(selected)
     }
     if (deselected.size) {
-      this.slide.deselect(deselected)
+      this.slide.selectionDidChange(deselected)
     }
+    // does this internal state break any React contracts?
+    this.oldSelection = newSelection
+    this.lastSelected = lastSelected
   }
   render() {
     const props = this.props
@@ -203,7 +194,7 @@ export class TouchList extends React.Component {
 }
 
 TouchList.childContextTypes = {
-  TouchList_selection: PropTypes.object.isRequired,
+  TouchList_isSelected: PropTypes.func.isRequired,
   TouchList_onItemSelected: PropTypes.func.isRequired,
   TouchList_slide: PropTypes.object.isRequired,
 }
@@ -230,25 +221,13 @@ const TOUCHLIST_PROPS = {
 export class TouchListItem extends React.Component {
   constructor() {
     super()
-    this.state = {selected: false, dropClass: null}
-  }
-  componentWillReceiveProps(props, context) {
-    const index = props.index
-    const selected = context.TouchList_selection.has(index)
-    if (this.state.selected !== selected) {
-      this.setState({selected})
-    }
+    this.state = {dropClass: null}
   }
   componentWillUnmount() {
     const slide = this.context.TouchList_slide
     slide && slide.removeItem(this.props.index, this)
   }
-  setSelected(selected) {
-    if (this.state.selected !== selected) {
-      this.setState({selected})
-    }
-  }
-  clearDropIndicator() {
+  clearDropIndicator = () => {
     if (this.state.dropClass !== null) {
       this.setState({dropClass: null})
     }
@@ -273,6 +252,7 @@ export class TouchListItem extends React.Component {
     const passProps = excludeKeys(props, TOUCHLISTITEM_PROPS, "TouchList.Item")
     const slide = this.context.TouchList_slide
     const index = props.index
+    const selected = this.context.TouchList_isSelected(index)
     // this seems hacky, but can't think of any other way get touch events
     slide.addItem(index, this)
     if (!props.hasOwnProperty("onContextMenu")) {
@@ -287,12 +267,12 @@ export class TouchListItem extends React.Component {
         onDragStart={event => slide.dragStart(event, index)}
         onDragOver={event => this.onDragOver(event, index)}
         onDrop={event => this.onDrop(event, index)}
-        onDragLeave={this.clearDropIndicator.bind(this)}
-        onDragEnd={this.clearDropIndicator.bind(this)}
+        onDragLeave={this.clearDropIndicator}
+        onDragEnd={this.clearDropIndicator}
         data-touchlist-item-index={index /* touchlistItemIndex */}
         className={_.filter([
           "touchlist-item",
-          this.state.selected ? "selected" : "",
+          selected ? "selected" : "",
           this.state.dropClass,
           props.className
         ]).join(" ")}
@@ -318,7 +298,7 @@ const TOUCHLISTITEM_PROPS = {
 TouchList.Item = TouchListItem
 
 TouchListItem.contextTypes = {
-  TouchList_selection: PropTypes.object.isRequired,
+  TouchList_isSelected: PropTypes.func.isRequired,
   TouchList_onItemSelected: PropTypes.func.isRequired,
   TouchList_slide: PropTypes.object.isRequired,
 }
@@ -398,11 +378,8 @@ function makeSlider(touchlist) {
       delete items[index]
     }
   }
-  function select(indices) {
-    indices.forEach(index => items[index] && items[index].setSelected(true))
-  }
-  function deselect(indices) {
-    indices.forEach(index => items[index] && items[index].setSelected(false))
+  function selectionDidChange(indices) {
+    indices.forEach(index => items[index] && items[index].forceUpdate())
   }
   function isTouchMove(pointA, pointB) {
     const x = Math.abs(pointA.touch.clientX - pointB.touch.clientX)
@@ -429,7 +406,7 @@ function makeSlider(touchlist) {
       return
     }
     startPosition = latestPosition = pos
-    const isSelected = touchlist.state.selection.has(pos.index)
+    const selected = touchlist.isSelected(pos.index)
     if (touchlist.props.onMoveItems) {
       event.target.dataset.touchlistId = touchlist.id
       startIndex = pos.index
@@ -445,7 +422,7 @@ function makeSlider(touchlist) {
     holdTimer = setTimeout(() => {
       isHolding = true
       if (!isTouchMove(startPosition, latestPosition) && !isTouchDrag) {
-        if (isSelected && touchlist.state.selection.size) {
+        if (selected && touchlist.getSelection().size) {
           touchlist.clearSelection()
           isHolding = false
           latestPosition = null  // do nothing on touchEnd
@@ -486,7 +463,7 @@ function makeSlider(touchlist) {
         event.preventDefault()
         touchlist.toggleSelection(index, true)
       }
-    } else if (touchlist.state.selection.size) {
+    } else if (touchlist.getSelection().size) {
       if (latestPosition.index !== null) {
         const toIndex = allowedDropIndex(event, latestPosition.index)
         if (toIndex !== null) {
@@ -575,9 +552,9 @@ function makeSlider(touchlist) {
     if (moveIndex === null) {
       return touchlist.getAllowedDropType(dataTypes) ? dropIndex : null
     }
-    const sel = touchlist.state.selection
-    if (sel.has(moveIndex)) {
-      if (!(sel.has(dropIndex) || sel.has(dropIndex - 1))) {
+    const isSelected = touchlist.isSelected
+    if (isSelected(moveIndex)) {
+      if (!(isSelected(dropIndex) || isSelected(dropIndex - 1))) {
         return dropIndex
       }
     } else if (dropIndex !== moveIndex && dropIndex !== moveIndex + 1) {
@@ -648,7 +625,7 @@ function makeSlider(touchlist) {
       const dataTypes = getDataTypes(event)
       const moveIndex = getMoveIndex(event, dataTypes)
       if (moveIndex !== null) {
-        let selection = touchlist.state.selection
+        let selection = touchlist.getSelection()
         if (!selection.has(moveIndex)) {
           selection = new Set([moveIndex])
         }
@@ -662,8 +639,7 @@ function makeSlider(touchlist) {
   return {
     addItem,
     removeItem,
-    select,
-    deselect,
+    selectionDidChange,
     setTouchHandlers,
     dragStart,
     dragOver,
