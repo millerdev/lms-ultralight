@@ -62,7 +62,7 @@ export class TouchList extends React.Component {
     const newSelection = this.getSelection()
     if (!_.isEqual(newSelection, this.oldSelection)) {
       const lastSelected = this.lastSelected.filter(i => newSelection.has(i))
-      this._updateItemSelections(newSelection, lastSelected)
+      this._updateItemSelections(newSelection, lastSelected, this.oldSelection)
     }
     return null
   }
@@ -152,16 +152,19 @@ export class TouchList extends React.Component {
   }
   selectionChanged(selection, lastSelected, isTouch=false) {
     if (!_.isEqual(selection, this.oldSelection)) {
-      this._updateItemSelections(selection, lastSelected)
+      const oldSelection = this.oldSelection
       const func = this.props.onSelectionChanged
       if (func) {
+        this.oldSelection = selection
+        this.lastSelected = lastSelected
         func(selection, isTouch)
       }
+      this._updateItemSelections(selection, lastSelected, oldSelection)
     } else if (!_.isEqual(lastSelected, this.lastSelected)) {
       this.lastSelected = lastSelected
     }
   }
-  _updateItemSelections(newSelection, lastSelected) {
+  _updateItemSelections(newSelection, lastSelected, oldSelection) {
     function diff(set1, set2) {
       return new Set([...set1].filter(x => !set2.has(x)))
     }
@@ -170,8 +173,8 @@ export class TouchList extends React.Component {
     }
     // this.oldSelection mirrors the state of the DOM
     // can they ever get out of sync?
-    const selected = diff(newSelection, this.oldSelection)
-    const deselected = diff(this.oldSelection, newSelection)
+    const selected = diff(newSelection, oldSelection)
+    const deselected = diff(oldSelection, newSelection)
     if (selected.size) {
       this.slide.selectionDidChange(selected)
     }
