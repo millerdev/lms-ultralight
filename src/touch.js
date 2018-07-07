@@ -138,13 +138,13 @@ export class TouchList extends React.Component {
     if (this.props.onLongTouch) {
       const item = this.props.items[index]
       if (this.props.onLongTouch(item, index)) {
-        this.toggleSelection(index, true)
+        this.toggleSelection(index)
       }
     } else {
-      this.toggleSelection(index, true)
+      this.toggleSelection(index)
     }
   }
-  toggleSelection(index, isTouch=false) {
+  toggleSelection(index, isTouch=true) {
     this.onItemSelected(index, SINGLE, isTouch)
   }
   clearSelection() {
@@ -457,11 +457,11 @@ function makeSlider(touchlist) {
       const {index, target} = startPosition
       if (hasClass(target, "tap-zone")) {
         if (touchlist.onTap(index, event)) {
-          touchlist.toggleSelection(index, true)
+          touchlist.toggleSelection(index)
         }
       } else {
         event.preventDefault()
-        touchlist.toggleSelection(index, true)
+        touchlist.toggleSelection(index)
       }
     } else if (touchlist.getSelection().size) {
       if (latestPosition.index !== null) {
