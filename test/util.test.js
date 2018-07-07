@@ -47,4 +47,32 @@ describe("util", function () {
       return promise
     })
   })
+
+  describe("memoize", () => {
+    it("should return cached value", () => {
+      const mem = util.memoize(v => [v + 1])
+      const result = mem(1)
+      assert.deepEqual(result, [2])
+      assert.strictEqual(mem(1), result)
+    })
+
+    it("should update on pass new args", () => {
+      const mem = util.memoize((...args) => _.map(args, a => a + 1))
+      const r1 = mem(1, 2)
+      assert.deepEqual(r1, [2, 3])
+      assert.strictEqual(mem(1, 2), r1)
+
+      const r2 = mem(2, 4)
+      assert.notEqual(r2, r1)
+      assert.strictEqual(mem(2, 4), r2)
+
+      const r3 = mem(1, 2)
+      assert.notEqual(r3, r1)
+      assert.deepEqual(r3, [2, 3])
+
+      const r4 = mem(1, 2, 3)
+      assert.notEqual(r4, r1)
+      assert.deepEqual(r4, [2, 3, 4])
+    })
+  })
 })

@@ -10,7 +10,7 @@ import { effect, combine } from './effects'
 import * as lms from './lmsclient'
 import makeReducer from './store'
 import { TouchList } from './touch'
-import { operationError, timer } from './util'
+import { memoize, operationError, timer } from './util'
 
 export const MEDIA_ITEMS = "media items"
 
@@ -277,7 +277,7 @@ export class SearchInput extends React.Component {
     this.input.inputRef.value = ""
     this.input.focus()
   }
-  setSearchInput(input) {
+  setSearchInput = (input) => {
     this.input = input
     this.focusInput()
   }
@@ -292,7 +292,7 @@ export class SearchInput extends React.Component {
   render() {
     const inputHasValue = !!(this.input && this.input.inputRef.value)
     return <Input
-      ref={this.setSearchInput.bind(this)}
+      ref={this.setSearchInput}
       onChange={(e, {value}) => this.onSearch(value)}
       className="icon"
       icon={{
@@ -390,7 +390,7 @@ export class BrowserItems extends React.Component {
       }
     }
   }
-  onBrowse(section) {
+  onBrowse = (section) => {
     const {dispatch, history, location, basePath} = this.props
     dispatch(actions.mediaBrowse(section, history, location, basePath))
   }
@@ -413,7 +413,7 @@ export class BrowserItems extends React.Component {
     }
     return <BrowseMenu
       basePath={props.basePath}
-      onBrowse={this.onBrowse.bind(this)}
+      onBrowse={this.onBrowse}
     />
   }
 }
@@ -443,47 +443,42 @@ const SECTION_NAMES = {
 export class MediaItems extends React.PureComponent {
   constructor(props) {
     super(props)
-    this.state = this.getItems(props.items)
-    _.merge(this.state, {selection: new Set()})
-    this.hideTrackInfo = () => {}
-  }
-  componentWillReceiveProps(props) {
-    if (this.props.items !== props.items) {
-      this.setState(this.getItems(props.items))
-    }
-  }
-  getItems(results) {
-    const itemsBySection = {}
-    if (!results) {
-      return {items: [], itemsBySection}
-    }
-    let i = 0
-    let items = []
-    _.each(SECTIONS, section => {
-      if (results[section + "s_count"]) {
-        const sectionItems = results[section + "s_loop"].map(
-          item => ({...item, index: i++, type: section})
-        )
-        items = items.concat(sectionItems)
-        itemsBySection[section] = sectionItems
+    const getItems = memoize(results => {
+      const bySection = {}
+      if (!results) {
+        return {items: [], bySection}
       }
+      let i = 0
+      let items = []
+      _.each(SECTIONS, section => {
+        if (results[section + "s_count"]) {
+          const sectionItems = results[section + "s_loop"].map(
+            item => ({...item, index: i++, type: section})
+          )
+          items = items.concat(sectionItems)
+          bySection[section] = sectionItems
+        }
+      })
+      // NOTE selection is cleared any time results
+      // change; it's updated by onSelectionChanged
+      return {items, bySection, selection: new Set()}
     })
-    return {items, itemsBySection}
+    this.getItems = () => getItems(this.props.items)
   }
   getSelected(item) {
-    const selection = this.state.selection
+    const {items, selection} = this.getItems()
     if (selection.has(item.index)) {
-      return this.state.items.filter(it => selection.has(it.index))
+      return items.filter(it => selection.has(it.index))
     }
     return [item]
   }
-  playItem(item) {
+  playItem = (item) => {
     this.props.playctl.playItems(this.getSelected(item))
   }
-  addToPlaylist(item) {
+  addToPlaylist = (item) => {
     this.props.playctl.addToPlaylist(this.getSelected(item))
   }
-  playOrEnqueue(item) {
+  playOrEnqueue = (item) => {
     const props = this.props
     if (!props.numTracks) {
       this.playItem(item)
@@ -493,35 +488,35 @@ export class MediaItems extends React.PureComponent {
       this.addToPlaylist(item)
     }
   }
-  onSelectionChanged(selection) {
-    this.hideTrackInfo()
-    this.setState({selection})
+  onSelectionChanged = (selection) => {
+    this.getItems().selection = selection
+    this.forceUpdate()
   }
   render() {
-    const bySection = this.state.itemsBySection
-    const selection = this.state.selection
+    const {items, bySection, selection} = this.getItems()
     return <Media query="(max-width: 500px)">{ smallScreen =>
       <TouchList
           dataType={MEDIA_ITEMS}
-          items={this.state.items}
-          onSelectionChanged={this.onSelectionChanged.bind(this)}>
+          items={items}
+          selection={selection}
+          onSelectionChanged={this.onSelectionChanged}>
         {SECTIONS.map(section => {
           if (bySection.hasOwnProperty(section)) {
-            const items = bySection[section]
+            const sectionItems = bySection[section]
             const elements = _.keys(bySection).length === 1 ? [] : [
               <List.Item key={section}>
                 <List.Header>{SECTION_NAMES[section]}</List.Header>
               </List.Item>
             ]
-            return elements.concat(items.map((item, i) =>
+            return elements.concat(sectionItems.map((item, i) =>
               <MediaItem
                 smallScreen={smallScreen}
                 showMediaInfo={this.props.showMediaInfo}
-                playItem={this.playItem.bind(this)}
+                playItem={this.playItem}
                 playNext={ selection.size <= 1 || !selection.has(item.index) ?
-                  this.props.playctl.playNext : null}
-                addToPlaylist={this.addToPlaylist.bind(this)}
-                playOrEnqueue={this.playOrEnqueue.bind(this)}
+                  this.props.playctl.playNext : null }
+                addToPlaylist={this.addToPlaylist}
+                playOrEnqueue={this.playOrEnqueue}
                 item={item}
                 key={item.type + "-" + item[item.type + "_id"] + "-" + i} />
             ))
@@ -534,7 +529,10 @@ export class MediaItems extends React.PureComponent {
 
 export class MediaItem extends React.Component {
   shouldComponentUpdate(props) {
-    return this.props.item !== props.item
+    return (
+      this.props.item !== props.item ||
+      this.props.playNext !== props.playNext
+    )
   }
   render() {
     const props = this.props

@@ -10,7 +10,7 @@ import * as lms from './lmsclient'
 import { MEDIA_ITEMS } from './library'
 import makeReducer from './store'
 import { TouchList } from './touch'
-import { formatTime, operationError } from './util'
+import { formatTime, memoize, operationError } from './util'
 import './playlist.styl'
 
 const IX = "playlist index"
@@ -387,24 +387,14 @@ export class Playlist extends React.Component {
     context.addKeydownHandler(46 /* delete */, onDelete)
     this.hideTrackInfo = () => {}
     this.saver = playlistSaver(this.afterSavePlaylist.bind(this))
+    const get = memoize((items, selection) => {
+      const indexMap = _.fromPairs(
+        items.map((item, i) => [item[IX], i])
+      )
+      return new Set([...selection].map(ix => indexMap[ix]))
+    })
+    this.getSelection = () => get(this.props.items, this.props.selection)
   }
-  getTouchlistSelection(props) {
-    const indexMap = _.fromPairs(
-      props.items.map((item, i) => [item[IX], i])
-    )
-    return new Set([...props.selection].map(ix => indexMap[ix]))
-  }
-  getSelection = _.memoize(
-    () => this.getTouchlistSelection(this.props),
-    () => {
-      const newSelection = this.props.selection
-      const cache = this.getSelection.cache
-      if (newSelection && cache && newSelection !== cache.selection) {
-        cache.delete("selection")
-      }
-      return "selection"
-    }
-  )
   toPlaylistIndex(touchlistIndex, maybeAtEnd=false) {
     if (maybeAtEnd && touchlistIndex === this.props.items.length) {
       return this.props.items[touchlistIndex - 1][IX] + 1

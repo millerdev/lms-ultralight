@@ -72,3 +72,18 @@ export function backoff(maxMs, minMs=0) {
 export function operationError(message, context, showFor=5 /* seconds */) {
   return require("./menu").actions.operationError(message, context, showFor)
 }
+
+export function memoize(getValue) {
+  const arraysEqual = (array, other) => (
+    array.length === other.length && _.every(array, (v, i) => v === other[i])
+  )
+  let prev
+  let value
+  return (...args) => {
+    if (!prev || !arraysEqual(prev, args)) {
+      prev = args
+      return value = getValue(...args)
+    }
+    return value
+  }
+}
