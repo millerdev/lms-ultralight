@@ -455,13 +455,15 @@ function makeSlider(touchlist) {
     }
     if (!isHolding && !isTouchMove(startPosition, latestPosition)) {
       const {index, target} = startPosition
-      if (hasClass(target, "tap-zone")) {
-        if (touchlist.onTap(index, event)) {
+      if (index !== null) {
+        if (hasClass(target, "tap-zone")) {
+          if (touchlist.onTap(index, event)) {
+            touchlist.toggleSelection(index)
+          }
+        } else {
+          event.preventDefault()
           touchlist.toggleSelection(index)
         }
-      } else {
-        event.preventDefault()
-        touchlist.toggleSelection(index)
       }
     } else if (touchlist.getSelection().size) {
       if (latestPosition.index !== null) {
