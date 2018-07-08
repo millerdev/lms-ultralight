@@ -214,7 +214,7 @@ class VolumeLevel extends React.PureComponent {
     if (prevProps.value !== this.props.value) {
       this.setState({visible: true})
       this.timer.clear()
-      this.timer.after(1000, () => this.setState({visible: false}))
+      this.timer.after(3000, () => this.setState({visible: false}))
     }
   }
   render() {
