@@ -23,6 +23,13 @@
   .sidebar
     border-right: 1px solid #D6D6D6
 
+  .ui.push.wide.left.sidebar ~ .pusher.wide-fit
+    transform: none
+    margin-left: 350px
+
+    .mainview.ui.grid .fixed-top
+      width: calc(100% - 350px)
+
   .player-bar
     .track-info
       border: none

@@ -34,21 +34,22 @@ export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ..
             </div>
           )} />
         </Switch> :
-        <div>
-          <Route path="/menu" children={({match: menuOpen}) => (
+        <Route path="/menu" children={({match: menuOpen}) => (
+          <div>
             <Sidebar
                 as="div"
-                className="sidebar"
                 animation="push"
                 width="wide"
                 visible={!!menuOpen}>
               <MenuItems {...props} />
             </Sidebar>
-          )} />
-          <Sidebar.Pusher>
-            <MainView {...props} />
-          </Sidebar.Pusher>
-        </div>
+            <Media query="(min-width: 850px)">{ wideScreen =>
+              <Sidebar.Pusher className={wideScreen && menuOpen ? "wide-fit" : null}>
+                <MainView {...props} />
+              </Sidebar.Pusher>
+            }</Media>
+          </div>
+        )} />
       }
     </div>
   }</Media>
@@ -130,7 +131,6 @@ const PowerBar = props => {
       { props.showPlayer && <PlayerBar {...props} /> }
       <Menu.Menu position="right">
         <Menu.Item
-            fitted="vertically"
             active={player.isPowerOn}
             onClick={props.playctl.togglePower}
             disabled={!player.playerid}>
