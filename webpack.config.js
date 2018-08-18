@@ -115,7 +115,29 @@ const rules = [
   {
     test: /\.js$/,
     use: [
-      "babel-loader",
+      {
+        loader: "babel-loader",
+        options: {  // Babel config (.babelrc)
+          presets: [
+            [
+              "env", {
+                "targets": {
+                  "browsers": [
+                    "last 2 versions",
+                    "ie >= 9",
+                  ]
+                }
+              }
+            ],
+            "react"
+          ],
+          plugins: [
+            "transform-class-properties",
+            "transform-object-rest-spread",
+            "transform-runtime",
+          ],
+        }
+      },
       "eslint-loader",
     ],
     include: path.join(__dirname, 'src')
@@ -199,7 +221,6 @@ const rules = [
     ],
   },
 ];
-
 
 /*############## OPTIONS ##############*/
 
