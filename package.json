@@ -1,6 +1,6 @@
 {
   "name": "ultralight",
-  "version": "0.3.3a1",
+  "version": "0.3.3a2",
   "description": "Ultralight - a Logitech Media Server skin",
   "author": "Daniel Miller",
   "license": "MIT",
@@ -19,6 +19,7 @@
     "query-string": "^5.1.1",
     "rc-slider": "^8.6.1",
     "react": "^16.4.2",
+    "react-document-title": "^2.0.3",
     "react-dom": "^16.4.2",
     "react-media": "^1.8.0",
     "react-redux": "^5.0.7",

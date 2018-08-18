@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
+import DocumentTitle from 'react-document-title'
 
 import { combine, effect, split, IGNORE_ACTION } from './effects'
 import { MainMenuUI } from './menuui'
@@ -120,6 +121,8 @@ export class MainMenu extends React.Component {
   }
   render() {
     const {menu, children, ...props} = this.props
+    const tags = props.playlist.currentTrack || {}
+    const title = _.filter([tags.title, tags.artist, "Ultralight"]).join(" - ")
     return (
       <MainMenuUI
         {...props}
@@ -133,7 +136,9 @@ export class MainMenu extends React.Component {
         miniPlayer={this.state.miniPlayer}
         toggleMiniPlayer={this.toggleMiniPlayer}
       >
-        {children}
+        <DocumentTitle title={title}>
+          {children}
+        </DocumentTitle>
       </MainMenuUI>
     )
   }
