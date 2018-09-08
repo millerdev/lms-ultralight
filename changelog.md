@@ -1,5 +1,18 @@
 # Ultralight change log
 
+## 2018-09-08 - v0.4.0
+
+- Show full player content when menu is open on wide screens.
+- Tweak color and visibility timing of volume indicator.
+- Show track title and artist in page title.
+- Attempt to add support for older browsers.
+- Fix items deleted in wrong order causing incomplete deletion in some cases.
+- Fix playlist selection rendering.
+
+## 2018-06-25 - v0.3.2
+
+- Fix version number.
+
 ## 2018-06-25 - v0.3.1
 
 - Upgrade packages to fix security vulnerabilities.

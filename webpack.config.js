@@ -124,7 +124,8 @@ const rules = [
                 "targets": {
                   "browsers": [
                     "last 2 versions",
-                    "ie >= 9",
+                    "ios >= 6",
+                    "not ie < 11",
                   ]
                 }
               }
