@@ -18,12 +18,3 @@ const root = document.getElementById('app')
 const renderer = App => render(<App />, root)
 
 renderer(App)
-
-// hot reloading currently done by BrowserSync?
-//if (module.hot) {
-//  module.hot.accept('./app', () => {
-//    app = require('./app')
-//    renderer(app.default)
-//    app.start()
-//  })
-//}
