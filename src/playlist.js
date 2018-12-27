@@ -385,6 +385,7 @@ export class Playlist extends React.Component {
     const onDelete = this.onDeleteItems.bind(this)
     context.addKeydownHandler(8 /* backspace */, onDelete)
     context.addKeydownHandler(46 /* delete */, onDelete)
+    context.addKeydownHandler(13 /* enter */, this.onEnterKey.bind(this))
     this.hideTrackInfo = () => {}
     this.saver = playlistSaver(this.afterSavePlaylist.bind(this))
     const get = memoize((items, selection) => {
@@ -409,6 +410,12 @@ export class Playlist extends React.Component {
       .catch(err => operationError("Cannot play", err))
       .then(dispatch)
     this.hideTrackInfo()
+  }
+  onEnterKey() {
+    if (this.state.prompt.action) {
+      this.state.prompt.action()
+      this.setState({prompt: {}})
+    }
   }
   onTap(item, index) {
     // HACK hide info icon after touch
