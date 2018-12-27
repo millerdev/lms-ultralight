@@ -4,8 +4,8 @@
 
 - fix playlist loads (maximum) first 100 tracks
 - fix delete not deleting all selected items
-- fix /ultralight/menu... paths 404 when hosted by LMS
 
+- click to expand search results
 - scroll currently playing playlist item near top of screen
   - scroll slowly at first 5s to allow manual intervention/override
 - implement pagination
