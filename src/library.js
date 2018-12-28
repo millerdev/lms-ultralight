@@ -3,7 +3,7 @@ import qs from 'query-string'
 import React from 'react'
 import Media from 'react-media'
 import { Link, Route, matchPath } from 'react-router-dom'
-import { Breadcrumb, Input, List, Menu, Segment } from 'semantic-ui-react'
+import { Breadcrumb, Input, List, Loader, Menu, Segment } from 'semantic-ui-react'
 
 import { MediaInfo, PlaylistButtons, TrackInfoIcon } from './components'
 import { effect, combine } from './effects'
@@ -16,33 +16,33 @@ export const MEDIA_ITEMS = "media items"
 
 export const defaultState = {
   isSearching: false,
+  result: null,
 }
 
 export const reducer = makeReducer({
-  mediaBrowse: (state, action, name, ...args) => {
+  mediaBrowse: (state, action, name) => {
     return combine(
       {...state, isSearching: true},
-      [effect(doMediaBrowse, name, ...args)],
+      [effect(doMediaBrowse, name)],
     )
   },
-  mediaSearch: (state, action, query, ...args) => {
+  mediaSearch: (state, action, query) => {
     if (!query) {
-      afterMediaSearch(null, query, ...args)
       return defaultState
     }
     return combine(
       {...state, isSearching: true},
-      [effect(doMediaSearch, query, ...args)],
+      [effect(doMediaSearch, query)],
     )
   },
-  loadAndShowMediaInfo: (state, action, ...args) => {
+  mediaLoad: (state, action, item) => {
     return combine(
       {...state, isSearching: true},
-      [effect(_loadAndShowMediaInfo, ...args)],
+      [effect(doMediaLoad, item)],
     )
   },
-  doneSearching: state => {
-    return {...state, isSearching: false}
+  doneSearching: (state, action, result) => {
+    return {...state, isSearching: false, result}
   },
   mediaError: (state, action, err, message) => combine(
     {...state, isSearching: false},
@@ -50,15 +50,7 @@ export const reducer = makeReducer({
   ),
 }, defaultState)
 
-const getDefaultNavState = basePath => ({
-  name: "Menu",
-  query: "",
-  result: null,
-  linkTo: {pathname: basePath},
-  previous: null,
-})
-
-const doMediaBrowse = (name, history, location, basePath) => {
+const doMediaBrowse = (name) => {
   const section = BROWSE_SECTIONS[name]
   const params = ["tags", "sort"]
     .filter(name => section.hasOwnProperty(name))
@@ -68,20 +60,7 @@ const doMediaBrowse = (name, history, location, basePath) => {
     .then(json => {
       const result = json.data.result
       adaptMediaItems(result, section)
-      const path = basePath + "/" + section.name
-      const state = {
-        name: section.title,
-        section: section.name,
-        result,
-        linkTo: {pathname: path},
-        previous: getDefaultNavState(basePath),
-      }
-      if (matchPath(location.pathname, {path, exact: true})) {
-        history.replace(path, state)
-      } else {
-        history.push(path, state)
-      }
-      return actions.doneSearching()
+      return actions.doneSearching(result)
     })
     .catch(error => actions.mediaError(error))
 }
@@ -91,32 +70,32 @@ const doMediaBrowse = (name, history, location, basePath) => {
  *
  * @returns a promise that resolves to an action
  */
-const doMediaSearch = (query, ...args) => {
-  return lms.command("::", "search", 0, 10, "term:" + query, "extended:1")
-    .then(json => {
-      afterMediaSearch(json.data.result, query, ...args)
-      return actions.doneSearching()
-    })
+const doMediaSearch = (query) => {
+  return lms.command("::", "search", 0, 10, "term:" + query.term, "extended:1")
+    .then(json => actions.doneSearching(json.data.result))
     .catch(error => actions.mediaError(error))
 }
 
 /**
- * Update history with search path/query
+ * Push path for media item
+ *
+ * `nav` object specification
+ * - name: human-readable name (required)
+ * - pathspec: location path components object: pathname, search, hash
+ *             https://reacttraining.com/react-router/web/api/location
+ * - previous: previous nav object (optional)
+ *
+ * Other nav-specific keys may be present.
  */
-const afterMediaSearch = (result, query, history, location, basePath) => {
-  const path = basePath + (query ? "?q=" + query : "")
-  const state = {
-    name: query,
-    query,
-    result,
-    linkTo: {pathname: basePath, search: query ? "?q=" + query : ""},
-    previous: query ? getDefaultNavState(basePath) : null,
+export const showMediaInfo = (item, history, basePath, previous) => {
+  const item_id = item[item.type + "_id"]
+  const path = basePath + "/" + item.type + "/" + (item_id || "")
+  const nav = {
+    name: item[item.type] || "Media",
+    pathspec: {pathname: path},
+    previous,
   }
-  if (query && matchPath(location.pathname, {path: basePath, exact: true})) {
-    history.replace(path, state)
-  } else {
-    history.push(path, state)
-  }
+  history.push(path, {nav})
 }
 
 /**
@@ -124,7 +103,7 @@ const afterMediaSearch = (result, query, history, location, basePath) => {
  *
  * @returns a promise that resolves to an action
  */
-const _loadAndShowMediaInfo = (item, history, location, basePath) => {
+const doMediaLoad = item => {
   const drill = NEXT_SECTION[item.type]
   if (!drill) {
     return operationError("Unknown media item", item)
@@ -145,23 +124,7 @@ const _loadAndShowMediaInfo = (item, history, location, basePath) => {
       } else {
         adaptMediaItems(result, drill)
       }
-      const path = basePath + "/" + item.type + "/" + (item_id || "")
-      const name = item[item.type]
-      const state = {
-        name: name || (result.info && result.info.title) || "Media",
-        query: "",
-        result,
-        linkTo: {pathname: path},
-      }
-      if (name === undefined) {
-        // loading from URL
-        state.previous = getDefaultNavState(basePath)
-        history.replace(path, state)
-      } else {
-        state.previous = location.state || getDefaultNavState(basePath)
-        history.push(path, state)
-      }
-      return actions.doneSearching()
+      return actions.doneSearching(result)
     })
     .catch(error => actions.mediaError(error))
 }
@@ -175,6 +138,18 @@ const adaptMediaItems = (result, drill) => {
       [drill.type]: drill.title ? item[drill.title] : item.title,
     }, item)
   )
+}
+
+function getSearchPath(query, basePath) {
+  if (_.isString(query)) {
+    // for backward compatibility with old history states
+    query = {term: query}
+  }
+  const {section, term} = query || {}
+  return {
+    pathname: basePath + (section ? "/" + section : ""),
+    search: term ? "?q=" + term : "",
+  }
 }
 
 const BROWSE_SECTIONS = _.chain({
@@ -246,7 +221,9 @@ export const MediaBrowser = props => {
           dispatch={props.dispatch}
           isSearching={props.isSearching}
         />
-        <BrowserHistory state={route.location.state} />
+        <BrowserHistory
+          state={route.location.state}
+          basePath={props.basePath} />
         <BrowserItems {...props} {...route} />
       </div>
     )} />
@@ -264,18 +241,30 @@ export class SearchInput extends React.Component {
   componentWillUnmount() {
     this.timer.clear()
   }
-  onSearch(query) {
+  onSearch(term) {
     this.timer.clear()
-    this.timer.after(350, () => {
-      const {dispatch, history, location, basePath} = this.props
-      dispatch(actions.mediaSearch(query, history, location, basePath))
-    })
+    this.timer.after(350, () => this.doSearch(term))
   }
   onClearSearch() {
-    const {dispatch, history, location, basePath} = this.props
-    dispatch(actions.mediaSearch("", history, location, basePath))
     this.input.inputRef.value = ""
     this.input.focus()
+    this.doSearch()
+  }
+  doSearch(term) {
+    const {dispatch, history, location, basePath} = this.props
+    const query = term && {term}
+    const pathspec = getSearchPath(query, basePath)
+    const nav = term ? {name: term, term, pathspec} : null
+    const isRefine = term && location.search && matchPath(
+      location.pathname,
+      {path: pathspec.pathname, exact: true},
+    )
+    const path = pathspec.pathname + pathspec.search
+    if (isRefine) {
+      history.replace(path, {nav})
+    } else {
+      history.push(path, {nav})
+    }
   }
   setSearchInput = (input) => {
     this.input = input
@@ -308,22 +297,25 @@ export class SearchInput extends React.Component {
 }
 
 export class BrowserHistory extends React.PureComponent {
-  navItems(state, active=true) {
-    const items = state.previous ? this.navItems(state.previous, false) : []
-    const loc = _.assign({state}, state.linkTo)
+  navItems(nav, active=true) {
+    if (!nav) {
+      return [{key: "0", content: <Link to={this.props.basePath}>Menu</Link>}]
+    }
+    const items = this.navItems(nav.previous, false)
+    const to = {...nav.pathspec, state: {nav}}
     items.push({
       key: String(items.length),
-      content: active ? state.name : <Link to={loc}>{state.name}</Link>,
+      content: active ? nav.name : <Link to={to}>{nav.name}</Link>,
       active,
     })
     return items
   }
   render() {
-    const {name, previous} = this.props.state || {}
-    return !previous ? null : (
+    const {nav} = this.props.state || {}
+    return !nav ? null : (
       <Segment className="nav" size="small">
         <Breadcrumb
-          sections={this.navItems({name, previous})}
+          sections={this.navItems(nav)}
           icon="right angle"
           size="tiny"
         />
@@ -337,9 +329,12 @@ const IGNORE_DIFF = {playctl: true, match: true, showMediaInfo: true}
 export class BrowserItems extends React.Component {
   constructor(props) {
     super(props)
-    const state = props.location.state || {}
-    if (!props.isSearching && !state.result) {
-      this.updateLocationState(props)
+    this.state = {nav: null}
+    if (!props.isSearching && !props.result) {
+      const action = this.getActionFromLocation()
+      if (action.type !== "doneSearching") {
+        props.dispatch(action)
+      }
     }
   }
   shouldComponentUpdate(props) {
@@ -347,88 +342,95 @@ export class BrowserItems extends React.Component {
         !IGNORE_DIFF[key] && props[key] !== value) ||
       !_.isEqual(_.keys(props), _.keys(this.props))
   }
+  componentDidUpdate() {
+    if (this.isLoading()) {
+      const nav = _.get(this.props, "location.state.nav")
+      this.setState({nav})
+      this.props.dispatch(this.getActionFromLocation(nav))
+    }
+  }
+  isLoading() {
+    const nav = _.get(this.props, "location.state.nav")
+    return (nav && nav !== this.state.nav) || (this.props.result && !nav)
+  }
   /**
-   * Load location state if missing
-   *
-   * Asynchronously fetch menu content when loading a path typed into
-   * the address bar or from a bookmark or other external link.
+   * Load results based on current location (path and query string)
    */
-  updateLocationState(props) {
-    const {basePath, location} = props
-    const state = location.state || {}
+  getActionFromLocation() {
+    const {basePath, location} = this.props
+    const pathname = location.pathname
+    console.log("getActionFromLocation", pathname + location.search)
 
+    // path: /:type/:id
     const types = _.keys(NEXT_SECTION).join("|")
-    const itemMatch = matchPath(location.pathname, {
+    const itemMatch = matchPath(pathname, {
       path: basePath + "/:type(" + types + ")/:id",
       exact: true,
     })
     if (itemMatch) {
-      const {params: {type, id}} = itemMatch
-      props.showMediaInfo({type, [type + "_id"]: id})
-      return
+      const {type, id} = itemMatch.params
+      const item = {type, [type + "_id"]: id}
+      return actions.mediaLoad(item)
     }
 
+    // path: /:section
     const sections = _.keys(BROWSE_SECTIONS).join("|")
-    const sectionMatch = matchPath(location.pathname, {
+    const sectionMatch = matchPath(pathname, {
       path: basePath + "/:section(" + sections + ")",
       exact: true,
     })
     if (sectionMatch) {
-      this.onBrowse(sectionMatch.params.section)
-      return
+      return actions.mediaBrowse(sectionMatch.params.section)
     }
 
+    // path: ?q=term
     if (location.search) {
       const params = qs.parse(location.search)
-      if (params.q && state.query !== params.q) {
-        props.dispatch(actions.mediaSearch(
-          params.q,
-          props.history,
-          location,
-          basePath,
-        ))
+      if (params.q) {
+        const query = {term: params.q}
+        return actions.mediaSearch(query)
       }
     }
+
+    return actions.doneSearching(null)
   }
-  onBrowse = (section) => {
-    const {dispatch, history, location, basePath} = this.props
-    dispatch(actions.mediaBrowse(section, history, location, basePath))
-  }
+  showMediaInfo = item => this.props.showMediaInfo(item, this.state.nav)
   render() {
     const props = this.props
-    const {result} = props.location.state || {}
-    if (result && result.info) {
-      return <MediaInfo
-        item={result.info}
-        playctl={props.playctl}
-        imageSize="tiny"
-      />
+    const result = props.result
+    const loading = this.isLoading()
+    if (!loading && result) {
+      if (result.info) {
+        return <MediaInfo
+          item={result.info}
+          playctl={props.playctl}
+          imageSize="tiny"
+          showMediaInfo={this.showMediaInfo}
+        />
+      }
+      if (result.count) {
+        return <MediaItems
+          {...props}
+          items={result}
+          showMediaInfo={this.showMediaInfo}
+        />
+      }
     }
-    if (result && result.count) {
-      return <MediaItems
-        {...props}
-        items={result}
-        showMediaInfo={props.showMediaInfo}
-      />
-    }
-    return <BrowseMenu
-      basePath={props.basePath}
-      onBrowse={this.onBrowse}
-    />
+    return <BrowseMenu basePath={props.basePath} loading={loading} />
   }
 }
 
-const BrowseMenu = ({ basePath, onBrowse }) => (
+const BrowseMenu = ({ basePath, loading }) => (
   <Menu className="browse-sections" borderless fluid vertical>
-    {_.map(BROWSE_SECTIONS, (section, name) => (
-      <Menu.Item
-        key={name}
-        href={basePath + "/" + name}
-        onClick={e => {e.preventDefault(); onBrowse(name)}}
-      >
-        {section.title}
+    {_.map(BROWSE_SECTIONS, (section, name) => {
+      const pathname = basePath + "/" + name
+      const nav = {name: section.title, pathspec: {pathname}}
+      const loc = {pathname, state: {nav}}
+      return <Menu.Item key={name}>
+        <Link to={loc} href={pathname}>{section.title}</Link>
       </Menu.Item>
-    ))}
+    })}
+    <Loader active={loading} inline='centered' />
   </Menu>
 )
 
