@@ -283,7 +283,7 @@ export class SearchInput extends React.Component {
     this.doSearch()
   }
   doSearch(term) {
-    const {dispatch, history, location, basePath} = this.props
+    const {history, location, basePath} = this.props
     const query = term && {term}
     const pathspec = getSearchPath(query, basePath)
     const nav = term ? {name: term, term, pathspec} : null
@@ -392,7 +392,6 @@ export class BrowserItems extends React.Component {
   getActionFromLocation() {
     const {basePath, location} = this.props
     const pathname = location.pathname
-    console.log("getActionFromLocation", pathname + location.search)
 
     // path: /:type/:id
     const types = _.keys(NEXT_SECTION).join("|")
@@ -471,7 +470,7 @@ const BrowseMenu = ({ basePath, loading }) => (
         <Link to={loc} href={pathname}>{section.title}</Link>
       </Menu.Item>
     })}
-    <Loader active={loading} inline='centered' />
+    <Loader active={loading} inline="centered" />
   </Menu>
 )
 
