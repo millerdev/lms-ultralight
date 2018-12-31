@@ -135,7 +135,7 @@ const adaptMediaItems = (result, drill) => {
   result[drill.type + "s_loop"] = result[drill.loop].map(
     item => _.assign({
       [drill.type + "_id"]: item.id,
-      [drill.type]: drill.title ? item[drill.title] : item.title,
+      [drill.type]: drill.nameKey ? item[drill.nameKey] : item.title,
     }, item)
   )
 }
@@ -172,7 +172,7 @@ const NEXT_SECTION = {
     param: "genre_id",
     type: "contributor",
     loop: "artists_loop",
-    title: "artist",
+    nameKey: "artist",
   },
   contributor: {
     cmd: "albums",
