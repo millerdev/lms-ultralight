@@ -50,11 +50,14 @@ export const reducer = makeReducer({
   ),
 }, defaultState)
 
-const doMediaBrowse = (name) => {
-  const section = BROWSE_SECTIONS[name]
+const doMediaBrowse = (name, search) => {
+  const section = SECTIONS[name]
   const params = ["tags", "sort"]
     .filter(name => section.hasOwnProperty(name))
     .map(name => name + ":" + section[name])
+  if (search) {
+    params.push(search)
+  }
   // TODO pagination
   return lms.command("::", section.cmd, 0, 100, ...params)
     .then(json => {
@@ -71,6 +74,9 @@ const doMediaBrowse = (name) => {
  * @returns a promise that resolves to an action
  */
 const doMediaSearch = (query) => {
+  if (query.section) {
+    return doMediaBrowse(query.section, "search:" + query.term)
+  }
   return lms.command("::", "search", 0, 10, "term:" + query.term, "extended:1")
     .then(json => actions.doneSearching(json.data.result))
     .catch(error => actions.mediaError(error))
@@ -152,16 +158,34 @@ function getSearchPath(query, basePath) {
   }
 }
 
-const BROWSE_SECTIONS = _.chain({
-  playlists: {
-    cmd: "playlists",
-    type: "playlist",
-    loop: "playlists_loop",
-  }
+const SECTIONS = _.chain({
+  artists: {
+    type: "contributor",
+    nameKey: "artist",
+  },
+  albums: {
+    tags: "alj",  // artist, album, artwork_track_id
+  },
+  titles: {
+    title: "Songs",
+    type: "track",
+    tags: "acjt",  // artist, coverid, artwork_track_id, track
+    sort: "tracknum",
+  },
+  playlists: {},
 }).map((info, name) => {
   info.name = name
   if (!info.title) {
     info.title = _.upperFirst(name)
+  }
+  if (!info.type) {
+    info.type = name.slice(0, -1)
+  }
+  if (!info.cmd) {
+    info.cmd = name
+  }
+  if (!info.loop) {
+    info.loop = name + "_loop"
   }
   return [name, info]
 }).fromPairs().value()
@@ -373,23 +397,31 @@ export class BrowserItems extends React.Component {
       return actions.mediaLoad(item)
     }
 
-    // path: /:section
-    const sections = _.keys(BROWSE_SECTIONS).join("|")
-    const sectionMatch = matchPath(pathname, {
-      path: basePath + "/:section(" + sections + ")",
-      exact: true,
-    })
-    if (sectionMatch) {
-      return actions.mediaBrowse(sectionMatch.params.section)
-    }
-
-    // path: ?q=term
+    // path: /:section? + ?q=term
+    const sections = _.keys(SECTIONS).join("|")
+    const sectionPattern = "/:section(" + sections + ")"
     if (location.search) {
       const params = qs.parse(location.search)
       if (params.q) {
         const query = {term: params.q}
+        const queryMatch = matchPath(pathname, {
+          path: basePath + sectionPattern,
+          exact: true,
+        })
+        if (queryMatch) {
+          query.section = queryMatch.params.section
+        }
         return actions.mediaSearch(query)
       }
+    }
+
+    // path: /:section
+    const sectionMatch = matchPath(pathname, {
+      path: basePath + sectionPattern,
+      exact: true,
+    })
+    if (sectionMatch) {
+      return actions.mediaBrowse(sectionMatch.params.section)
     }
 
     return actions.doneSearching(null)
@@ -422,7 +454,7 @@ export class BrowserItems extends React.Component {
 
 const BrowseMenu = ({ basePath, loading }) => (
   <Menu className="browse-sections" borderless fluid vertical>
-    {_.map(BROWSE_SECTIONS, (section, name) => {
+    {_.map(SECTIONS, (section, name) => {
       const pathname = basePath + "/" + name
       const nav = {name: section.title, pathspec: {pathname}}
       const loc = {pathname, state: {nav}}
@@ -433,14 +465,6 @@ const BrowseMenu = ({ basePath, loading }) => (
     <Loader active={loading} inline='centered' />
   </Menu>
 )
-
-const SECTIONS = ["contributor", "album", "track", "playlist"]
-const SECTION_NAMES = {
-  contributor: "Artists",
-  album: "Albums",
-  track: "Songs",
-  playlist: "Playlists",
-}
 
 export class MediaItems extends React.PureComponent {
   constructor(props) {
@@ -453,12 +477,13 @@ export class MediaItems extends React.PureComponent {
       let i = 0
       let items = []
       _.each(SECTIONS, section => {
-        if (results[section + "s_count"]) {
-          const sectionItems = results[section + "s_loop"].map(
-            item => ({...item, index: i++, type: section})
+        const type = section.type
+        if (results[type + "s_count"]) {
+          const sectionItems = results[type + "s_loop"].map(
+            item => ({...item, index: i++, type})
           )
           items = items.concat(sectionItems)
-          bySection[section] = sectionItems
+          bySection[type] = sectionItems
         }
       })
       // NOTE selection is cleared any time results
@@ -496,21 +521,20 @@ export class MediaItems extends React.PureComponent {
   }
   render() {
     const {items, bySection, selection} = this.getItems()
+    const showHeaders = _.keys(bySection).length > 1
     return <Media query="(max-width: 500px)">{ smallScreen =>
       <TouchList
           dataType={MEDIA_ITEMS}
           items={items}
           selection={selection}
           onSelectionChanged={this.onSelectionChanged}>
-        {SECTIONS.map(section => {
-          if (bySection.hasOwnProperty(section)) {
-            const sectionItems = bySection[section]
-            const elements = _.keys(bySection).length === 1 ? [] : [
-              <List.Item key={section}>
-                <List.Header>{SECTION_NAMES[section]}</List.Header>
-              </List.Item>
-            ]
-            return elements.concat(sectionItems.map((item, i) =>
+        {_.map(SECTIONS, section => {
+          const type = section.type
+          if (bySection.hasOwnProperty(type)) {
+            const sectionItems = bySection[type]
+            return (showHeaders ? [
+              <MediaHeader {...this.props} section={section} key={type} />
+            ] : []).concat(sectionItems.map((item, i) =>
               <MediaItem
                 smallScreen={smallScreen}
                 showMediaInfo={this.props.showMediaInfo}
@@ -522,11 +546,37 @@ export class MediaItems extends React.PureComponent {
                 item={item}
                 key={item.type + "-" + item[item.type + "_id"] + "-" + i} />
             ))
+          } else if (showHeaders) {
+            return [
+              <MediaHeader {...this.props} section={section} key={type} />
+            ]
           }
         })}
       </TouchList>
     }</Media>
   }
+}
+
+export const MediaHeader = ({section, location, basePath}) => {
+  function getContent() {
+    const previous = _.get(location, "state.nav", {})
+    if (!previous.term) {
+      return section.title
+    }
+    const query = {term: previous.term, section: section.name}
+    const pathspec = getSearchPath(query, basePath)
+    const path = pathspec.pathname + pathspec.search
+    const nav = {name: section.title, pathspec, previous}
+    const to = {...pathspec, state: {nav}}
+    return <Link to={to} href={path}>{section.title}</Link>
+  }
+  return (
+    <List.Item>
+      <List.Header>
+        {getContent()}
+      </List.Header>
+    </List.Item>
+  )
 }
 
 export class MediaItem extends React.Component {
