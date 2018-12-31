@@ -5,7 +5,6 @@
 - fix playlist loads (maximum) first 100 tracks
 - fix delete not deleting all selected items
 
-- show Menu breadcrumb link on cold-load paths like /menu/track/8373
 - scroll currently playing playlist item near top of screen
   - scroll slowly at first 5s to allow manual intervention/override
 - implement pagination

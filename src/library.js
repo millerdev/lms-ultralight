@@ -255,6 +255,7 @@ export const MediaBrowser = props => {
         />
         <BrowserHistory
           state={route.location.state}
+          result={props.result}
           basePath={props.basePath} />
         <BrowserItems {...props} {...route} />
       </div>
@@ -344,7 +345,7 @@ export class BrowserHistory extends React.PureComponent {
   }
   render() {
     const {nav} = this.props.state || {}
-    return !nav ? null : (
+    return !nav && !this.props.result ? null : (
       <Segment className="nav" size="small">
         <Breadcrumb
           sections={this.navItems(nav)}
