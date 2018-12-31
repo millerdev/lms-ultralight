@@ -146,6 +146,14 @@ const adaptMediaItems = (result, drill) => {
   )
 }
 
+function getPath(location) {
+  return (
+    (location.pathname || "") +
+    (location.search || "") +
+    (location.hash || "")
+  )
+}
+
 function getSearchPath(query, basePath) {
   if (_.isString(query)) {
     // for backward compatibility with old history states
@@ -283,7 +291,7 @@ export class SearchInput extends React.Component {
       location.pathname,
       {path: pathspec.pathname, exact: true},
     )
-    const path = pathspec.pathname + pathspec.search
+    const path = getPath(pathspec)
     if (isRefine) {
       history.replace(path, {nav})
     } else {
@@ -353,7 +361,7 @@ const IGNORE_DIFF = {playctl: true, match: true, showMediaInfo: true}
 export class BrowserItems extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {nav: null}
+    this.state = {nav: undefined, path: getPath(props.location)}
     if (!props.isSearching && !props.result) {
       const action = this.getActionFromLocation()
       if (action.type !== "doneSearching") {
@@ -368,14 +376,15 @@ export class BrowserItems extends React.Component {
   }
   componentDidUpdate() {
     if (this.isLoading()) {
-      const nav = _.get(this.props, "location.state.nav")
-      this.setState({nav})
-      this.props.dispatch(this.getActionFromLocation(nav))
+      this.setState({
+        nav: _.get(this.props, "location.state.nav"),
+        path: getPath(this.props.location),
+      })
+      this.props.dispatch(this.getActionFromLocation())
     }
   }
   isLoading() {
-    const nav = _.get(this.props, "location.state.nav")
-    return (nav && nav !== this.state.nav) || (this.props.result && !nav)
+    return getPath(this.props.location) !== this.state.path
   }
   /**
    * Load results based on current location (path and query string)
@@ -565,7 +574,7 @@ export const MediaHeader = ({section, location, basePath}) => {
     }
     const query = {term: previous.term, section: section.name}
     const pathspec = getSearchPath(query, basePath)
-    const path = pathspec.pathname + pathspec.search
+    const path = getPath(pathspec)
     const nav = {name: section.title, pathspec, previous}
     const to = {...pathspec, state: {nav}}
     return <Link to={to} href={path}>{section.title}</Link>
