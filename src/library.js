@@ -78,7 +78,7 @@ const doMediaBrowse = (section, search, key=name) => {
  */
 const doMediaSearch = (query, key) => {
   if (query.section) {
-    return doMediaBrowse(query.section, "search:" + query.term)
+    return doMediaBrowse(query.section, "search:" + query.term, key)
   }
   return lms.command("::", "search", 0, 5, "term:" + query.term, "extended:1")
     .then(({data}) => actions.gotMedia(adaptSearchResult(data.result), key))
@@ -611,7 +611,7 @@ export const MediaHeader = ({sector, location, basePath}) => {
     if (!previous.term) {
       return sector.title
     }
-    const query = {term: previous.term, sector: sector.section}
+    const query = {term: previous.term, section: sector.section}
     const pathspec = getSearchPath(query, basePath)
     const path = getPath(pathspec)
     const nav = {name: sector.title, pathspec, previous}
