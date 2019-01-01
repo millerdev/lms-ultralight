@@ -16,42 +16,46 @@ export const MEDIA_ITEMS = "media items"
 
 export const defaultState = {
   isSearching: false,
+  resultKey: "",
   result: null,
 }
 
 export const reducer = makeReducer({
-  mediaBrowse: (state, action, name) => {
+  mediaBrowse: (state, action, section) => {
     return combine(
-      {...state, isSearching: true},
-      [effect(doMediaBrowse, name)],
+      {...state, key: section, isSearching: true},
+      [effect(doMediaBrowse, section)],
     )
   },
   mediaSearch: (state, action, query) => {
     if (!query) {
       return defaultState
     }
+    const resultKey = (query.section || "") + "?q=" + query.term
     return combine(
-      {...state, isSearching: true},
-      [effect(doMediaSearch, query)],
+      {...state, resultKey, isSearching: true},
+      [effect(doMediaSearch, query, resultKey)],
     )
   },
   mediaLoad: (state, action, item) => {
+    const resultKey = item.type + "/" + item.id
     return combine(
-      {...state, isSearching: true},
-      [effect(doMediaLoad, item)],
+      {...state, resultKey, isSearching: true},
+      [effect(doMediaLoad, item, resultKey)],
     )
   },
-  doneSearching: (state, action, result) => {
-    return {...state, isSearching: false, result}
-  },
+  doneSearching: (state, action, result, key) => (
+    state.resultKey === key ? {...state, isSearching: false, result} : state
+  ),
+  clearResult: (state, action) => defaultState,
   mediaError: (state, action, err, message) => combine(
     {...state, isSearching: false},
     [effect(operationError, message || "Media error", err)],
   ),
 }, defaultState)
 
-const doMediaBrowse = (name, search) => {
-  const sector = SECTIONS[name]
+const doMediaBrowse = (section, search, key=name) => {
+  const sector = SECTIONS[section]
   const params = ["tags", "sort"]
     .filter(name => sector.hasOwnProperty(name))
     .map(name => name + ":" + sector[name])
@@ -62,7 +66,7 @@ const doMediaBrowse = (name, search) => {
   return lms.command("::", sector.cmd, 0, 100, ...params)
     .then(json => {
       const result = json.data.result
-      return actions.doneSearching(adaptMediaItems(result, sector))
+      return actions.doneSearching(adaptMediaItems(result, sector), key)
     })
     .catch(error => actions.mediaError(error))
 }
@@ -72,12 +76,12 @@ const doMediaBrowse = (name, search) => {
  *
  * @returns a promise that resolves to an action
  */
-const doMediaSearch = (query) => {
+const doMediaSearch = (query, key) => {
   if (query.section) {
     return doMediaBrowse(query.section, "search:" + query.term)
   }
   return lms.command("::", "search", 0, 5, "term:" + query.term, "extended:1")
-    .then(json => actions.doneSearching(adaptSearchResult(json.data.result)))
+    .then(({data}) => actions.doneSearching(adaptSearchResult(data.result), key))
     .catch(error => actions.mediaError(error))
 }
 
@@ -107,7 +111,7 @@ export const showMediaInfo = (item, history, basePath, previous) => {
  *
  * @returns a promise that resolves to an action
  */
-const doMediaLoad = item => {
+const doMediaLoad = (item, key) => {
   const sector = NEXT_SECTION[item.type]
   if (!sector) {
     return operationError("Unknown media item", item)
@@ -126,9 +130,9 @@ const doMediaLoad = item => {
         const songinfo = _.assign({}, ...result.songinfo_loop)
         songinfo.content_type = songinfo.type
         songinfo.type = "track"
-        return actions.doneSearching({songinfo})
+        return actions.doneSearching({songinfo}, key)
       }
-      return actions.doneSearching(adaptMediaItems(result, sector))
+      return actions.doneSearching(adaptMediaItems(result, sector), key)
     })
     .catch(error => actions.mediaError(error))
 }
@@ -407,12 +411,10 @@ const IGNORE_DIFF = {playctl: true, match: true, showMediaInfo: true}
 export class BrowserItems extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {nav: undefined, path: getPath(props.location)}
-    if (!props.isSearching && !props.result) {
-      const action = this.getActionFromLocation()
-      if (action.type !== "doneSearching") {
-        props.dispatch(action)
-      }
+    const resultKey = this.getResultKey()
+    this.state = {nav: undefined, resultKey}
+    if (!props.isSearching && props.resultKey !== resultKey) {
+      props.dispatch(this.getActionFromLocation())
     }
   }
   shouldComponentUpdate(props) {
@@ -424,13 +426,27 @@ export class BrowserItems extends React.Component {
     if (this.isLoading()) {
       this.setState({
         nav: _.get(this.props, "location.state.nav"),
-        path: getPath(this.props.location),
+        resultKey: this.getResultKey(),
       })
       this.props.dispatch(this.getActionFromLocation())
     }
   }
+  getResultKey() {
+    const {basePath, location} = this.props
+    // FIXME path may include extra query string parameters not known
+    // to this compnent, which may cause unexpected key mismatch
+    const path = getPath(location)
+    let key = ""
+    if (path.startsWith(basePath)) {
+      key = path.slice(basePath.length)
+      if (key.startsWith("/")) {
+        key = key.slice(1)
+      }
+    }
+    return key
+  }
   isLoading() {
-    return getPath(this.props.location) !== this.state.path
+    return this.getResultKey() !== this.state.resultKey
   }
   /**
    * Load results based on current location (path and query string)
@@ -476,7 +492,7 @@ export class BrowserItems extends React.Component {
       return actions.mediaBrowse(sectionMatch.params.section)
     }
 
-    return actions.doneSearching(null)
+    return actions.clearResult()
   }
   showMediaInfo = item => this.props.showMediaInfo(item, this.state.nav)
   render() {
