@@ -15,7 +15,7 @@ import { memoize, operationError, timer } from './util'
 export const MEDIA_ITEMS = "media items"
 
 export const defaultState = {
-  isSearching: false,
+  isLoading: false,
   resultKey: "",
   result: null,
 }
@@ -23,7 +23,7 @@ export const defaultState = {
 export const reducer = makeReducer({
   mediaBrowse: (state, action, section) => {
     return combine(
-      {...state, key: section, isSearching: true},
+      {...state, key: section, isLoading: true},
       [effect(doMediaBrowse, section)],
     )
   },
@@ -33,23 +33,23 @@ export const reducer = makeReducer({
     }
     const resultKey = (query.section || "") + "?q=" + query.term
     return combine(
-      {...state, resultKey, isSearching: true},
+      {...state, resultKey, isLoading: true},
       [effect(doMediaSearch, query, resultKey)],
     )
   },
   mediaLoad: (state, action, item) => {
     const resultKey = item.type + "/" + item.id
     return combine(
-      {...state, resultKey, isSearching: true},
+      {...state, resultKey, isLoading: true},
       [effect(doMediaLoad, item, resultKey)],
     )
   },
   doneSearching: (state, action, result, key) => (
-    state.resultKey === key ? {...state, isSearching: false, result} : state
+    state.resultKey === key ? {...state, isLoading: false, result} : state
   ),
   clearResult: (state, action) => defaultState,
   mediaError: (state, action, err, message) => combine(
-    {...state, isSearching: false},
+    {...state, isLoading: false},
     [effect(operationError, message || "Media error", err)],
   ),
 }, defaultState)
@@ -300,7 +300,7 @@ export const MediaBrowser = props => {
           {...route}
           basePath={props.basePath}
           dispatch={props.dispatch}
-          isSearching={props.isSearching}
+          isLoading={props.isLoading}
         />
         <BrowserHistory
           state={route.location.state}
@@ -371,7 +371,7 @@ export class SearchInput extends React.Component {
         link: inputHasValue,
         onClick: () => this.onClearSearch(),
       }}
-      loading={this.props.isSearching}
+      loading={this.props.isLoading}
       placeholder="Search..."
       fluid
     />
@@ -413,7 +413,7 @@ export class BrowserItems extends React.Component {
     super(props)
     const resultKey = this.getResultKey()
     this.state = {nav: undefined, resultKey}
-    if (!props.isSearching && props.resultKey !== resultKey) {
+    if (!props.isLoading && props.resultKey !== resultKey) {
       props.dispatch(this.getActionFromLocation())
     }
   }
