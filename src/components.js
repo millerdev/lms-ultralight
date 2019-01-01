@@ -10,11 +10,6 @@ import { formatTime, timer } from './util'
 export const MediaInfo = (props, context) => {
   const showMediaInfo = props.showMediaInfo || context.showMediaInfo
   const item = props.item
-  const track = {
-    type: "track",
-    track_id: item.id,
-    track: item.title,
-  }
   return (
     <Item.Group className="media-info">
       <Item>
@@ -35,9 +30,9 @@ export const MediaInfo = (props, context) => {
           }
           { props.button ||
             <PlaylistButtons
-              play={() => props.playctl.playItems([track])}
-              playNext={() => props.playctl.playNext(track)}
-              addToPlaylist={() => props.playctl.addToPlaylist([track])}
+              play={() => props.playctl.playItems([item])}
+              playNext={() => props.playctl.playNext(item)}
+              addToPlaylist={() => props.playctl.addToPlaylist([item])}
               className="tr-corner"
               floated="right" /> }
           <Item.Header>{item.title}</Item.Header>
@@ -72,7 +67,7 @@ export function drillable(item, key, showMediaInfo) {
   const text = item[key]
   if (showMediaInfo) {
     let id = item[key + "_id"]
-    if (!id) {
+    if (id === undefined) {
       id = item[key + "_ids"]
       if (_.isArray(id)) {
         id = id[0]
@@ -80,7 +75,7 @@ export function drillable(item, key, showMediaInfo) {
     }
     if (id) {
       key = DRILL_KEYS.hasOwnProperty(key) ? DRILL_KEYS[key] : key
-      item = {type: key, [key + "_id"]: id, [key]: text}
+      item = {type: key, id, [key]: text, title: text}
       return <a onClick={() => showMediaInfo(item)}>{text}</a>
     }
   }
@@ -144,15 +139,14 @@ const MEDIA_INFO = [
   {key: "rating"},
   {key: "playcount", name: "Play count"},
   {key: "bpm", name: "Beats per minute"},
-  {key: "album_replay_gain", name: "Album replay gain",
-    transform: value => value + " dB"},
-  {key: "replay_gain", name: "Replay gain", transform: value => value + " dB"},
+  {key: "album_replay_gain", transform: value => value + " dB"},
+  {key: "replay_gain", transform: value => value + " dB"},
   {key: "musicmagic_mixable", name: "Mixable", transform: yesno},
   {key: "tagversion", name: "Tag version"},
   {key: "samplerate", name: "Sample rate", transform: value => value + " KHz"},
   {key: "samplesize", name: "Sample size", transform: value => value + " bits"},
   {key: "bitrate"},
-  {key: "type", name: "Content type"},
+  {key: "content_type"},
   {key: "filesize", name: "Size", transform: bytesToSize},
   {key: "url", name: "Location", transform: urlToPath},
   {key: "modificationTime", name: "Modified"},
@@ -163,7 +157,7 @@ const MEDIA_INFO = [
 
 _.each(MEDIA_INFO, item => {
   if (!item.name) {
-    item.name = item.key[0].toUpperCase() + item.key.slice(1)
+    item.name = _.upperFirst(item.key.replace(/_/g, " "))
   }
   if (!item.transform) {
     item.transform = value => value

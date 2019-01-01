@@ -51,19 +51,18 @@ export const reducer = makeReducer({
 }, defaultState)
 
 const doMediaBrowse = (name, search) => {
-  const section = SECTIONS[name]
+  const sector = SECTIONS[name]
   const params = ["tags", "sort"]
-    .filter(name => section.hasOwnProperty(name))
-    .map(name => name + ":" + section[name])
+    .filter(name => sector.hasOwnProperty(name))
+    .map(name => name + ":" + sector[name])
   if (search) {
     params.push(search)
   }
   // TODO pagination
-  return lms.command("::", section.cmd, 0, 100, ...params)
+  return lms.command("::", sector.cmd, 0, 100, ...params)
     .then(json => {
       const result = json.data.result
-      adaptMediaItems(result, section)
-      return actions.doneSearching(result)
+      return actions.doneSearching(adaptMediaItems(result, sector))
     })
     .catch(error => actions.mediaError(error))
 }
@@ -78,7 +77,7 @@ const doMediaSearch = (query) => {
     return doMediaBrowse(query.section, "search:" + query.term)
   }
   return lms.command("::", "search", 0, 10, "term:" + query.term, "extended:1")
-    .then(json => actions.doneSearching(json.data.result))
+    .then(json => actions.doneSearching(adaptSearchResult(json.data.result)))
     .catch(error => actions.mediaError(error))
 }
 
@@ -94,10 +93,9 @@ const doMediaSearch = (query) => {
  * Other nav-specific keys may be present.
  */
 export const showMediaInfo = (item, history, basePath, previous) => {
-  const item_id = item[item.type + "_id"]
-  const path = basePath + "/" + item.type + "/" + (item_id || "")
+  const path = basePath + "/" + item.type + "/" + (item.id || "")
   const nav = {
-    name: item[item.type] || "Media",
+    name: item.title || "Media",
     pathspec: {pathname: path},
     previous,
   }
@@ -110,41 +108,81 @@ export const showMediaInfo = (item, history, basePath, previous) => {
  * @returns a promise that resolves to an action
  */
 const doMediaLoad = item => {
-  const drill = NEXT_SECTION[item.type]
-  if (!drill) {
+  const sector = NEXT_SECTION[item.type]
+  if (!sector) {
     return operationError("Unknown media item", item)
   }
-  const item_id = item[item.type + "_id"]
-  const params = [drill.param + ":" + item_id].concat(
+  const params = [sector.param + ":" + item.id].concat(
     ["tags", "sort"]
-    .filter(name => drill.hasOwnProperty(name))
-    .map(name => name + ":" + drill[name])
+    .filter(name => sector.hasOwnProperty(name))
+    .map(name => name + ":" + sector[name])
   )
-  const cmd = _.isArray(drill.cmd) ? drill.cmd : [drill.cmd]
+  const cmd = _.isArray(sector.cmd) ? sector.cmd : [sector.cmd]
   // TODO pagination
   return lms.command("::", ...cmd, 0, 100, ...params)
     .then(json => {
       const result = json.data.result
-      if (drill.type === "info") {
-        result.info = _.reduce(result.songinfo_loop, _.assign, {})
-      } else {
-        adaptMediaItems(result, drill)
+      if (sector.type === "songinfo") {
+        const songinfo = _.assign({}, ...result.songinfo_loop)
+        songinfo.content_type = songinfo.type
+        songinfo.type = "track"
+        return actions.doneSearching({songinfo})
       }
-      return actions.doneSearching(result)
+      return actions.doneSearching(adaptMediaItems(result, sector))
     })
     .catch(error => actions.mediaError(error))
 }
 
-const adaptMediaItems = (result, drill) => {
-  // adapt to MediaItem format
-  result[drill.type + "s_count"] = result.count || 0
-  result[drill.type + "s_loop"] = result[drill.loop].map(
-    item => _.assign({
-      [drill.type + "_id"]: item.id,
-      [drill.type]: drill.nameKey ? item[drill.nameKey] : item.title,
-    }, item)
-  )
-}
+/**
+ * Library result (after adaptation) is a list of objects:
+ *  - sector: section descriptor object
+ *  - count: total number of matching items in library
+ *  - loop: list of item objects, length may be less than count
+ *    - id: item id
+ *    - type: item type (sector.type)
+ *    - title: human-readable name
+ *    - [tag]: tag key/value pairs per type
+ */
+
+const adaptMediaItems = (result, sector, i=0) => [{
+  sector,
+  count: result.count || 0,
+  loop: (result[sector.section + "_loop"] || []).map(item => ({
+    ...item,
+    type: sector.type,
+    title: item[sector.titleKey] || item.title || item[sector.type],
+    index: i++,
+  })),
+}]
+
+const adaptSearchResult = (result, i=0) => _.chain(result)
+  .map((value, key) => {
+    const match = /(.+)s_loop/.exec(key)
+    if (match) {
+      const type = match[1]
+      const sector = SECTIONS[typeToSection(type)]
+      if (type !== sector.type) {
+        window.console.error("sector type mismatch", result, sector)
+      }
+      return {
+        sector,
+        count: result[type + "s_count"],
+        loop: _.map(value, item => ({
+          ...item,
+          id: item[type + "_id"],
+          type,
+          title: item[type],
+          index: i++,
+        })),
+      }
+    }
+  })
+  .filter()
+  .sortBy(item => item.sector.index)
+  // add "playlists" to allow search in playlists
+  // slightly non-intuitive: search, click playlists (searches in playlists)
+  .concat([{sector: SECTIONS["playlists"], loop: []}])
+  .value()
 
 function getPath(location) {
   return (
@@ -166,72 +204,79 @@ function getSearchPath(query, basePath) {
   }
 }
 
-const SECTIONS = _.chain({
-  artists: {
+const SECTIONS = _.chain([
+  {
+    section: "artists",
     type: "contributor",
-    nameKey: "artist",
-  },
-  albums: {
+    title: "Artists",
+    cmd: "artists",
+    titleKey: "artist",
+  }, {
+    section: "albums",
+    type: "album",
+    title: "Albums",
+    cmd: "albums",
     tags: "alj",  // artist, album, artwork_track_id
-  },
-  titles: {
-    title: "Songs",
+  }, {
+    section: "titles",
     type: "track",
+    title: "Songs",
+    cmd: "titles",
     tags: "acjt",  // artist, coverid, artwork_track_id, track
     sort: "tracknum",
+  }, {
+    section: "playlists",
+    type: "playlist",
+    title: "Playlists",
+    cmd: "playlists",
   },
-  playlists: {},
-}).map((info, name) => {
-  info.name = name
-  if (!info.title) {
-    info.title = _.upperFirst(name)
-  }
-  if (!info.type) {
-    info.type = name.slice(0, -1)
-  }
-  if (!info.cmd) {
-    info.cmd = name
-  }
-  if (!info.loop) {
-    info.loop = name + "_loop"
-  }
-  return [name, info]
+]).map((info, i) => {
+  info.index = i
+  return [info.section, info]
 }).fromPairs().value()
+
+const TYPE_TO_SECTION = {
+  "contributor": "artists",
+  "track": "titles",
+}
+const typeToSection = type => _.get(TYPE_TO_SECTION, type, type + "s")
 
 const NEXT_SECTION = {
   genre: {
+    section: "artists",
+    type: "contributor",
+    titleKey: "artist",
     cmd: "artists",
     param: "genre_id",
-    type: "contributor",
-    loop: "artists_loop",
-    nameKey: "artist",
   },
   contributor: {
+    section: "albums",
+    type: "album",
     cmd: "albums",
     param: "artist_id",
-    type: "album",
-    loop: "albums_loop",
     tags: "alj",  // artist, album, artwork_track_id
   },
   album: {
+    section: "titles",
+    type: "track",
     cmd: "titles",
     param: "album_id",
-    type: "track",
-    loop: "titles_loop",
     tags: "acjt",  // artist, coverid, artwork_track_id, track
     sort: "tracknum",
   },
   track: {
+    // section abstraction does not apply to this sector
+    section: null,
+    type: "songinfo",
     cmd: "songinfo",
     param: "track_id",
-    type: "info",
     tags: "aAcCdefgiIjJkKlLmMnopPDUqrROSstTuvwxXyY",
   },
   playlist: {
+    section: "playlisttracks",
+    type: "track",
     cmd: ["playlists", "tracks"],
     param: "playlist_id",
-    type: "track",
-    loop: "playlisttracks_loop",
     tags: "acjt",  // artist, coverid, artwork_track_id, track
   },
 }
@@ -401,9 +446,7 @@ export class BrowserItems extends React.Component {
       exact: true,
     })
     if (itemMatch) {
-      const {type, id} = itemMatch.params
-      const item = {type, [type + "_id"]: id}
-      return actions.mediaLoad(item)
+      return actions.mediaLoad(itemMatch.params)
     }
 
     // path: /:section? + ?q=term
@@ -441,21 +484,19 @@ export class BrowserItems extends React.Component {
     const result = props.result
     const loading = this.isLoading()
     if (!loading && result) {
-      if (result.info) {
+      if (result.songinfo) {
         return <MediaInfo
-          item={result.info}
+          item={result.songinfo}
           playctl={props.playctl}
           imageSize="tiny"
           showMediaInfo={this.showMediaInfo}
         />
       }
-      if (result.count) {
-        return <MediaItems
-          {...props}
-          items={result}
-          showMediaInfo={this.showMediaInfo}
-        />
-      }
+      return <MediaItems
+        {...props}
+        items={result}
+        showMediaInfo={this.showMediaInfo}
+      />
     }
     return <BrowseMenu basePath={props.basePath} loading={loading} />
   }
@@ -463,12 +504,12 @@ export class BrowserItems extends React.Component {
 
 const BrowseMenu = ({ basePath, loading }) => (
   <Menu className="browse-sections" borderless fluid vertical>
-    {_.map(SECTIONS, (section, name) => {
+    {_.map(SECTIONS, (sector, name) => {
       const pathname = basePath + "/" + name
-      const nav = {name: section.title, pathspec: {pathname}}
+      const nav = {name: sector.title, pathspec: {pathname}}
       const loc = {pathname, state: {nav}}
       return <Menu.Item key={name}>
-        <Link to={loc} href={pathname}>{section.title}</Link>
+        <Link to={loc} href={pathname}>{sector.title}</Link>
       </Menu.Item>
     })}
     <Loader active={loading} inline="centered" />
@@ -479,25 +520,16 @@ export class MediaItems extends React.PureComponent {
   constructor(props) {
     super(props)
     const getItems = memoize(results => {
-      const bySection = {}
       if (!results) {
-        return {items: [], bySection}
+        results = []
       }
-      let i = 0
-      let items = []
-      _.each(SECTIONS, section => {
-        const type = section.type
-        if (results[type + "s_count"]) {
-          const sectionItems = results[type + "s_loop"].map(
-            item => ({...item, index: i++, type})
-          )
-          items = items.concat(sectionItems)
-          bySection[type] = sectionItems
-        }
-      })
       // NOTE selection is cleared any time results
       // change; it's updated by onSelectionChanged
-      return {items, bySection, selection: new Set()}
+      return {
+        results,
+        items: _.flatten(results.map(obj => obj.loop)),
+        selection: new Set()
+      }
     })
     this.getItems = () => getItems(this.props.items)
   }
@@ -529,55 +561,46 @@ export class MediaItems extends React.PureComponent {
     this.forceUpdate()
   }
   render() {
-    const {items, bySection, selection} = this.getItems()
-    const showHeaders = _.keys(bySection).length > 1
+    const {results, items, selection} = this.getItems()
     return <Media query="(max-width: 500px)">{ smallScreen =>
       <TouchList
           dataType={MEDIA_ITEMS}
           items={items}
           selection={selection}
           onSelectionChanged={this.onSelectionChanged}>
-        {_.map(SECTIONS, section => {
-          const type = section.type
-          if (bySection.hasOwnProperty(type)) {
-            const sectionItems = bySection[type]
-            return (showHeaders ? [
-              <MediaHeader {...this.props} section={section} key={type} />
-            ] : []).concat(sectionItems.map((item, i) =>
-              <MediaItem
-                smallScreen={smallScreen}
-                showMediaInfo={this.props.showMediaInfo}
-                playItem={this.playItem}
-                playNext={ selection.size <= 1 || !selection.has(item.index) ?
-                  this.props.playctl.playNext : null }
-                addToPlaylist={this.addToPlaylist}
-                playOrEnqueue={this.playOrEnqueue}
-                item={item}
-                key={item.type + "-" + item[item.type + "_id"] + "-" + i} />
-            ))
-          } else if (showHeaders) {
-            return [
-              <MediaHeader {...this.props} section={section} key={type} />
-            ]
-          }
+        {_.map(results, ({sector, loop}) => {
+          return (results.length > 1 ? [
+            <MediaHeader {...this.props} sector={sector} key={sector.type} />
+          ] : []).concat(loop.map((item, i) =>
+            <MediaItem
+              smallScreen={smallScreen}
+              showMediaInfo={this.props.showMediaInfo}
+              playItem={this.playItem}
+              playNext={ selection.size <= 1 || !selection.has(item.index) ?
+                this.props.playctl.playNext : null }
+              addToPlaylist={this.addToPlaylist}
+              playOrEnqueue={this.playOrEnqueue}
+              item={item}
+              key={item.type + "-" + item.id + "-" + i} />
+          ))
         })}
       </TouchList>
     }</Media>
   }
 }
 
-export const MediaHeader = ({section, location, basePath}) => {
+export const MediaHeader = ({sector, location, basePath}) => {
   function getContent() {
     const previous = _.get(location, "state.nav", {})
     if (!previous.term) {
-      return section.title
+      return sector.title
     }
-    const query = {term: previous.term, section: section.name}
+    const query = {term: previous.term, sector: sector.section}
     const pathspec = getSearchPath(query, basePath)
     const path = getPath(pathspec)
-    const nav = {name: section.title, pathspec, previous}
+    const nav = {name: sector.title, pathspec, previous}
     const to = {...pathspec, state: {nav}}
-    return <Link to={to} href={path}>{section.title}</Link>
+    return <Link to={to} href={path}>{sector.title}</Link>
   }
   return (
     <List.Item>
@@ -616,7 +639,7 @@ export class MediaItem extends React.Component {
             onClick={() => props.showMediaInfo(item)}
             smallScreen={smallScreen}
           />
-          <span className={gap}>{item[item.type]}</span>
+          <span className={gap}>{item.title}</span>
           { smallScreen && secondaryInfo ?
             <div className="deemphasize">{secondaryInfo}</div> : null
           }
