@@ -47,7 +47,7 @@ export const reducer = makeReducer({
   gotMedia: (state, action, result, key) => (
     state.resultKey === key ? {...state, isLoading: false, result} : state
   ),
-  clearMedia: (state, action) => defaultState,
+  clearMedia: () => defaultState,
   mediaError: (state, action, err, message) => combine(
     {...state, isLoading: false},
     [effect(operationError, message || "Media error", err)],

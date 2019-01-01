@@ -2,9 +2,18 @@
 
 - upgrade libraries
 
-- fix playlist loads (maximum) first 100 tracks
-- fix delete not deleting all selected items
+must do before release
+- use <Link> in MediaInfo component (easy?)
+- load more results on scroll to bottom of menu
+- fix breadcrumbs do not update properly after BrowserSync reload + click new crumb link
 
+- fix playlist loads (maximum) first 100 tracks
+- fix unnecessary render in menu on gotPlayer
+- fix delete not deleting all selected items
+- fix tests
+
+- add support for browsing file system via songinfo path elements
+- filter "No Album" results by current section criteria
 - scroll currently playing playlist item near top of screen
   - scroll slowly at first 5s to allow manual intervention/override
 - implement pagination
