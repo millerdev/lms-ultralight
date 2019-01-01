@@ -76,7 +76,7 @@ const doMediaSearch = (query) => {
   if (query.section) {
     return doMediaBrowse(query.section, "search:" + query.term)
   }
-  return lms.command("::", "search", 0, 10, "term:" + query.term, "extended:1")
+  return lms.command("::", "search", 0, 5, "term:" + query.term, "extended:1")
     .then(json => actions.doneSearching(adaptSearchResult(json.data.result)))
     .catch(error => actions.mediaError(error))
 }
