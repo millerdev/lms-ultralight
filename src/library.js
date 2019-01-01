@@ -44,10 +44,10 @@ export const reducer = makeReducer({
       [effect(doMediaLoad, item, resultKey)],
     )
   },
-  doneSearching: (state, action, result, key) => (
+  gotMedia: (state, action, result, key) => (
     state.resultKey === key ? {...state, isLoading: false, result} : state
   ),
-  clearResult: (state, action) => defaultState,
+  clearMedia: (state, action) => defaultState,
   mediaError: (state, action, err, message) => combine(
     {...state, isLoading: false},
     [effect(operationError, message || "Media error", err)],
@@ -66,7 +66,7 @@ const doMediaBrowse = (section, search, key=name) => {
   return lms.command("::", sector.cmd, 0, 100, ...params)
     .then(json => {
       const result = json.data.result
-      return actions.doneSearching(adaptMediaItems(result, sector), key)
+      return actions.gotMedia(adaptMediaItems(result, sector), key)
     })
     .catch(error => actions.mediaError(error))
 }
@@ -81,7 +81,7 @@ const doMediaSearch = (query, key) => {
     return doMediaBrowse(query.section, "search:" + query.term)
   }
   return lms.command("::", "search", 0, 5, "term:" + query.term, "extended:1")
-    .then(({data}) => actions.doneSearching(adaptSearchResult(data.result), key))
+    .then(({data}) => actions.gotMedia(adaptSearchResult(data.result), key))
     .catch(error => actions.mediaError(error))
 }
 
@@ -130,9 +130,9 @@ const doMediaLoad = (item, key) => {
         const songinfo = _.assign({}, ...result.songinfo_loop)
         songinfo.content_type = songinfo.type
         songinfo.type = "track"
-        return actions.doneSearching({songinfo}, key)
+        return actions.gotMedia({songinfo}, key)
       }
-      return actions.doneSearching(adaptMediaItems(result, sector), key)
+      return actions.gotMedia(adaptMediaItems(result, sector), key)
     })
     .catch(error => actions.mediaError(error))
 }
@@ -492,7 +492,7 @@ export class BrowserItems extends React.Component {
       return actions.mediaBrowse(sectionMatch.params.section)
     }
 
-    return actions.clearResult()
+    return actions.clearMedia()
   }
   showMediaInfo = item => this.props.showMediaInfo(item, this.state.nav)
   render() {
