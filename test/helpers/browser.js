@@ -1,6 +1,4 @@
-require('babel-register')({
-  plugins: ['babel-plugin-rewire'],
-})
+require("@babel/core").transform("code", { plugins: ["rewire"] })
 
 process.env.NODE_ENV = 'test'
 

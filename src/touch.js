@@ -97,7 +97,7 @@ export class TouchList extends React.Component {
   }
   getAllowedDropType(possibleTypes) {
     const dropTypes = _.zipObject(this.props.dropTypes)
-    return _.find(possibleTypes, value => dropTypes.hasOwnProperty(value))
+    return _.find(possibleTypes, value => _.has(dropTypes, value))
   }
   onTap(index, event) {
     if (this.props.onTap) {
@@ -249,7 +249,7 @@ export class TouchListItem extends React.Component {
   }
   render() {
     const props = this.props
-    if (!props.hasOwnProperty("index")) {
+    if (!_.has(props, "index")) {
       throw new Error("`TouchList.Item` `props.index` is required")
     }
     const passProps = excludeKeys(props, TOUCHLISTITEM_PROPS, "TouchList.Item")
@@ -258,7 +258,7 @@ export class TouchListItem extends React.Component {
     const selected = this.context.TouchList_isSelected(index)
     // this seems hacky, but can't think of any other way get touch events
     slide.addItem(index, this)
-    if (!props.hasOwnProperty("onContextMenu")) {
+    if (!_.has(props, "onContextMenu")) {
       passProps.onContextMenu = event => event.preventDefault()
     }
     return <List.Item
@@ -443,11 +443,11 @@ function makeSlider(touchlist) {
     if (isTouchDrag) {
       const index = pos.index
       event.preventDefault()
-      if (index !== latestIndex && items.hasOwnProperty(latestIndex)) {
+      if (index !== latestIndex && _.has(items, latestIndex)) {
         items[latestIndex].clearDropIndicator()
       }
       latestIndex = index
-      if (index !== null && items.hasOwnProperty(index)) {
+      if (index !== null && _.has(items, index)) {
         items[index].onDragOver(event, index)
       }
     }
@@ -481,7 +481,7 @@ function makeSlider(touchlist) {
     delete event.target.dataset.touchlistId
     delete event.target.dataset.touchlistDragType
     delete event.target.dataset.touchlistDragData
-    if (items.hasOwnProperty(latestIndex) ) {
+    if (_.has(items, latestIndex)) {
       items[latestIndex].clearDropIndicator()
       latestIndex = null
     }

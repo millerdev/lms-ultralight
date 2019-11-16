@@ -125,7 +125,7 @@ export function playlistControl(playerid, cmd, item, dispatch) {
 
 export function getControlParam(item) {
   const key = item.type + "_id"
-  return PLAYLISTCONTROL_TAGS.hasOwnProperty(key) && item.id !== undefined ?
+  return _.has(PLAYLISTCONTROL_TAGS, key) && item.id !== undefined ?
     PLAYLISTCONTROL_TAGS[key] + ":" + item.id :
     null
 }

@@ -89,7 +89,7 @@ export class MainMenu extends React.Component {
   }
   onKeyDown(event) {
     if (
-      this.keydownHandlers.hasOwnProperty(event.keyCode) &&
+      _.has(this.keydownHandlers, event.keyCode) &&
       event.target.tagName.toLowerCase() !== "input"  // global events only
     ) {
       this.keydownHandlers[event.keyCode]()

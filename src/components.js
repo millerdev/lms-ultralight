@@ -36,7 +36,7 @@ export const MediaInfo = (props, context) => {
               className="tr-corner"
               floated="right" /> }
           <Item.Header>{item.title}</Item.Header>
-          {_.map(["artist", "album"], key => item.hasOwnProperty(key) ?
+          {_.map(["artist", "album"], key => _.has(item, key) ?
             <Item.Description key={key}>
               {drillable(item, key, showMediaInfo)}
             </Item.Description> : ""
@@ -74,7 +74,7 @@ export function drillable(item, key, showMediaInfo) {
       }
     }
     if (id) {
-      key = DRILL_KEYS.hasOwnProperty(key) ? DRILL_KEYS[key] : key
+      key = _.has(DRILL_KEYS, key) ? DRILL_KEYS[key] : key
       item = {type: key, id, [key]: text, title: text}
       return <a onClick={() => showMediaInfo(item)}>{text}</a>
     }
@@ -101,7 +101,7 @@ function urlToPath(url, item) {
   if (url.indexOf("%") > -1) {
     url = decodeURI(url)
   }
-  if (item.hasOwnProperty("id")) {
+  if (_.has(item, "id")) {
     const filename = url.slice(url.lastIndexOf("/") + 1)
     const href = "/music/" + item.id + "/download/" + encodeURI(filename)
     url = <a href={href}>{url}</a>
@@ -163,7 +163,7 @@ _.each(MEDIA_INFO, item => {
     item.transform = value => value
   }
   if (!item.display) {
-    item.display = (value, item, key) => item.hasOwnProperty(key)
+    item.display = (value, item, key) => _.has(item, key)
   }
 })
 

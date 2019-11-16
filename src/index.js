@@ -1,5 +1,4 @@
 'use strict'
-/* global LMS_URL */
 // This file does not get hot reloaded
 // its better to put global resources in app.js
 
@@ -8,8 +7,8 @@ import { render } from 'react-dom'
 import App from './app'
 
 if (process.env.NODE_ENV === "development") {
-  window.console.log('LMS_URL:', LMS_URL)
-  require('axios').defaults.baseURL = LMS_URL
+  window.console.log('LMS_URL:', process.env.LMS_URL)
+  require('axios').defaults.baseURL = process.env.LMS_URL
 } else {
   require('axios').defaults.baseURL = ""
 }

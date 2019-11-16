@@ -2,35 +2,24 @@
 
 const path = require('path');
 const webpack = require('webpack');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HTMLWebpackPlugin = require('html-webpack-plugin');
-const autoprefixer = require('autoprefixer');
 
 const DEVELOPMENT = 'development';
 const PRODUCTION = 'production';
 
 const DEBUG = process.env.NODE_ENV !== PRODUCTION;
-const ENV = DEBUG ? DEVELOPMENT : PRODUCTION;
+const ENV = process.env.NODE_ENV;
 
 // change 'eval' to 'source-map' for nicer debugging (and slower rebuilds)
 const devtool = DEBUG ? 'eval' : 'cheap-module-source-map'
 
 
-/*############## GLOBALS ##############*/
-
-const GLOBALS = {
-  'process.env.NODE_ENV': JSON.stringify(ENV),
-  __DEV__: DEBUG,
-  // in bash: export LMS_URL=http://lms_host_ip:9000
-  LMS_URL: JSON.stringify(process.env.LMS_URL || ""),
-};
-
-
 /*############## PLUGINS ##############*/
 
 let plugins = [
-  new webpack.DefinePlugin(GLOBALS),
+  new webpack.EnvironmentPlugin(["LMS_URL"]), // bash: export LMS_URL=http://lms_host_ip:9000
   new CopyWebpackPlugin([{from: "src/static"}]),
   // this plugin injects your resources to the index file
   new HTMLWebpackPlugin({
@@ -39,45 +28,16 @@ let plugins = [
     template: 'src/static/index.html',
     inject: 'body'
   }),
+  new MiniCssExtractPlugin(),
   new webpack.LoaderOptionsPlugin({
     options: {
       eslint: { failOnWarning: !DEBUG },
-      postcss: [ autoprefixer({ browsers: ['last 2 versions'] }) ],
     },
   }),
-  new webpack.optimize.CommonsChunkPlugin({
-    name: 'vendor',
-    filename: 'vendor.[hash].js',
-    minChunks: module =>
-      module.context && module.context.indexOf('node_modules') >= 0,
-  }),
-  new webpack.optimize.ModuleConcatenationPlugin(),
 ];
 
 if (!DEBUG) {
   plugins = plugins.concat([
-    new ExtractTextPlugin({
-      filename: 'css/[name]-[contenthash].css',
-      allChunks: true,
-    }),
-    new webpack.optimize.UglifyJsPlugin({
-      sourceMap: devtool.indexOf("source-map") > -1,
-      compress: {
-        warnings: false,
-        screw_ie8: true,
-        conditionals: true,
-        unused: true,
-        comparisons: true,
-        sequences: true,
-        dead_code: true,
-        evaluate: true,
-        if_return: true,
-        join_vars: true
-      },
-      output: {
-        comments: false
-      },
-    }),
     new webpack.HashedModuleIdsPlugin(),
     new webpack.optimize.AggressiveMergingPlugin(),
     new webpack.optimize.MinChunkSizePlugin({minChunkSize: 5000}),
@@ -90,7 +50,7 @@ if (!DEBUG) {
 const stylusConfig = ["css-loader", "stylus-loader"];
 const stylusLoader = DEBUG ?
   ["style-loader"].concat(stylusConfig) :
-  ExtractTextPlugin.extract({fallback: "style-loader", use: stylusConfig})
+  MiniCssExtractPlugin.extract({fallback: "style-loader", use: stylusConfig})
 
 const rules = [
   {
@@ -118,24 +78,11 @@ const rules = [
       {
         loader: "babel-loader",
         options: {  // Babel config (.babelrc)
-          presets: [
-            [
-              "env", {
-                "targets": {
-                  "browsers": [
-                    "last 2 versions",
-                    "ios >= 6",
-                    "not ie < 11",
-                  ]
-                }
-              }
-            ],
-            "react"
-          ],
+          presets: ["@babel/preset-env", "@babel/preset-react"],
           plugins: [
-            "transform-class-properties",
-            "transform-object-rest-spread",
-            "transform-runtime",
+            "@babel/plugin-proposal-class-properties",
+            "@babel/plugin-proposal-object-rest-spread",
+            "@babel/plugin-transform-runtime",
           ],
         }
       },
@@ -226,11 +173,15 @@ const rules = [
 /*############## OPTIONS ##############*/
 
 module.exports = {
+  mode: process.env.NODE_ENV,
   devtool: devtool,
   entry: {
     app: './src/index.js'
   },
   target: 'web',
+  optimization: {
+    runtimeChunk: {name: "manifest"},
+  },
   output: {
     path: __dirname + '/dist',
     filename: !DEBUG ? 'js/[name]-[hash].js' : 'js/[name].js',

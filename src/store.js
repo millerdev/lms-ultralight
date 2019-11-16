@@ -20,7 +20,7 @@ export function makeActor(name) {
   if (allActions === null) {
     throw new Error("cannot create action '" + name + "' after makeStore")
   }
-  if (allActions.hasOwnProperty(name)) {
+  if (_.has(allActions, name)) {
     throw new Error("cannot create duplicate action: " + name)
   }
   const actor = (...args) => ({
@@ -35,8 +35,8 @@ export function makeActor(name) {
 
 export default function makeReducer(actionsToReducers, defaultState) {
   function reducer(state=defaultState, action) {
-    if (reducers.hasOwnProperty(action.type)) {
-      const args = action.hasOwnProperty("args") ? action.args : []
+    if (_.has(reducers, action.type)) {
+      const args = _.has(action, "args") ? action.args : []
       return reducers[action.type](state, action, ...args)
     }
     return state
@@ -47,7 +47,7 @@ export default function makeReducer(actionsToReducers, defaultState) {
   _.each(actionsToReducers, (reduce, action) => {
     if (action.startsWith("ref:")) {
       const key = action.slice(4)
-      if (!allActions.hasOwnProperty(key)) {
+      if (!_.has(allActions, key)) {
         throw new Error("unknown action: " + action.key)
       }
       action = allActions[key]
@@ -55,7 +55,7 @@ export default function makeReducer(actionsToReducers, defaultState) {
       action = makeActor(action)
     }
     actions[action.key] = action
-    if (reducers.hasOwnProperty(action.key)) {
+    if (_.has(reducers, action.key)) {
       throw new Error("duplicate reducer action: " + action.key)
     }
     reducers[action.key] = reduce

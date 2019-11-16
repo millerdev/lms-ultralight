@@ -1,16 +1,26 @@
 # TODO
 
 - upgrade libraries
+  - npm install
+    query-string@6.9.0
+    react-redux@7.1.3
+    react-router-dom@5.1.2
+    redux@4.0.4
+    semantic-ui-react@0.88.1
+    react-resize-aware@3.0.0-beta.7 ??
 
 must do before release
 - use <Link> in MediaInfo component (easy?)
 - load more results on scroll to bottom of menu
 - fix breadcrumbs do not update properly after BrowserSync reload + click new crumb link
 
+- fix tests
+- delect after enqueue from menu
+- constraint results when drilling into "No Album" and other similar
+  example: http://localhost:3000/menu/contributor/286
 - fix playlist loads (maximum) first 100 tracks
 - fix unnecessary render in menu on gotPlayer
 - fix delete not deleting all selected items
-- fix tests
 
 - add support for browsing file system via songinfo path elements
 - filter "No Album" results by current section criteria

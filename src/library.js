@@ -57,7 +57,7 @@ export const reducer = makeReducer({
 const doMediaBrowse = (section, search, key=name) => {
   const sector = SECTIONS[section]
   const params = ["tags", "sort"]
-    .filter(name => sector.hasOwnProperty(name))
+    .filter(name => _.has(sector, name))
     .map(name => name + ":" + sector[name])
   if (search) {
     params.push(search)
@@ -118,7 +118,7 @@ const doMediaLoad = (item, key) => {
   }
   const params = [sector.param + ":" + item.id].concat(
     ["tags", "sort"]
-    .filter(name => sector.hasOwnProperty(name))
+    .filter(name => _.has(sector, name))
     .map(name => name + ":" + sector[name])
   )
   const cmd = _.isArray(sector.cmd) ? sector.cmd : [sector.cmd]
@@ -640,7 +640,7 @@ export class MediaItem extends React.Component {
     const smallScreen = props.smallScreen
     const gap = smallScreen ? null : "gap-left"
     let secondaryInfo = ""
-    if (smallScreen && SECONDARY_INFO.hasOwnProperty(item.type)) {
+    if (smallScreen && _.has(SECONDARY_INFO, item.type)) {
       secondaryInfo = SECONDARY_INFO[item.type](item)
     }
     return <TouchList.Item
