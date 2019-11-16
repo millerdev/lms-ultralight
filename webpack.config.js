@@ -13,7 +13,7 @@ const DEBUG = process.env.NODE_ENV !== PRODUCTION;
 const ENV = process.env.NODE_ENV;
 
 // change 'eval' to 'source-map' for nicer debugging (and slower rebuilds)
-const devtool = DEBUG ? 'eval' : 'cheap-module-source-map'
+const devtool = DEBUG ? 'source-map' : 'cheap-module-source-map'
 
 
 /*############## PLUGINS ##############*/
@@ -76,15 +76,7 @@ const rules = [
     test: /\.js$/,
     use: [
       {
-        loader: "babel-loader",
-        options: {  // Babel config (.babelrc)
-          presets: ["@babel/preset-env", "@babel/preset-react"],
-          plugins: [
-            "@babel/plugin-proposal-class-properties",
-            "@babel/plugin-proposal-object-rest-spread",
-            "@babel/plugin-transform-runtime",
-          ],
-        }
+        loader: "babel-loader",  // see .babelrc for options
       },
       "eslint-loader",
     ],

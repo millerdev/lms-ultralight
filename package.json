@@ -36,6 +36,7 @@
     "@babel/plugin-transform-runtime": "^7.6.2",
     "@babel/preset-env": "^7.7.1",
     "@babel/preset-react": "^7.7.0",
+    "@babel/register": "^7.7.0",
     "ajv": "^6.10.2",
     "autoprefixer": "^9.7.1",
     "axios-mock-adapter": "^1.17.0",
@@ -79,7 +80,7 @@
     "start": "npm run build && http-server dist",
     "build": "node tools/rm dist && NODE_ENV=production webpack --bail --progress",
     "dev": "node tools/srcServer.js",
-    "test": "mocha -w test/helpers/main.js test/*.test.js --require test/helpers/css-null-compilers",
+    "test": "mocha -w --require test/helpers/css-null-compilers test/helpers/main.js test/*.test.js",
     "package": "node tools/pkg",
     "profile": "NODE_ENV=production webpack --profile --json > stats.json"
   }

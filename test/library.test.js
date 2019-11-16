@@ -14,7 +14,7 @@ describe('library', function () {
       />)
       dispatch.check(action => {
         assert.deepEqual(action.type, "mediaSearch")
-        assert.deepEqual(action.payload, "something")
+        assert.deepEqual(action.payload, {term: "something"})
       })
     })
   })
