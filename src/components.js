@@ -8,7 +8,7 @@ import * as lms from './lmsclient'
 import { formatTime, timer } from './util'
 
 export const MediaInfo = (props, context) => {
-  const showMediaInfo = props.showMediaInfo || context.showMediaInfo
+  const mediaInfo = props.mediaInfo || context.mediaInfo
   const item = props.item
   return (
     <Item.Group className="media-info">
@@ -38,7 +38,7 @@ export const MediaInfo = (props, context) => {
           <Item.Header>{item.title}</Item.Header>
           {_.map(["artist", "album"], key => _.has(item, key) ?
             <Item.Description key={key}>
-              {drillable(item, key, showMediaInfo)}
+              {drillable(item, key, mediaInfo)}
             </Item.Description> : ""
           )}
         </Item.Content>
@@ -49,7 +49,7 @@ export const MediaInfo = (props, context) => {
           {_.map(MEDIA_INFO, info =>
             !info.display(item[info.key], item, info.key) ? null :
               <Item.Description key={info.key}>
-                {info.name}: {info.transform(item[info.key], item, info, showMediaInfo)}
+                {info.name}: {info.transform(item[info.key], item, info, mediaInfo)}
               </Item.Description>
           )}
         </Item.Content>
@@ -59,13 +59,13 @@ export const MediaInfo = (props, context) => {
 }
 
 MediaInfo.contextTypes = {
-  showMediaInfo: PropTypes.func,
+  mediaInfo: PropTypes.func,
 }
 
 
-export function drillable(item, key, showMediaInfo) {
+export function drillable(item, key, mediaInfo) {
   const text = item[key]
-  if (showMediaInfo) {
+  if (mediaInfo) {
     let id = item[key + "_id"]
     if (id === undefined) {
       id = item[key + "_ids"]
@@ -76,7 +76,7 @@ export function drillable(item, key, showMediaInfo) {
     if (id) {
       key = _.has(DRILL_KEYS, key) ? DRILL_KEYS[key] : key
       item = {type: key, id, [key]: text, title: text}
-      return showMediaInfo(item).link()
+      return mediaInfo(item).link()
     }
   }
   return text
@@ -90,8 +90,8 @@ const DRILL_KEYS = {
   conductor: "contributor",
 }
 
-function drillTransform(value, item, info, showMediaInfo) {
-  return drillable(item, info.key, showMediaInfo)
+function drillTransform(value, item, info, mediaInfo) {
+  return drillable(item, info.key, mediaInfo)
 }
 
 function urlToPath(url, item) {

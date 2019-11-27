@@ -22,22 +22,22 @@ const NWayButton = props => {
       >{props.markup[props.value]}</Button>
 }
 
-const CurrentTrackInfo = (props, {showMediaInfo}) => (
+const CurrentTrackInfo = (props, {mediaInfo}) => (
   <Item.Group>
     <Item>
       <Item.Image size="tiny" src={lms.getImageUrl(props.tags, props.playerid)} />
       <Item.Content>
         {props.children}
         <Item.Header>{props.tags.title}</Item.Header>
-        <Item.Meta>{drillable(props.tags, "artist", showMediaInfo)}</Item.Meta>
-        <Item.Meta>{drillable(props.tags, "album", showMediaInfo)}</Item.Meta>
+        <Item.Meta>{drillable(props.tags, "artist", mediaInfo)}</Item.Meta>
+        <Item.Meta>{drillable(props.tags, "album", mediaInfo)}</Item.Meta>
       </Item.Content>
     </Item>
   </Item.Group>
 )
 
 CurrentTrackInfo.contextTypes = {
-  showMediaInfo: PropTypes.func,
+  mediaInfo: PropTypes.func,
 }
 
 export class SeekBar extends React.Component {

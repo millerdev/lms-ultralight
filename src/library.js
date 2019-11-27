@@ -101,7 +101,7 @@ const doMediaSearch = (query, key) => {
  * - show: load the media item immediately and update history. Suitable
  *    to be used as an onClick handler.
  */
-export const showMediaInfo = (item, history, basePath, previous) => {
+export const mediaInfo = (item, history, basePath, previous) => {
   const pathname = basePath + "/" + item.type + "/" + (item.id || "")
   const nav = {
     name: item.title || "Media",
@@ -415,7 +415,7 @@ export class BrowserHistory extends React.PureComponent {
   }
 }
 
-const IGNORE_DIFF = {playctl: true, match: true, showMediaInfo: true}
+const IGNORE_DIFF = {playctl: true, match: true, mediaInfo: true}
 
 export class BrowserItems extends React.Component {
   constructor(props) {
@@ -503,7 +503,7 @@ export class BrowserItems extends React.Component {
 
     return actions.clearMedia()
   }
-  showMediaInfo = item => this.props.showMediaInfo(item, this.state.nav)
+  mediaInfo = item => this.props.mediaInfo(item, this.state.nav)
   render() {
     const props = this.props
     const result = props.result
@@ -514,13 +514,13 @@ export class BrowserItems extends React.Component {
           item={result.songinfo}
           playctl={props.playctl}
           imageSize="tiny"
-          showMediaInfo={this.showMediaInfo}
+          mediaInfo={this.mediaInfo}
         />
       }
       return <MediaItems
         {...props}
         items={result}
-        showMediaInfo={this.showMediaInfo}
+        mediaInfo={this.mediaInfo}
       />
     }
     return <BrowseMenu basePath={props.basePath} loading={loading} />
@@ -612,7 +612,7 @@ export class MediaItems extends React.PureComponent {
           ] : []).concat(loop.map((item, i) =>
             <MediaItem
               smallScreen={smallScreen}
-              showMediaInfo={this.props.showMediaInfo}
+              mediaInfo={this.props.mediaInfo}
               playItem={this.playItem}
               playNext={this.getPlayNextFunc(selection, item)}
               addToPlaylist={this.addToPlaylist}
@@ -673,7 +673,7 @@ export class MediaItem extends React.Component {
           <TrackInfoIcon
             {...props}
             icon={item.type === "track" ? null : "plus square outline"}
-            onClick={props.showMediaInfo(item).show}
+            onClick={props.mediaInfo(item).show}
             smallScreen={smallScreen}
           />
           <span className={gap}>{item.title}</span>
