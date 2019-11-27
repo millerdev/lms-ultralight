@@ -1,5 +1,8 @@
 # Ultralight change log
 
+## 2019-11-27 - v0.4.4 (unreleased)
+- Deselect items in browser on play/play next/add to playlist.
+
 ## 2018-09-08 - v0.4.0
 
 - Show full player content when menu is open on wide screens.

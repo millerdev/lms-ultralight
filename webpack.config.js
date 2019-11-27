@@ -10,7 +10,7 @@ const DEVELOPMENT = 'development';
 const PRODUCTION = 'production';
 
 const DEBUG = process.env.NODE_ENV !== PRODUCTION;
-const ENV = process.env.NODE_ENV;
+const BASE_PATH = DEBUG ? '/' : '/ultralight/'
 
 // change 'eval' to 'source-map' for nicer debugging (and slower rebuilds)
 const devtool = DEBUG ? 'source-map' : 'cheap-module-source-map'
@@ -26,7 +26,8 @@ let plugins = [
     filename: 'index.html',
     showErrors: !DEBUG,
     template: 'src/static/index.html',
-    inject: 'body'
+    inject: 'body',
+    basePath: BASE_PATH,
   }),
   new MiniCssExtractPlugin(),
   new webpack.LoaderOptionsPlugin({
@@ -47,11 +48,6 @@ if (!DEBUG) {
 
 /*############## LOADERS ##############*/
 
-const stylusConfig = ["css-loader", "stylus-loader"];
-const stylusLoader = DEBUG ?
-  ["style-loader"].concat(stylusConfig) :
-  MiniCssExtractPlugin.extract({fallback: "style-loader", use: stylusConfig})
-
 const rules = [
   {
     test: /\.css$/,
@@ -62,7 +58,11 @@ const rules = [
   },
   {
     test: /\.styl$/,
-    use: stylusLoader,
+    use: [
+      "style-loader",
+      "css-loader",
+      "stylus-loader",
+    ],
   },
   {
     test: /\.font\.js$/,
@@ -178,7 +178,7 @@ module.exports = {
     path: __dirname + '/dist',
     filename: !DEBUG ? 'js/[name]-[hash].js' : 'js/[name].js',
     chunkFilename: "js/[name]-[chunkhash].js",
-    publicPath: !DEBUG ? '/ultralight/' : '/',
+    publicPath: BASE_PATH,
   },
   plugins: plugins,
   module: {rules: rules},
