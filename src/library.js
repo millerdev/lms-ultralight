@@ -540,7 +540,7 @@ export class MediaItems extends React.PureComponent {
         results = []
       }
       // NOTE selection is cleared any time results
-      // change; it's updated by onSelectionChanged
+      // change; it's updated by onSelectionChanged and deselect
       return {
         results,
         items: _.flatten(results.map(obj => obj.loop)),
@@ -556,22 +556,35 @@ export class MediaItems extends React.PureComponent {
     }
     return [item]
   }
+  deselect = (items) => {
+    const indexes = new Set(items.map(item => item.index))
+    this.getItems().selection = new Set(
+      [...this.getItems().selection].filter(index => !indexes.has(index))
+    )
+    this.forceUpdate()
+  }
   playItem = (item) => {
-    this.props.playctl.playItems(this.getSelected(item))
+    this.props.playctl.playItems(this.getSelected(item)).then(this.deselect)
+  }
+  playNext = (item) => {
+    this.props.playctl.playNext(item).then(this.deselect)
   }
   addToPlaylist = (item) => {
-    this.props.playctl.addToPlaylist(this.getSelected(item))
+    this.props.playctl.addToPlaylist(this.getSelected(item)).then(this.deselect)
   }
   playOrEnqueue = (item) => {
     const props = this.props
     if (!props.numTracks) {
       this.playItem(item)
     } else if (!props.isPlaying) {
-      this.props.playctl.playNext(item)
+      this.playNext(item)
     } else {
       this.addToPlaylist(item)
     }
   }
+  getPlayNextFunc = (selection, item) => (
+    selection.size <= 1 || !selection.has(item.index) ? this.playNext : null
+  )
   onSelectionChanged = (selection) => {
     this.getItems().selection = selection
     this.forceUpdate()
@@ -592,8 +605,7 @@ export class MediaItems extends React.PureComponent {
               smallScreen={smallScreen}
               showMediaInfo={this.props.showMediaInfo}
               playItem={this.playItem}
-              playNext={ selection.size <= 1 || !selection.has(item.index) ?
-                this.props.playctl.playNext : null }
+              playNext={this.getPlayNextFunc(selection, item)}
               addToPlaylist={this.addToPlaylist}
               playOrEnqueue={this.playOrEnqueue}
               item={item}

@@ -14,7 +14,6 @@ must do before release
 - load more results on scroll to bottom of menu
 - fix breadcrumbs do not update properly after BrowserSync reload + click new crumb link
 
-- deselect after enqueue from menu
 - constraint results when drilling into "No Album" and other similar
   example: http://localhost:3000/menu/contributor/286
 - fix playlist loads (maximum) first 100 tracks

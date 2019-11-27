@@ -1,5 +1,3 @@
-import _ from 'lodash'
-
 import * as lms from './lmsclient'
 import * as player from './player'
 import { operationError } from './util'
@@ -39,30 +37,38 @@ export const playerControl = (playerid, dispatch, state) => {
   }
 
   self.playItems = items => {
-    const promise = lms.playlistControl(playerid, "load", items[0], dispatch)
+    const played = []
+    let promise = lms.playlistControl(playerid, "load", items[0], dispatch)
+      .then(success => success && played.push(items[0]))
     if (items.length > 1) {
-      self.addToPlaylist(items.slice(1), promise)
+      promise = self.addToPlaylist(items.slice(1), promise)
+        .then(added => played.push(...added))
     }
+    return promise.then(() => played)
   }
 
   self.playNext = item => {
-    lms.playlistControl(playerid, "insert", item, dispatch)
+    return lms.playlistControl(playerid, "insert", item, dispatch)
       .then(success => {
         if (success && !state.player.isPlaying) {
-          lms.command(playerid, "playlist", "index", "+1")
+          return lms.command(playerid, "playlist", "index", "+1")
             .then(() => loadPlayer(playerid))
             .catch(err => operationError("Play next error", err))
             .then(dispatch)
+            .then(() => success)
         }
+        return success
       })
+      .then(success => success ? [item] : [])
   }
 
   self.addToPlaylist = (items, promise=resolved(true)) => {
-    _.each(items, item => {
-      promise = promise.then(success =>
-        success && lms.playlistControl(playerid, "add", item, dispatch)
-      )
+    const added = []
+    const addItem = (promise, item) => promise.then(() => {
+      return lms.playlistControl(playerid, "add", item, dispatch)
+        .then(success => success && added.push(item))
     })
+    return items.reduce(addItem, promise).then(() => added)
   }
 
   self.playOrEnqueue = item => {

@@ -22,7 +22,7 @@ export function promiseChecker() {
   const makeHandler = type => ((...args) => {
     const callback = args[0]
     assert.isAtMost(args.length, 1, "wrong number of arguments: " + args)
-    if (isSetup) {
+    if (isSettingUp) {
       assert.isFunction(callback, "check callback not provided")
       checks.push({type, callback})
     } else if (checkCount < checks.length) {
@@ -41,27 +41,33 @@ export function promiseChecker() {
     then: makeHandler("then"),
     catch: makeHandler("catch"),
     done: () => {
-      isSetup = false
+      isSettingUp = false
       return promise
     },
     check: () => {
-      assert(!isSetup, "setup phase not done()")
+      assert(!isSettingUp, "setup phase not done()")
       assert.equal(checkCount, checks.length,
         "wrong check count: " + checkCount + " != " + checks.length)
     },
   }
   const checks = []
-  let isSetup = true
+  let isSettingUp = true
   let checkCount = 0
   return promise
 }
 
 export function rewire(__RewireAPI__, sets, callback) {
   const resets = _.map(sets, (value, key) => __RewireAPI__.__set__(key, value))
+  let result = null
   try {
-    callback()
+    result = callback()
+    if (result && result.finally) {
+      return result.finally(() => resets.forEach(reset => reset()))
+    }
   } finally {
-    _.each(resets, reset => reset())
+    if (!(result && result.finally)) {
+      resets.forEach(reset => reset())
+    }
   }
 }
 
