@@ -10,7 +10,6 @@
     react-resize-aware@3.0.0-beta.7 ??
 
 must do before release
-- use <Link> in MediaInfo component (easy?)
 - load more results on scroll to bottom of menu
 - fix breadcrumbs do not update properly after BrowserSync reload + click new crumb link
 

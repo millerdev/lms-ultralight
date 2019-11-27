@@ -86,7 +86,7 @@ const doMediaSearch = (query, key) => {
 }
 
 /**
- * Push path for media item
+ * Create media link object
  *
  * `nav` object specification
  * - name: human-readable name (required)
@@ -95,15 +95,24 @@ const doMediaSearch = (query, key) => {
  * - previous: previous nav object (optional)
  *
  * Other nav-specific keys may be present.
+ *
+ * Returns an object with two function properties
+ * - link: create a <Link> element.
+ * - show: load the media item immediately and update history. Suitable
+ *    to be used as an onClick handler.
  */
 export const showMediaInfo = (item, history, basePath, previous) => {
-  const path = basePath + "/" + item.type + "/" + (item.id || "")
+  const pathname = basePath + "/" + item.type + "/" + (item.id || "")
   const nav = {
     name: item.title || "Media",
-    pathspec: {pathname: path},
+    pathspec: {pathname},
     previous,
   }
-  history.push(path, {nav})
+  const to = {pathname, state: {nav}}
+  return {
+    link: () => <Link to={to}>{nav.name}</Link>,
+    show: () => history.push(pathname, {nav}),
+  }
 }
 
 /**
@@ -664,7 +673,7 @@ export class MediaItem extends React.Component {
           <TrackInfoIcon
             {...props}
             icon={item.type === "track" ? null : "plus square outline"}
-            onClick={() => props.showMediaInfo(item)}
+            onClick={props.showMediaInfo(item).show}
             smallScreen={smallScreen}
           />
           <span className={gap}>{item.title}</span>

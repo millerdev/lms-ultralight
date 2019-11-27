@@ -76,7 +76,7 @@ export function drillable(item, key, showMediaInfo) {
     if (id) {
       key = _.has(DRILL_KEYS, key) ? DRILL_KEYS[key] : key
       item = {type: key, id, [key]: text, title: text}
-      return <a onClick={() => showMediaInfo(item)}>{text}</a>
+      return showMediaInfo(item).link()
     }
   }
   return text
