@@ -40,6 +40,7 @@ export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ..
                 as="div"
                 animation="push"
                 width="wide"
+                onVisible={props.menuDidShow.fire}
                 visible={!!menuOpen}>
               <MenuItems {...props} />
             </Sidebar>

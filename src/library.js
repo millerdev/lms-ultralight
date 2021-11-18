@@ -310,6 +310,7 @@ export const MediaBrowser = props => {
           basePath={props.basePath}
           dispatch={props.dispatch}
           isLoading={props.isLoading}
+          menuDidShow={props.menuDidShow}
         />
         <BrowserHistory
           state={route.location.state}
@@ -326,6 +327,7 @@ export class SearchInput extends React.Component {
     super(props)
     this.timer = timer()
     this.input = React.createRef()
+    props.menuDidShow.subscribe(() => this.focusInput())
   }
   componentWillUnmount() {
     this.timer.clear()

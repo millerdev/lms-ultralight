@@ -59,6 +59,7 @@ export class MainMenu extends React.Component {
     const mini = JSON.parse(localStorage.getItem("menu.miniPlayer"))
     this.state = {miniPlayer: mini === undefined ? true : mini}
     this.keydownHandlers = {}
+    this.didShow = createEventForwarder()
   }
   componentDidMount() {
     document.addEventListener("keydown", event => this.onKeyDown(event))
@@ -133,6 +134,7 @@ export class MainMenu extends React.Component {
         mediaInfo={this.mediaInfo}
         miniPlayer={this.state.miniPlayer}
         toggleMiniPlayer={this.toggleMiniPlayer}
+        menuDidShow={this.didShow}
       >
         <DocumentTitle title={title}>
           {children}
@@ -145,4 +147,13 @@ export class MainMenu extends React.Component {
 MainMenu.childContextTypes = {
   addKeydownHandler: PropTypes.func.isRequired,
   mediaInfo: PropTypes.func.isRequired,
+}
+
+
+function createEventForwarder() {
+  const callbacks = []
+  return {
+    subscribe: (callback => callbacks.push(callback)),
+    fire: (event => callbacks.forEach(cb => cb(event))),
+  }
 }

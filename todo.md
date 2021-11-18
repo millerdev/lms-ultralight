@@ -1,10 +1,9 @@
 # TODO
 
 - upgrade libraries to latest versions
-- fix search input not focused on click menu button
 - fix media query override in semantic.min.css
   see commit 684a6cf960cdf5db2d2922aa66f9ffd2a917aab9
-  reverted to standard semantic.min.css in ...
+  reverted to standard semantic.min.css in 2eb603d8cd3194769c5d6afbc047896dedd2085f
 - fix playlist only loads first 100 tracks
   - load more results on scroll to bottom of menu
 - filter "No Album" results by current section criteria
@@ -15,6 +14,9 @@
   - results should only contain "Moody Blues" tracks
 - browse music folder
   - clickable path elements in song info
+- fix icons
+  - menu drill in (+ is the wrong icon)
+  - playlist play/info (icons are too big)
 
 - upgrade libraries
   - npm install
