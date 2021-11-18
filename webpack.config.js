@@ -1,15 +1,15 @@
-'use strict';
+'use strict'
 
-const path = require('path');
-const webpack = require('webpack');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
-const HTMLWebpackPlugin = require('html-webpack-plugin');
+const path = require('path')
+const webpack = require('webpack')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
+const HTMLWebpackPlugin = require('html-webpack-plugin')
 
-const DEVELOPMENT = 'development';
-const PRODUCTION = 'production';
+const DEVELOPMENT = 'development'
+const PRODUCTION = 'production'
 
-const DEBUG = process.env.NODE_ENV !== PRODUCTION;
+const DEBUG = process.env.NODE_ENV !== PRODUCTION
 const BASE_PATH = DEBUG ? '/' : '/ultralight/'
 
 // change 'eval' to 'source-map' for nicer debugging (and slower rebuilds)
@@ -35,14 +35,14 @@ let plugins = [
       eslint: { failOnWarning: !DEBUG },
     },
   }),
-];
+]
 
 if (!DEBUG) {
   plugins = plugins.concat([
     new webpack.HashedModuleIdsPlugin(),
     new webpack.optimize.AggressiveMergingPlugin(),
     new webpack.optimize.MinChunkSizePlugin({minChunkSize: 5000}),
-  ]);
+  ])
 }
 
 
@@ -160,7 +160,7 @@ const rules = [
       },
     ],
   },
-];
+]
 
 /*############## OPTIONS ##############*/
 
@@ -188,4 +188,4 @@ module.exports = {
       "node_modules",
     ],
   }
-};
+}
