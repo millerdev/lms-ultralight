@@ -1,5 +1,17 @@
 # TODO
 
+- upgrade libraries to latest versions
+- fix playlist only loads first 100 tracks
+  - load more results on scroll to bottom of menu
+- filter "No Album" results by current section criteria
+  example: http://localhost:3000/menu/contributor/286
+  - search "moody blues"
+  - click "The Moody Blues"
+  - click "No Album"
+  - results should only contain "Moody Blues" tracks
+- browse music folder
+  - clickable path elements in song info
+
 - upgrade libraries
   - npm install
     query-string@6.9.0
@@ -9,18 +21,11 @@
     semantic-ui-react@0.88.1
     react-resize-aware@3.0.0-beta.7 ??
 
-must do before release
-- load more results on scroll to bottom of menu
 - fix breadcrumbs do not update properly after BrowserSync reload + click new crumb link
-
-- constraint results when drilling into "No Album" and other similar
-  example: http://localhost:3000/menu/contributor/286
-- fix playlist loads (maximum) first 100 tracks
 - fix unnecessary render in menu on gotPlayer
 - fix delete not deleting all selected items
 
 - add support for browsing file system via songinfo path elements
-- filter "No Album" results by current section criteria
 - scroll currently playing playlist item near top of screen
   - scroll slowly at first 5s to allow manual intervention/override
 - implement pagination
