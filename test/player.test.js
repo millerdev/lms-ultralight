@@ -30,7 +30,7 @@ describe('player', function () {
             mod.loadPlayerAfter,
             true,
             PLAYERID,
-          )
+          ),
         ])
       })
 
@@ -53,7 +53,7 @@ describe('player', function () {
             mod.loadPlayerAfter,
             true,
             PLAYERID,
-          )
+          ),
         ])
       })
 
@@ -75,7 +75,7 @@ describe('player', function () {
             mod.loadPlayerAfter,
             true,
             PLAYERID,
-          )
+          ),
         ])
       })
 
@@ -100,7 +100,7 @@ describe('player', function () {
             mod.loadPlayerAfter,
             true,
             PLAYERID,
-          )
+          ),
         ])
       })
 
@@ -125,7 +125,7 @@ describe('player', function () {
             mod.loadPlayerAfter,
             true,
             PLAYERID,
-          )
+          ),
         ])
       })
     })
@@ -311,8 +311,8 @@ const STATUS = {
       "album": "Direct",
       "title": "Metallic Rain",
       "duration": "371.373",
-      "id": 30349
-    }
+      "id": 30349,
+    },
   ],
   "playlist_timestamp": 1482495558.93241,
   "playlist_tracks": 7,
@@ -330,7 +330,7 @@ const PLAYLIST_1 = [
     "url": "file:///...",
     "playlist index": 1,
     "title": "song 1",
-    "id": 1001
+    "id": 1001,
   }, {
     "url": "file:///.../Vangelis%20-%20Direct/03%20Metallic%20Rain.flac",
     "playlist index": 2,
@@ -338,13 +338,13 @@ const PLAYLIST_1 = [
     "album": "Direct",
     "title": "Metallic Rain",
     "duration": "371.373",
-    "id": 30349
+    "id": 30349,
   }, {
     "url": "file:///...",
     "playlist index": 3,
     "title": "song 3",
-    "id": 1003
-  }
+    "id": 1003,
+  },
 ]
 
 const STATE = {

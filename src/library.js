@@ -553,7 +553,7 @@ export class MediaItems extends React.PureComponent {
       return {
         results,
         items: _.flatten(results.map(obj => obj.loop)),
-        selection: new Set()
+        selection: new Set(),
       }
     })
     this.getItems = () => getItems(this.props.items)
@@ -608,7 +608,7 @@ export class MediaItems extends React.PureComponent {
           onSelectionChanged={this.onSelectionChanged}>
         {_.map(results, ({sector, loop}) => {
           return (results.length > 1 ? [
-            <MediaHeader {...this.props} sector={sector} key={sector.type} />
+            <MediaHeader {...this.props} sector={sector} key={sector.type} />,
           ] : []).concat(loop.map((item, i) =>
             <MediaItem
               smallScreen={smallScreen}

@@ -173,7 +173,7 @@ describe('playlist', function () {
             mod.loadPlayer,
             PLAYERID,
             true,
-          )
+          ),
         ])
       })
     })
@@ -458,7 +458,7 @@ describe('playlist', function () {
       })
       return mod.deleteSelection(...foo.args).then(() => {
         assert.deepEqual(foo.dispatched, [
-          actions.playlistItemDeleted(1)
+          actions.playlistItemDeleted(1),
         ])
       })
     })
@@ -720,8 +720,8 @@ const STATUS = {
       "url": "file:///.../Vangelis%20-%20Direct/03%20Metallic%20Rain.flac",
       "playlist index": 2,
       "title": "Metallic Rain",
-      "id": 30349
-    }
+      "id": 30349,
+    },
   ],
   "playlist_timestamp": 1482495558.93241,
   "playlist_tracks": 7,
@@ -737,8 +737,8 @@ const PLAYLIST_0 = [
     "url": "file:///...",
     "playlist index": 0,
     "title": "song 0",
-    "id": 1000
-  }
+    "id": 1000,
+  },
 ]
 
 const PLAYLIST_1 = [
@@ -746,18 +746,18 @@ const PLAYLIST_1 = [
     "url": "file:///...",
     "playlist index": 1,
     "title": "song 1",
-    "id": 1001
+    "id": 1001,
   }, {
     "url": "file:///.../Vangelis%20-%20Direct/03%20Metallic%20Rain.flac",
     "playlist index": 2,
     "title": "Metallic Rain",
-    "id": 30349
+    "id": 30349,
   }, {
     "url": "file:///...",
     "playlist index": 3,
     "title": "song 3",
-    "id": 1003
-  }
+    "id": 1003,
+  },
 ]
 
 
@@ -766,18 +766,18 @@ const PLAYLIST_OVERLAP = [
     "url": "file:///...",
     "playlist index": 3,
     "title": "song 4",
-    "id": 1004
+    "id": 1004,
   }, {
     "url": "file:///...",
     "playlist index": 4,
     "title": "song 5",
-    "id": 1005
+    "id": 1005,
   }, {
     "url": "file:///...",
     "playlist index": 5,
     "title": "song 6",
-    "id": 1006
-  }
+    "id": 1006,
+  },
 ]
 
 const PLAYLIST_2 = [
@@ -785,18 +785,18 @@ const PLAYLIST_2 = [
     "url": "file:///...",
     "playlist index": 4,
     "title": "song 4",
-    "id": 1004
+    "id": 1004,
   }, {
     "url": "file:///...",
     "playlist index": 5,
     "title": "song 5",
-    "id": 1005
+    "id": 1005,
   }, {
     "url": "file:///...",
     "playlist index": 6,
     "title": "song 6",
-    "id": 1006
-  }
+    "id": 1006,
+  },
 ]
 
 const STATE = {

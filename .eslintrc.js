@@ -5,7 +5,7 @@ module.exports = {
   "env": {
     "es6": true,
     "browser": true,
-    "node": true
+    "node": true,
   },
   "plugins": [
     "react",
@@ -17,7 +17,7 @@ module.exports = {
     "no-debugger": 1,
     "no-var": 1,
     "semi": [2, "never"],
-    "comma-dangle": 0,
+    "comma-dangle": ["error", "always-multiline"],
     "no-trailing-spaces": 0,
     "eol-last": 0,
     "no-unused-vars": 1,
@@ -29,9 +29,9 @@ module.exports = {
     "react/jsx-uses-vars": "error",
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
-    "jsx-quotes": 1
+    "jsx-quotes": 1,
   },
   "parserOptions": {
-    "sourceType": "module"
-  }
+    "sourceType": "module",
+  },
 }

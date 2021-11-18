@@ -8,5 +8,5 @@ global.window = window
 global.document = window.document
 global.HTMLElement = window.HTMLElement  // https://github.com/chaijs/type-detect/issues/98
 global.navigator = {
-  userAgent: 'node.js'
+  userAgent: 'node.js',
 }

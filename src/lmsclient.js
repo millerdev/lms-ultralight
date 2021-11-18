@@ -85,8 +85,8 @@ function exec(playerid, command) {
     data: {
       id: 1,
       method: "slim.request",
-      params: [playerid, command]
-    }
+      params: [playerid, command],
+    },
   }).catch(err => {
     window.console.error(err)
     throw err

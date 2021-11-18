@@ -160,7 +160,7 @@ export const reducer = makeReducer({
     })
     infos[info.id] = info
     return {...state, fullTrackInfo: infos}
-  }
+  },
 }, defaultState)
 
 const actions = reducer.actions

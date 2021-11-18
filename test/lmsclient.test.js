@@ -58,8 +58,8 @@ const PLAYER_STATUS = {
       "url": "file:///.../Vangelis%20-%20Direct/03%20Metallic%20Rain.flac",
       "playlist index": 2,
       "title": "Metallic Rain",
-      "id": 30349
-    }
+      "id": 30349,
+    },
   ],
   "playlist_timestamp": 1482495558.93241,
   "playlist_tracks": 25,

@@ -75,7 +75,7 @@ const rules = [
         loader: "babel-loader",  // see .babelrc for options
       },
     ],
-    include: path.join(__dirname, 'src')
+    include: path.join(__dirname, 'src'),
   },
   {
     test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
@@ -134,5 +134,5 @@ module.exports = {
       path.join(__dirname, "src"),
       "node_modules",
     ],
-  }
+  },
 }

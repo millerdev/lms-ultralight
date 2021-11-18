@@ -277,7 +277,7 @@ export class TouchListItem extends React.Component {
           "touchlist-item",
           selected ? "selected" : "",
           this.state.dropClass,
-          props.className
+          props.className,
         ]).join(" ")}
         draggable
         {...passProps}>
