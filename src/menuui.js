@@ -7,7 +7,7 @@ import { Icon, Image, Menu, Message, Sidebar, Transition } from 'semantic-ui-rea
 
 import { LiveSeekBar, ProgressIndicator } from './components'
 import * as lms from './lmsclient'
-import * as pkg from '../package.json'
+import pkg from '../package.json'
 import * as player from './player'
 import * as players from './playerselect'
 import { MediaBrowser } from './library'

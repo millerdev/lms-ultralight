@@ -25,7 +25,7 @@ let plugins = [
   new HTMLWebpackPlugin({
     filename: 'index.html',
     showErrors: !DEBUG,
-    template: 'src/static/index.html',
+    template: 'src/index.html',
     inject: 'body',
     basePath: BASE_PATH,
   }),
@@ -39,7 +39,6 @@ let plugins = [
 
 if (!DEBUG) {
   plugins = plugins.concat([
-    new webpack.HashedModuleIdsPlugin(),
     new webpack.optimize.AggressiveMergingPlugin(),
     new webpack.optimize.MinChunkSizePlugin({minChunkSize: 5000}),
   ])
@@ -111,9 +110,7 @@ const rules = [
   },
   {
     test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-    use: [
-      "file-loader"
-    ],
+    type: 'asset/resource',
   },
   {
     test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
@@ -165,19 +162,13 @@ const rules = [
 /*############## OPTIONS ##############*/
 
 module.exports = {
-  mode: process.env.NODE_ENV,
+  mode: process.env.NODE_ENV || DEVELOPMENT,
   devtool: devtool,
-  entry: {
-    app: './src/index.js'
-  },
   target: 'web',
   optimization: {
     runtimeChunk: {name: "manifest"},
   },
   output: {
-    path: __dirname + '/dist',
-    filename: !DEBUG ? 'js/[name]-[hash].js' : 'js/[name].js',
-    chunkFilename: "js/[name]-[chunkhash].js",
     publicPath: BASE_PATH,
   },
   plugins: plugins,

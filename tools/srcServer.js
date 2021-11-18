@@ -10,13 +10,15 @@ process.env.NODE_ENV = 'development';
 const webpackConfig = require('../webpack.config');
 
 // patch entry
-webpackConfig.entry.app = ['webpack-hot-middleware/client?reload=true&noInfo=false'].concat(webpackConfig.entry.app);
+webpackConfig.entry = {
+  app: [
+    'webpack-hot-middleware/client?reload=true&noInfo=false',
+    './src/index.js',
+  ]
+};
 
 // add relevant plugins
-webpackConfig.plugins.push(
-  new webpack.HotModuleReplacementPlugin(),
-  new webpack.NoEmitOnErrorsPlugin()
-);
+webpackConfig.plugins.push(new webpack.HotModuleReplacementPlugin());
 
 const bundler = webpack(webpackConfig);
 
@@ -37,8 +39,6 @@ browserSync({
         publicPath: webpackConfig.output.publicPath,
         stats: {colors: true},
         headers: {"Access-Control-Allow-Origin": "*"},
-        quiet: false,
-        noInfo: true
       }),
       webpackHotMiddleware(bundler)
     ]

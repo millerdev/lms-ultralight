@@ -53,10 +53,9 @@
     "eslint-loader": "^3.0.2",
     "eslint-plugin-react": "^7.16.0",
     "eslint-plugin-react-hooks": "^2.3.0",
-    "file-loader": "^4.2.0",
     "folder-zip": "0.0.5",
     "fs-extra": "^8.1.0",
-    "html-webpack-plugin": "^3.2.0",
+    "html-webpack-plugin": "^5.5.0",
     "jsdom": "^15.2.1",
     "json-loader": "^0.5.4",
     "mini-css-extract-plugin": "^0.8.0",
@@ -71,10 +70,10 @@
     "stylus": "^0.54.7",
     "stylus-loader": "^3.0.2",
     "url-loader": "^2.2.0",
-    "webpack": "^4.46.0",
+    "webpack": "^5.64.1",
     "webpack-cli": "^4.9.1",
-    "webpack-dev-middleware": "^3.7.2",
-    "webpack-hot-middleware": "^2.25.0"
+    "webpack-dev-middleware": "^5.2.2",
+    "webpack-hot-middleware": "^2.25.1"
   },
   "scripts": {
     "start": "npm run build && http-server dist",
