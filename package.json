@@ -58,7 +58,7 @@
     "html-webpack-plugin": "^5.5.0",
     "jsdom": "^15.2.1",
     "json-loader": "^0.5.4",
-    "mini-css-extract-plugin": "^0.8.0",
+    "mini-css-extract-plugin": "^2.4.5",
     "mocha": "^6.2.2",
     "mocha-eslint": "^5.0.0",
     "postcss-loader": "^3.0.0",
