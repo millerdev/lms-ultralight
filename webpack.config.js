@@ -9,12 +9,12 @@ const HTMLWebpackPlugin = require('html-webpack-plugin')
 
 const DEVELOPMENT = 'development'
 const PRODUCTION = 'production'
-
-const DEBUG = process.env.NODE_ENV !== PRODUCTION
-const BASE_PATH = DEBUG ? '/' : '/ultralight/'
-
-// change 'eval' to 'source-map' for nicer debugging (and slower rebuilds)
-const devtool = DEBUG ? 'source-map' : 'cheap-module-source-map'
+const DEV_MODE = process.env.NODE_ENV !== PRODUCTION
+const DEV_HOST = 'localhost'
+const DEV_PORT = 3000
+const DEV_TOOL = DEV_MODE ? 'source-map' : 'cheap-module-source-map'
+const BASE_PATH = DEV_MODE ? '/' : '/ultralight/'
+const REMOTE_LMS_URL = process.env.LMS_URL
 
 
 /*############## PLUGINS ##############*/
@@ -22,22 +22,23 @@ const devtool = DEBUG ? 'source-map' : 'cheap-module-source-map'
 let plugins = [
   new webpack.EnvironmentPlugin(["LMS_URL"]), // bash: export LMS_URL=http://lms_host_ip:9000
   new CopyPlugin({patterns: [{from: "src/static"}]}),
-  // this plugin injects your resources to the index file
   new HTMLWebpackPlugin({
     filename: 'index.html',
-    showErrors: !DEBUG,
+    showErrors: !DEV_MODE,
     template: 'src/index.html',
     inject: 'body',
     basePath: BASE_PATH,
   }),
   new MiniCssExtractPlugin(),
+  new ESLintPlugin({ failOnWarning: !DEV_MODE }),
 ]
 
-if (!DEBUG) {
+if (DEV_MODE) {
+  process.env.LMS_URL = `http://${DEV_HOST}:${DEV_PORT}/lms`
+} else {
   plugins = plugins.concat([
     new webpack.optimize.AggressiveMergingPlugin(),
     new webpack.optimize.MinChunkSizePlugin({minChunkSize: 5000}),
-    new ESLintPlugin({ failOnWarning: !DEBUG }),
   ])
 }
 
@@ -119,13 +120,17 @@ const rules = [
 
 module.exports = {
   mode: process.env.NODE_ENV || DEVELOPMENT,
-  devtool: devtool,
+  devtool: DEV_TOOL,
   devServer: {
-    host: 'localhost',
-    port: 3000,
+    host: DEV_HOST,
+    port: DEV_PORT,
     hot: true,
-    headers: {
-      'Access-Control-Allow-Origin': process.env.LMS_URL,
+    proxy: {
+      '/lms': {
+        target: REMOTE_LMS_URL,
+        pathRewrite: {'^/lms' : ''},
+      },
+      '/favicon.ico': REMOTE_LMS_URL,
     },
   },
   target: 'web',
