@@ -1,6 +1,10 @@
 # TODO
 
 - upgrade libraries to latest versions
+- fix search input not focused on click menu button
+- fix media query override in semantic.min.css
+  see commit 684a6cf960cdf5db2d2922aa66f9ffd2a917aab9
+  reverted to standard semantic.min.css in ...
 - fix playlist only loads first 100 tracks
   - load more results on scroll to bottom of menu
 - filter "No Album" results by current section criteria

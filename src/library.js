@@ -325,9 +325,7 @@ export class SearchInput extends React.Component {
   constructor(props) {
     super(props)
     this.timer = timer()
-  }
-  componentDidMount() {
-    this.focusInput()
+    this.input = React.createRef()
   }
   componentWillUnmount() {
     this.timer.clear()
@@ -337,8 +335,8 @@ export class SearchInput extends React.Component {
     this.timer.after(350, () => this.doSearch(term))
   }
   onClearSearch() {
-    this.input.inputRef.value = ""
-    this.input.focus()
+    this.input.current.value = ""
+    this.input.current.focus()
     this.doSearch()
   }
   doSearch(term) {
@@ -357,22 +355,18 @@ export class SearchInput extends React.Component {
       history.push(path, {nav})
     }
   }
-  setSearchInput = (input) => {
-    this.input = input
-    this.focusInput()
-  }
   focusInput() {
-    const input = this.input
-    if (input && input.inputRef !== document.activeElement) {
+    const input = this.input.current
+    if (input !== document.activeElement) {
       // https://stackoverflow.com/a/40235334/10840
       input.focus()
-      input.inputRef.select()
+      input.select()
     }
   }
   render() {
-    const inputHasValue = !!(this.input && this.input.inputRef.value)
+    const inputHasValue = !!(this.input.current && this.input.current.value)
     return <Input
-      ref={this.setSearchInput}
+      ref={this.input}
       onChange={(e, {value}) => this.onSearch(value)}
       className="icon"
       icon={{
