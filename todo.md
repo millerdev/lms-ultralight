@@ -1,9 +1,5 @@
 # TODO
 
-- upgrade libraries to latest versions
-- fix media query override in semantic.min.css
-  see commit 684a6cf960cdf5db2d2922aa66f9ffd2a917aab9
-  reverted to standard semantic.min.css in 2eb603d8cd3194769c5d6afbc047896dedd2085f
 - fix playlist only loads first 100 tracks
   - load more results on scroll to bottom of menu
 - filter "No Album" results by current section criteria
@@ -14,18 +10,14 @@
   - results should only contain "Moody Blues" tracks
 - browse music folder
   - clickable path elements in song info
+- fix media query override in semantic.min.css
+  see commit 684a6cf960cdf5db2d2922aa66f9ffd2a917aab9
+  reverted to standard semantic.min.css in 2eb603d8cd3194769c5d6afbc047896dedd2085f
 - fix icons
   - menu drill in (+ is the wrong icon)
   - playlist play/info (icons are too big)
 
-- upgrade libraries
-  - npm install
-    query-string@6.9.0
-    react-redux@7.1.3
-    react-router-dom@5.1.2
-    redux@4.0.4
-    semantic-ui-react@0.88.1
-    react-resize-aware@3.0.0-beta.7 ??
+- upgrade libraries to latest versions
 
 - fix breadcrumbs do not update properly after BrowserSync reload + click new crumb link
 - fix unnecessary render in menu on gotPlayer
