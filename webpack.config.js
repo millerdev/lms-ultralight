@@ -71,47 +71,15 @@ const rules = [
   },
   {
     test: /\.js$/,
-    use: [
-      {
-        loader: "babel-loader",  // see .babelrc for options
-      },
-    ],
+    use: ["babel-loader"],  // see .babelrc for options
     include: path.join(__dirname, 'src'),
   },
   {
-    test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
+    test: /\.(woff2?|ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
     type: 'asset/inline',
   },
   {
-    test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
-    type: 'asset/inline',
-  },
-  {
-    test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-    type: 'asset/inline',
-  },
-  {
-    test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-    type: 'asset/resource',
-  },
-  {
-    test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-    type: 'asset/inline',
-  },
-  {
-    test: /\.gif$/,
-    type: 'asset/inline',
-  },
-  {
-    test: /\.(jpg|jpeg)$/,
-    type: 'asset/inline',
-  },
-  {
-    test: /\.png$/,
-    type: 'asset/inline',
-  },
-  {
-    test: /\.svg$/,
+    test: /\.(gif|jpg|jpeg|png)$/,
     type: 'asset/inline',
   },
 ]
