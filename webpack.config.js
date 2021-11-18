@@ -3,7 +3,7 @@
 const path = require('path')
 const webpack = require('webpack')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const CopyWebpackPlugin = require('copy-webpack-plugin')
+const CopyPlugin = require('copy-webpack-plugin')
 const HTMLWebpackPlugin = require('html-webpack-plugin')
 
 const DEVELOPMENT = 'development'
@@ -20,7 +20,7 @@ const devtool = DEBUG ? 'source-map' : 'cheap-module-source-map'
 
 let plugins = [
   new webpack.EnvironmentPlugin(["LMS_URL"]), // bash: export LMS_URL=http://lms_host_ip:9000
-  new CopyWebpackPlugin([{from: "src/static"}]),
+  new CopyPlugin({patterns: [{from: "src/static"}]}),
   // this plugin injects your resources to the index file
   new HTMLWebpackPlugin({
     filename: 'index.html',
