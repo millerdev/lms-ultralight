@@ -120,6 +120,14 @@ const rules = [
 module.exports = {
   mode: process.env.NODE_ENV || DEVELOPMENT,
   devtool: devtool,
+  devServer: {
+    host: 'localhost',
+    port: 3000,
+    hot: true,
+    headers: {
+      'Access-Control-Allow-Origin': process.env.LMS_URL,
+    },
+  },
   target: 'web',
   optimization: {
     runtimeChunk: {name: "manifest"},

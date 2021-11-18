@@ -43,7 +43,6 @@
     "axios-mock-adapter": "^1.17.0",
     "babel-loader": "^8.0.6",
     "babel-plugin-rewire": "^1.2.0",
-    "browser-sync": "^2.26.7",
     "chai": "^4.2.0",
     "copy-webpack-plugin": "^10.0.0",
     "css-loader": "^3.2.0",
@@ -71,13 +70,12 @@
     "stylus-loader": "^3.0.2",
     "webpack": "^5.64.1",
     "webpack-cli": "^4.9.1",
-    "webpack-dev-middleware": "^5.2.2",
-    "webpack-hot-middleware": "^2.25.1"
+    "webpack-dev-server": "^4.5.0"
   },
   "scripts": {
     "start": "npm run build && http-server dist",
     "build": "node tools/rm dist && NODE_ENV=production webpack --bail --progress",
-    "dev": "node tools/srcServer.js",
+    "dev": "webpack serve --mode development --env development",
     "test": "mocha -w --require test/helpers/css-null-compilers test/helpers/main.js test/*.test.js",
     "package": "node tools/pkg",
     "profile": "NODE_ENV=production webpack --profile --json > stats.json"
