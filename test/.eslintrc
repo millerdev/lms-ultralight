@@ -1,5 +1,5 @@
 {
-  globals: {
+  "globals": {
     "chai": true,
     "assert": true,
     "expect": true,

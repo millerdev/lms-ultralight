@@ -4,6 +4,7 @@ const path = require('path')
 const webpack = require('webpack')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
+const ESLintPlugin = require('eslint-webpack-plugin')
 const HTMLWebpackPlugin = require('html-webpack-plugin')
 
 const DEVELOPMENT = 'development'
@@ -30,17 +31,13 @@ let plugins = [
     basePath: BASE_PATH,
   }),
   new MiniCssExtractPlugin(),
-  new webpack.LoaderOptionsPlugin({
-    options: {
-      eslint: { failOnWarning: !DEBUG },
-    },
-  }),
 ]
 
 if (!DEBUG) {
   plugins = plugins.concat([
     new webpack.optimize.AggressiveMergingPlugin(),
     new webpack.optimize.MinChunkSizePlugin({minChunkSize: 5000}),
+    new ESLintPlugin({ failOnWarning: !DEBUG }),
   ])
 }
 
@@ -77,36 +74,20 @@ const rules = [
       {
         loader: "babel-loader",  // see .babelrc for options
       },
-      "eslint-loader",
     ],
     include: path.join(__dirname, 'src')
   },
   {
     test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
-    use: [
-      {
-        loader: "url-loader",
-        options: {limit: 10000, mimetype: "application/font-woff"}
-      },
-    ],
+    type: 'asset/inline',
   },
   {
     test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
-    use: [
-      {
-        loader: "url-loader",
-        options: {limit: 10000, mimetype: "application/font-woff"}
-      },
-    ],
+    type: 'asset/inline',
   },
   {
     test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-    use: [
-      {
-        loader: "url-loader",
-        options: {limit: 10000, mimetype: "application/octet-stream"}
-      },
-    ],
+    type: 'asset/inline',
   },
   {
     test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
@@ -114,48 +95,23 @@ const rules = [
   },
   {
     test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-    use: [
-      {
-        loader: "url-loader",
-        options: {limit: 10000, mimetype: "image/svg+xml"}
-      },
-    ],
+    type: 'asset/inline',
   },
   {
     test: /\.gif$/,
-    use: [
-      {
-        loader: "url-loader",
-        options: {limit: 10000, mimetype: "image/gif"}
-      },
-    ],
+    type: 'asset/inline',
   },
   {
     test: /\.(jpg|jpeg)$/,
-    use: [
-      {
-        loader: "url-loader",
-        options: {limit: 10000, mimetype: "image/jpg"}
-      },
-    ],
+    type: 'asset/inline',
   },
   {
     test: /\.png$/,
-    use: [
-      {
-        loader: "url-loader",
-        options: {limit: 10000, mimetype: "image/png"}
-      },
-    ],
+    type: 'asset/inline',
   },
   {
     test: /\.svg$/,
-    use: [
-      {
-        loader: "url-loader",
-        options: {limit: 10000, mimetype: "image/svg+xml"}
-      },
-    ],
+    type: 'asset/inline',
   },
 ]
 

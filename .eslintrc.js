@@ -1,5 +1,5 @@
-{
-  "parser": "babel-eslint",
+module.exports = {
+  "parser": "@babel/eslint-parser",
   "extends": "eslint:recommended",
   "root": true,
   "env": {
@@ -9,7 +9,7 @@
   },
   "plugins": [
     "react",
-    "react-hooks"
+    "react-hooks",
   ],
   "rules": {
     "quotes": 0,
