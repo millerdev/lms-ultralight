@@ -87,3 +87,13 @@ export function memoize(getValue) {
     return value
   }
 }
+
+export function objectId(obj) {
+  let value = _ids.get(obj)
+  if (value === undefined) {
+    value = _.uniqueId()
+    _ids.set(obj, value)
+  }
+  return value
+}
+const _ids = new WeakMap()

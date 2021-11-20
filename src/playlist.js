@@ -10,7 +10,7 @@ import * as lms from './lmsclient'
 import { MEDIA_ITEMS } from './library'
 import makeReducer from './store'
 import { TouchList } from './touch'
-import { formatTime, memoize, operationError } from './util'
+import { formatTime, memoize, objectId, operationError } from './util'
 import './playlist.styl'
 
 const IX = "playlist index"
@@ -527,7 +527,7 @@ export class Playlist extends React.Component {
             history={props.history}
             location={props.location}
             dispatch={props.dispatch}
-            key={index + ' ' + item.id}
+            key={objectId(item)}
           />
         })}
       </TouchList>
