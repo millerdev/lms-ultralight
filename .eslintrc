@@ -8,7 +8,8 @@
     "node": true
   },
   "plugins": [
-    "react"
+    "react",
+    "react-hooks"
   ],
   "rules": {
     "quotes": 0,
@@ -26,6 +27,8 @@
     "no-lone-blocks": 0,
     "react/jsx-uses-react": "error",
     "react/jsx-uses-vars": "error",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
     "jsx-quotes": 1
   },
   "parserOptions": {
