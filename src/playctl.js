@@ -1,16 +1,9 @@
 import * as lms from './lmsclient'
-import * as player from './player'
+import { loadPlayer } from './player'
 import { operationError } from './util'
 
 // HACK a thing that can be rewired by tests
 const resolved = value => Promise.resolve(value)
-
-export function loadPlayer(playerid, fetchPlaylist=false, options={}) {
-  const args = fetchPlaylist ? [0, 100] : []
-  return lms.getPlayerStatus(playerid, ...args)
-    .then(data => player.reducer.actions.gotPlayer(data, options))
-    .catch(err => operationError("Cannot load player", err))
-}
 
 /**
  * Control object for a single player

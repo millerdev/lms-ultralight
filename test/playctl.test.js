@@ -96,6 +96,7 @@ function rewireLMS(actions, callback, results) {
         return Promise.resolve(nextResult())
       },
     },
+    loadPlayer: Promise.resolve,
   }, callback)
 }
 
