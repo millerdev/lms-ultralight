@@ -1,8 +1,10 @@
-import { shallow } from 'enzyme'
+import { render, shallow } from 'enzyme'
 import _ from 'lodash'
 import React from 'react'
 
+import { rewire } from './util'
 import * as mod from '../src/touch'
+import {__RewireAPI__ as module} from '../src/touch'
 
 describe('TouchList', function () {
   function stateTest(name, act, startConfig, endConfig) {
@@ -102,3 +104,67 @@ function makeConfig(touchlist, selection) {
   const last = lastSelected.map(i => state.items[i].title).join("")
   return playchars + (last ? " | " + last : "")
 }
+
+describe("LoadingList", function () {
+  let list
+
+  it("with no attributes should have no margins", function () {
+    list = render(<mod.LoadingList />)
+    const style = list.first().attr("style")
+    assert.equal(style, 'margin-top:0;margin-bottom:0')
+  })
+
+  it("should augment style", function () {
+    list = render(<mod.LoadingList style={{color: "red"}} />)
+    const style = list.first().attr("style")
+    assert.equal(style, 'color:red;margin-top:0;margin-bottom:0')
+  })
+
+  it("with items but not before/after should have no margins", function () {
+    renderWithClient({height: 10}, {items: [1, 2]}, list => {
+      const style = list.first().attr("style")
+      assert.equal(style, 'margin-top:0;margin-bottom:0')
+    })
+  })
+
+  it("with items and before should have top margin", function () {
+    renderWithClient({height: 10}, {items: [1, 2], itemsOffset: 1}, list => {
+      const style = list.first().attr("style")
+      assert.equal(style, 'margin-top:5px;margin-bottom:0')
+    })
+  })
+
+  it("with items and after should have bottom margin", function () {
+    renderWithClient({height: 12}, {items: [1, 2], itemsTotal: 3}, list => {
+      const style = list.first().attr("style")
+      assert.equal(style, 'margin-top:0;margin-bottom:6px')
+    })
+  })
+
+  it("with before and after should have top and bottom margins", function () {
+    const props = {items: [1, 2], itemsOffset: 1, itemsTotal: 6}
+    renderWithClient({height: 8}, props, list => {
+      const style = list.first().attr("style")
+      assert.equal(style, 'margin-top:4px;margin-bottom:12px')
+    })
+  })
+
+  it("with empty client should have no margins", function () {
+    const props = {items: [1, 2], itemsOffset: 1, itemsTotal: 6}
+    renderWithClient({}, props, list => {
+      const style = list.first().attr("style")
+      assert.equal(style, 'margin-top:0;margin-bottom:0')
+    })
+  })
+
+  function renderWithClient(client, props, check) {
+    let asserted = false
+    rewire(module, {
+      Measure: ({children}) => children({contentRect: {client}}),
+    }, () => {
+      check(render(<mod.LoadingList {...props} />))
+      asserted = true
+    })
+    assert(asserted, 'rewire assertions not run')
+  }
+})

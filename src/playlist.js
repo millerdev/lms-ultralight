@@ -507,6 +507,8 @@ export class Playlist extends React.Component {
       <TouchList
           className="playlist"
           items={props.items}
+          itemsOffset={props.numTracks ? props.items[0][IX] : 0}
+          itemsTotal={props.numTracks}
           selection={selection}
           dropTypes={[MEDIA_ITEMS]}
           onDrop={this.onDrop.bind(this)}

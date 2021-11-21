@@ -20,6 +20,7 @@
     "react": "^17.0.2",
     "react-document-title": "^2.0.3",
     "react-dom": "^17.0.2",
+    "react-measure": "^2.5.2",
     "react-media": "^1.10.0",
     "react-redux": "^7.2.6",
     "react-resize-aware": "^3.1.1",

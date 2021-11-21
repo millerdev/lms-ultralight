@@ -1,7 +1,12 @@
 # TODO
 
 - fix playlist only loads first 100 tracks
-  - load more results on scroll to bottom of menu
+x  - pad list with space for unloaded items
+  - load more results on scroll near unloaded items
+  - load items near playing item (9 before, 90 after)
+  - scroll to current item on playlist advance
+    unless selection has changed in the past 5 minutes
+  - show loading indicator in unloaded space
 - filter "No Album" results by current section criteria
   example: http://localhost:3000/menu/contributor/286
   - search "moody blues"

@@ -2,7 +2,8 @@ import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { List } from 'semantic-ui-react'
+import Measure from 'react-measure'
+import { List, Ref } from 'semantic-ui-react'
 
 import './touch.styl'
 
@@ -18,6 +19,10 @@ export const TO_LAST = "to last"
  *   `TouchList.Item` at the same position in the `TouchList`. All
  *   index arguments provided to event handlers can be used to
  *   reference items in this list.
+ * - itemsOffset: Count of items in the list before the first in
+ *   `items`. Default: 0.
+ * - itemsTotal: Total number of items in the list.
+ *   Default: `offset + items.length`, ignored if less.
  * - selection: `Set` of selected indexes. If not provided the selection
  *   will be maintained internally. Each index in this set should
  *   correspond to the index of an item in the `items` list.
@@ -192,8 +197,23 @@ export class TouchList extends React.Component {
     if (props.className) {
       others.className += " " + props.className
     }
-    return <List {...others}>{props.children}</List>
+    return <LoadingList {...others}>{props.children}</LoadingList>
   }
+}
+
+export const LoadingList = ({items, itemsOffset, itemsTotal, ...props}) => {
+  return <Measure client>{({ measureRef, contentRect }) => {
+    const before = itemsOffset || 0
+    const middle = items ? items.length : 0
+    const after = _.max([(itemsTotal || 0) - before - middle, 0])
+    const itemHeight = middle ? contentRect.client.height / middle : 0
+    props.style = {
+      ...props.style,
+      marginTop: before * itemHeight || 0,
+      marginBottom: after * itemHeight || 0,
+    }
+    return <Ref innerRef={measureRef}><List {...props} /></Ref>
+  }}</Measure>
 }
 
 TouchList.childContextTypes = {
@@ -203,7 +223,10 @@ TouchList.childContextTypes = {
 }
 
 const TOUCHLIST_PROPS = {
-  items: true,
+  // items* props are used by LoadingList
+  // items: true,
+  // itemsOffset: true,
+  // itemsTotal: true,
   selection: true,
   children: true,
   dataType: true,
