@@ -197,7 +197,7 @@ export class TouchList extends React.Component {
     if (props.className) {
       others.className += " " + props.className
     }
-    return <LoadingList {...others}>{props.children}</LoadingList>
+    return <LoadingList {...others} />
   }
 }
 
@@ -228,7 +228,6 @@ const TOUCHLIST_PROPS = {
   // itemsOffset: true,
   // itemsTotal: true,
   selection: true,
-  children: true,
   dataType: true,
   dropTypes: true,
   onDrop: true,
@@ -285,33 +284,31 @@ export class TouchListItem extends React.Component {
       passProps.onContextMenu = event => event.preventDefault()
     }
     return <List.Item
-        onClick={event => {
-          const modifier = event.metaKey || event.ctrlKey ? SINGLE :
-            (event.shiftKey ? TO_LAST : null)
-          this.context.TouchList_onItemSelected(index, modifier)
-        }}
-        onDragStart={event => slide.dragStart(event, index)}
-        onDragOver={event => this.onDragOver(event, index)}
-        onDrop={event => this.onDrop(event, index)}
-        onDragLeave={this.clearDropIndicator}
-        onDragEnd={this.clearDropIndicator}
-        data-touchlist-item-index={index /* touchlistItemIndex */}
-        className={_.filter([
-          "touchlist-item",
-          selected ? "selected" : "",
-          this.state.dropClass,
-          props.className,
-        ]).join(" ")}
-        draggable
-        {...passProps}>
-      {props.children}
-    </List.Item>
+      onClick={event => {
+        const modifier = event.metaKey || event.ctrlKey ? SINGLE :
+          (event.shiftKey ? TO_LAST : null)
+        this.context.TouchList_onItemSelected(index, modifier)
+      }}
+      onDragStart={event => slide.dragStart(event, index)}
+      onDragOver={event => this.onDragOver(event, index)}
+      onDrop={event => this.onDrop(event, index)}
+      onDragLeave={this.clearDropIndicator}
+      onDragEnd={this.clearDropIndicator}
+      data-touchlist-item-index={index /* touchlistItemIndex */}
+      className={_.filter([
+        "touchlist-item",
+        selected ? "selected" : "",
+        this.state.dropClass,
+        props.className,
+      ]).join(" ")}
+      draggable
+      {...passProps}
+    />
   }
 }
 
 const TOUCHLISTITEM_PROPS = {
   index: true,
-  children: true,
   onClick: false,
   onDragStart: false,
   onDragOver: false,
