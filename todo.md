@@ -7,6 +7,7 @@ x  - pad list with space for unloaded items
   - scroll to current item on playlist advance
     unless selection has changed in the past 5 minutes
   - show loading indicator in unloaded space
+  - put "Delete" and "Clear" playlist buttons in a bottom/left floating menu
 - filter "No Album" results by current section criteria
   example: http://localhost:3000/menu/contributor/286
   - search "moody blues"

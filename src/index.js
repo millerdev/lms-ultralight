@@ -2,6 +2,7 @@
 // This file does not get hot reloaded
 // its better to put global resources in app.js
 
+import './polyfills'
 import React from 'react'
 import { render } from 'react-dom'
 import App from './app'
