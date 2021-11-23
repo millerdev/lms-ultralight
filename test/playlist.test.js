@@ -684,7 +684,7 @@ describe('playlist', function () {
       promise.check()
     })
 
-    it('should move item after last item in playlist', function () {
+    it('should drop items after last item in playlist', function () {
       const state = makeState("abcdef", 10)
       state.dispatch = {}
       const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
@@ -696,7 +696,7 @@ describe('playlist', function () {
           assert.equal(data, items)
           assert.equal(index, 16)
           assert.equal(dispatch, state.dispatch)
-          assert.equal(numTracks, 6)
+          assert.equal(numTracks, 15)
           asserted = true
         },
       }, () => {
@@ -857,7 +857,7 @@ function makeState(config, firstIndex=0, numTracks) {
     ),
     currentIndex: current,
     currentTrack: items[current],
-    numTracks: _.max([numTracks || 0, playchars.length]),
+    numTracks: _.max([numTracks || 0, firstIndex + playchars.length - 1]),
   }
 }
 
