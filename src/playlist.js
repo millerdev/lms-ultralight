@@ -526,12 +526,12 @@ export class Playlist extends React.Component {
     const triggers = {}
     if (items.length) {
       if (items[0][IX]) {
-        const rng = [items[0][IX] - 1, 0]
+        const rng = [items[0][IX], 0]
         _.range(0, _.min([5, items.length]), 4).forEach(i => triggers[i] = rng)
       }
       const last = items.length - 1
       if (items[last][IX] < numTracks - 1) {
-        const rng = [items[last][IX] + 1, numTracks - 1]
+        const rng = [items[last][IX] + 1, numTracks]
         _.range(last, _.max([0, last - 5]), -4).forEach(i => triggers[i] = rng)
       }
     }
@@ -551,7 +551,7 @@ export class Playlist extends React.Component {
     } else {
       stop = _.min([start + this.LOAD_SIZE, stop])
     }
-    return loadPlayer(playerid, [start, stop])
+    return loadPlayer(playerid, [start, stop - start])
       .then(dispatch)
       .then(() => this.loading.delete(key))
   }

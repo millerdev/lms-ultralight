@@ -662,13 +662,13 @@ describe('playlist', function () {
 
       test(0, "ab")
       test(0, "abcdefghijkl")
-      test(2, "ab", 0, "a:1-0")
-      test(0, "ab", 2, "b:2-3")
-      test(2, "abcdef", 0, "a:1-0,e:1-0")
-      test(0, "abcdef", 140, "b:6-145,f:6-145")
-      test(5, "ab", 5, "a:4-0,b:7-11")
-      test(5, "abc", 5, "a:4-0,c:8-12")
-      test(3, "abcdefghijkl", 7, "a:2-0,e:2-0,h:15-21,l:15-21")
+      test(2, "ab", 0, "a:2-0")
+      test(0, "ab", 2, "b:2-4")
+      test(2, "abcdef", 0, "a:2-0,e:2-0")
+      test(0, "abcdef", 140, "b:6-146,f:6-146")
+      test(5, "ab", 5, "a:5-0,b:7-12")
+      test(5, "abc", 5, "a:5-0,c:8-13")
+      test(3, "abcdefghijkl", 7, "a:3-0,e:3-0,h:15-22,l:15-22")
     })
 
     describe("load items", function () {
@@ -698,7 +698,7 @@ describe('playlist', function () {
         const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
         rewire(module, {
           loadPlayer: (playerid, indexRange) => {
-            assert.deepEqual(indexRange, [50, 150])
+            assert.deepEqual(indexRange, [50, 100])
             return fakePromise
           },
         }, () => {
@@ -712,7 +712,7 @@ describe('playlist', function () {
         const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
         rewire(module, {
           loadPlayer: (playerid, indexRange) => {
-            assert.deepEqual(indexRange, [6, 106])
+            assert.deepEqual(indexRange, [6, 100])
             return fakePromise
           },
         }, () => {
@@ -737,8 +737,8 @@ describe('playlist', function () {
           playlist.onLoadItems([200, 0])
         })
         assert.deepEqual(loads, [
-          [207, 307],
-          [100, 200],
+          [207, 100],
+          [100, 100],
         ])
       })
 
