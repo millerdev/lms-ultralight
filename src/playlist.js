@@ -395,6 +395,7 @@ export class Playlist extends React.Component {
       return new Set([...selection].map(ix => indexMap[ix]))
     })
     this.getSelection = () => get(this.props.items, this.props.selection)
+    this.loading = new Set()
   }
   componentDidCatch(error, errorInfo) {
     window.console.error(error, errorInfo)
@@ -499,6 +500,61 @@ export class Playlist extends React.Component {
     this.hideTrackInfo()
     this.setState({touching: selection.size && isTouch})
   }
+  /**
+   * Get object describing to-be-loaded playlist items
+   *
+   * Structure: {<itemIndex>: [<startIndex>, <stopIndex>], ...}
+   *
+   * - `itemIndex` is the zero-based index of an item in `props.items`
+   *   that is near a range of items that have not yet been loaded.
+   * - `startIndex` is the playlist index (`props.items[n][IX]`) of the
+   *   item adjacent to the first or last item in `props.items`. This
+   *   is the most important item to load, additional items may also be
+   *   loaded as long as performance is not compromised. Adjust
+   *   `Playlist.LOAD_SIZE` to tune.
+   * - `stopIndex` is the playlist index (`props.items[n][IX]`) of the
+   *   first or last item in the playlist: `0` if the load range is
+   *   at the beginning of the playlist, `numTracks - 1` if at the end.
+   *
+   * The returned object may have 0, 1, or 2 items, depending on which
+   * portions of the playlist have been loaded so far.
+   */
+   get loadRanges() {
+    return this.getLoadRanges(this.props.items, this.props.numTracks)
+  }
+  getLoadRanges = memoize((items, numTracks) => {
+    const triggers = {}
+    if (items.length) {
+      if (items[0][IX]) {
+        const rng = [items[0][IX] - 1, 0]
+        _.range(0, _.min([5, items.length]), 4).forEach(i => triggers[i] = rng)
+      }
+      const last = items.length - 1
+      if (items[last][IX] < numTracks - 1) {
+        const rng = [items[last][IX] + 1, numTracks - 1]
+        _.range(last, _.max([0, last - 5]), -4).forEach(i => triggers[i] = rng)
+      }
+    }
+    return triggers
+  })
+  LOAD_SIZE = 100
+  onLoadItems(range) {
+    const key = JSON.stringify(range)
+    if (!range || this.loading.has(key)) {
+      return
+    }
+    this.loading.add(key)
+    const { playerid, dispatch } = this.props
+    let [start, stop] = range
+    if (start > stop) {
+      [start, stop] = [_.max([start - this.LOAD_SIZE, stop]), start]
+    } else {
+      stop = _.min([start + this.LOAD_SIZE, stop])
+    }
+    return loadPlayer(playerid, [start, stop])
+      .then(dispatch)
+      .then(() => this.loading.delete(key))
+  }
   setHideTrackInfoCallback(callback) {
     this.hideTrackInfo = callback
   }
@@ -518,10 +574,12 @@ export class Playlist extends React.Component {
           onTap={this.onTap.bind(this)}
           onLongTouch={this.onLongTouch.bind(this)}
           onMoveItems={this.onMoveItems.bind(this)}
-          onSelectionChanged={this.onSelectionChanged.bind(this)}>
+          onSelectionChanged={this.onSelectionChanged.bind(this)}
+          onLoadItems={this.onLoadItems.bind(this)}>
         {props.items.map((item, index) => {
           return <PlaylistItem
             item={item}
+            loadRange={this.loadRanges[index]}
             playTrack={this.playTrackAtIndex.bind(this, item[IX])}
             index={index}
             activeIcon={props.currentIndex === item[IX] ? "video play" : ""}
@@ -575,6 +633,7 @@ export class PlaylistItem extends React.Component {
       old.index !== props.index ||
       old.item.id !== props.item.id ||
       old.touching !== props.touching ||
+      old.loadRange !== props.loadRange ||
       old.activeIcon !== props.activeIcon ||
       old.showInfoIcon !== props.showInfoIcon ||
       old.fullTrackInfo[old.item.id] !== props.fullTrackInfo[props.item.id]
@@ -609,6 +668,7 @@ export class PlaylistItem extends React.Component {
       return <TouchList.Item
         index={props.index}
         onDoubleClick={props.playTrack}
+        loadContext={props.loadRange}
         draggable
       >
         <List.Content floated="right">

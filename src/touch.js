@@ -2,6 +2,7 @@ import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
 import ReactDOM from 'react-dom'
+import { useInView } from 'react-intersection-observer'
 import Measure from 'react-measure'
 import { List, Ref } from 'semantic-ui-react'
 
@@ -43,6 +44,12 @@ export const TO_LAST = "to last"
  *   Signature: `onMoveItems(indexSet, toIndex)`
  * - onSelectionChanged: Callback function to handle selection changes.
  *   Signature: `onSelectionChanged(selection, isTouch)`
+ * - onLoadItems: Callback function to load more items when approaching
+ *   a boundary of already-loaded items. Will only be called if
+ *   `itemsOffset` or `itemsTotal` are provided. The first argument is
+ *   the `loadContext` of the nearest `TouchListItem` that triggered the
+ *   load event.
+ *   Signature: `onLoadItems(<loadContext>, <itemIndex>)`
  */
 export class TouchList extends React.Component {
   constructor(props) {
@@ -74,6 +81,7 @@ export class TouchList extends React.Component {
   getChildContext() {
     return {
       TouchList_isSelected: this.isSelected,
+      TouchList_onLoadItems: this.props.onLoadItems || (() => null),
       TouchList_onItemSelected: this.onItemSelected,
       TouchList_slide: this.slide,
     }
@@ -218,6 +226,7 @@ export const LoadingList = ({items, itemsOffset, itemsTotal, ...props}) => {
 
 TouchList.childContextTypes = {
   TouchList_isSelected: PropTypes.func.isRequired,
+  TouchList_onLoadItems: PropTypes.func.isRequired,
   TouchList_onItemSelected: PropTypes.func.isRequired,
   TouchList_slide: PropTypes.object.isRequired,
 }
@@ -227,6 +236,7 @@ const TOUCHLIST_PROPS = {
   // items: true,
   // itemsOffset: true,
   // itemsTotal: true,
+  onLoadItems: true,
   selection: true,
   dataType: true,
   dropTypes: true,
@@ -242,6 +252,9 @@ const TOUCHLIST_PROPS = {
  *
  * Important props:
  * - index: required unique/consecutive index for this item.
+ * - loadContext: optional object to be passed to `TouchList_onLoadItems`
+ *   when this item is visible. An intersection observer will be setup
+ *   for this item if the value of this property is not `undefined`.
  */
 export class TouchListItem extends React.Component {
   constructor() {
@@ -283,7 +296,7 @@ export class TouchListItem extends React.Component {
     if (!_.has(props, "onContextMenu")) {
       passProps.onContextMenu = event => event.preventDefault()
     }
-    return <List.Item
+    return <LoadingListItem
       onClick={event => {
         const modifier = event.metaKey || event.ctrlKey ? SINGLE :
           (event.shiftKey ? TO_LAST : null)
@@ -302,13 +315,24 @@ export class TouchListItem extends React.Component {
         props.className,
       ]).join(" ")}
       draggable
+      loadItems={this.context.TouchList_onLoadItems}
       {...passProps}
     />
   }
 }
 
+export const LoadingListItem = ({loadItems, loadContext, index, ...props}) => {
+  const { ref, inView } = useInView({
+    triggerOnce: false,
+    skip: loadContext === undefined,
+  })
+  inView && loadItems(loadContext, index)
+  return <Ref innerRef={ref}><List.Item {...props} /></Ref>
+}
+
 const TOUCHLISTITEM_PROPS = {
-  index: true,
+  //index: true,  consumed by LoadingListItem
+  //loadContext: true,  consumed by LoadingListItem
   onClick: false,
   onDragStart: false,
   onDragOver: false,
@@ -323,6 +347,7 @@ TouchList.Item = TouchListItem
 TouchListItem.contextTypes = {
   TouchList_isSelected: PropTypes.func.isRequired,
   TouchList_onItemSelected: PropTypes.func.isRequired,
+  TouchList_onLoadItems: PropTypes.func.isRequired,
   TouchList_slide: PropTypes.object.isRequired,
 }
 

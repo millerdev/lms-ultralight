@@ -83,8 +83,8 @@ export const advanceToNextTrackAfter = (() => {
   }
 })()
 
-export function loadPlayer(playerid, fetchPlaylist=false, options={}) {
-  const args = fetchPlaylist ? [0, 100] : []
+export function loadPlayer(playerid, fetchPlaylist, options={}) {
+  const args = fetchPlaylist === true ? [0, 100] : (fetchPlaylist || [])
   return lms.getPlayerStatus(playerid, ...args)
     .then(data => actions.gotPlayer(data, options))
     .catch(err => operationError("Cannot load player", err))

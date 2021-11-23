@@ -643,6 +643,122 @@ describe('playlist', function () {
       })
       assert(asserted, 'rewire assertions not run')
     })
+
+    describe("load ranges", function () {
+      function test(before, config, after=0, expect="") {
+        const cfg = JSON.stringify([before, config, after])
+        it(`for ${cfg} should be '${expect}'`, function () {
+          const numTracks = before + config.length + after
+          const state = makeState(config, before, numTracks)
+          state.dispatch = {}
+          const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+          const actual = _.map(
+            playlist.loadRanges,
+            (item, key) => `${config[key]}:${item[0]}-${item[1]}`
+          ).join(",")
+          assert.equal(actual, expect)
+        })
+      }
+
+      test(0, "ab")
+      test(0, "abcdefghijkl")
+      test(2, "ab", 0, "a:1-0")
+      test(0, "ab", 2, "b:2-3")
+      test(2, "abcdef", 0, "a:1-0,e:1-0")
+      test(0, "abcdef", 140, "b:6-145,f:6-145")
+      test(5, "ab", 5, "a:4-0,b:7-11")
+      test(5, "abc", 5, "a:4-0,c:8-12")
+      test(3, "abcdefghijkl", 7, "a:2-0,e:2-0,h:15-21,l:15-21")
+    })
+
+    describe("load items", function () {
+      it("should dispatch load", function () {
+        const state = makeState("abcdef", 10)
+        state.dispatch = {}
+        const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+        const promise = promiseChecker()
+        rewire(module, {
+          loadPlayer: (playerid, indexRange) => {
+            assert.equal(playerid, PLAYERID)
+            assert.deepEqual(indexRange, [0, 9])
+            return promise
+              .then(dx => assert.equal(dx, state.dispatch))
+              .then(unloading => unloading())
+              .done()
+          },
+        }, () => {
+          playlist.onLoadItems([9, 0])
+        })
+        promise.check()
+        assert.deepEqual(Array.from(playlist.loading), [])
+      })
+
+      it("should load at most 100 items at beginning", function () {
+        const state = makeState("abcdef", 151)
+        const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+        rewire(module, {
+          loadPlayer: (playerid, indexRange) => {
+            assert.deepEqual(indexRange, [50, 150])
+            return fakePromise
+          },
+        }, () => {
+          playlist.onLoadItems([150, 0])
+        })
+        assert(playlist.loading.has('[150,0]'), 'not loading')
+      })
+
+      it("should load at most 100 items at end", function () {
+        const state = makeState("abcdef", 0, 200)
+        const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+        rewire(module, {
+          loadPlayer: (playerid, indexRange) => {
+            assert.deepEqual(indexRange, [6, 106])
+            return fakePromise
+          },
+        }, () => {
+          playlist.onLoadItems([6, 199])
+        })
+        assert(playlist.loading.has('[6,199]'), 'not loading')
+      })
+
+      it("should dedup loads", function () {
+        const state = makeState("abcdef", 201, 500)
+        const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+        const loads = []
+        rewire(module, {
+          loadPlayer: (playerid, indexRange) => {
+            loads.push(indexRange)
+            return fakePromise
+          },
+        }, () => {
+          playlist.onLoadItems([207, 500])
+          playlist.onLoadItems([200, 0])
+          playlist.onLoadItems([207, 500])
+          playlist.onLoadItems([200, 0])
+        })
+        assert.deepEqual(loads, [
+          [207, 307],
+          [100, 200],
+        ])
+      })
+
+      it("should ignore undefined range", function () {
+        const state = makeState("abcdef", 151)
+        const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+        const loads = []
+        rewire(module, {
+          loadPlayer: (playerid, indexRange) => {
+            loads.push(indexRange)
+            return fakePromise
+          },
+        }, () => {
+          playlist.onLoadItems()
+        })
+        assert.equal(loads.length, 0)
+      })
+
+      const fakePromise = {then: () => fakePromise}
+    })
   })
 })
 
@@ -655,10 +771,10 @@ describe('playlist', function () {
  * - letter in (parens) is current track, defaults to first track
  * - letters after " | " are lastSelected items
  */
-function makeState(config, firstIndex=0) {
+function makeState(config, firstIndex=0, numTracks) {
   const index = c => indexMap[c.toLowerCase()]
   const match = /^((?:[a-z]|\([a-z]\))+)(?: \| ([a-z]*))?$/i.exec(config)
-  const playchars = _.filter(match[1].split(""), c => /[a-z]/i.test(c))
+  const playchars = match ? _.filter(match[1].split(""), c => /[a-z]/i.test(c)) : []
   const indexMap = _.fromPairs(
     playchars.map((c, i) => [c.toLowerCase(), i + firstIndex])
   )
@@ -680,7 +796,7 @@ function makeState(config, firstIndex=0) {
     ),
     currentIndex: current,
     currentTrack: items[current],
-    numTracks: playchars.length,
+    numTracks: _.max([numTracks || 0, playchars.length]),
   }
 }
 

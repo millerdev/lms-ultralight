@@ -2,7 +2,11 @@
 
 - fix playlist only loads first 100 tracks
 x  - pad list with space for unloaded items
-  - load more results on scroll near unloaded items
+x  - load more results on scroll near unloaded items
+    - clean up `loadPlayer(playerid, true)` calls
+    - try to refactor more of the logic into TouchList
+      - unify `index` and `playlist index`
+      - TouchList `props.items`?
   - load items near playing item (9 before, 90 after)
   - scroll to current item on playlist advance
     unless selection has changed in the past 5 minutes
