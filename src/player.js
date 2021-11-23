@@ -83,8 +83,18 @@ export const advanceToNextTrackAfter = (() => {
   }
 })()
 
-export function loadPlayer(playerid, fetchPlaylist, options={}) {
-  const args = fetchPlaylist === true ? [0, 100] : (fetchPlaylist || [])
+/**
+ * Fetch player state from the server
+ *
+ * @param playerid
+ * @param fetchRange Range of playlist items to fetch: `[index, qty]`.
+ * Legacy: load the first 100 items if `true`. Playlist items are not
+ * fetched by default.
+ * @param options See `reducer.gotPlayer()`.
+ * @returns A promise.
+ */
+export function loadPlayer(playerid, fetchRange=[], options={}) {
+  const args = fetchRange === true ? [0, 100] : fetchRange
   return lms.getPlayerStatus(playerid, ...args)
     .then(data => actions.gotPlayer(data, options))
     .catch(err => operationError("Cannot load player", err))
@@ -100,7 +110,7 @@ export const loadPlayerAfter = (() => {
     }
     const wait = fetchBackoff()
     return time.after(wait, () =>
-      loadPlayer(playerid, false, {resetInterval: false})
+      loadPlayer(playerid, [], {resetInterval: false})
     )
   }
 })()

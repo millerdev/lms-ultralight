@@ -605,9 +605,9 @@ describe('playlist', function () {
             .then(callback => { assert.equal(callback, state.dispatch) })
             .done()
         }},
-        loadPlayer: (playerid, fetchPlaylist) => {
+        loadPlayer: (playerid, fetchRange) => {
           assert.equal(playerid, PLAYERID)
-          assert.equal(fetchPlaylist, undefined)
+          assert.equal(fetchRange, undefined)
         },
       }, () => {
         playlist.playTrackAtIndex(103)
@@ -632,9 +632,9 @@ describe('playlist', function () {
             .then(callback => assert.equal(callback, state.dispatch))
             .done()
         },
-        loadPlayer: (playerid, fetchPlaylist) => {
+        loadPlayer: (playerid, fetchRange) => {
           assert.equal(playerid, PLAYERID)
-          assert.equal(fetchPlaylist, undefined)
+          assert.equal(fetchRange, undefined)
         },
       }, () => {
         playlist.deleteItems()
@@ -659,9 +659,9 @@ describe('playlist', function () {
             .then(callback => { assert.equal(callback, state.dispatch) })
             .done()
         }},
-        loadPlayer: (playerid, fetchPlaylist) => {
+        loadPlayer: (playerid, fetchRange) => {
           assert.equal(playerid, PLAYERID)
-          assert.equal(fetchPlaylist, undefined)
+          assert.equal(fetchRange, undefined)
         },
       }, () => {
         playlist.deleteItems()
@@ -700,9 +700,9 @@ describe('playlist', function () {
             .then(callback => { assert.equal(callback, state.dispatch) })
             .done()
         },
-        loadPlayer: (playerid, fetchPlaylist) => {
+        loadPlayer: (playerid, fetchRange) => {
           assert.equal(playerid, PLAYERID)
-          assert.equal(fetchPlaylist, undefined)
+          assert.equal(fetchRange, undefined)
         },
       }, () => {
         playlist.onMoveItems(new Set([1]), 6)

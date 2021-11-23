@@ -3,7 +3,7 @@
 - fix playlist only loads first 100 tracks
 x  - pad list with space for unloaded items
 x  - load more results on scroll near unloaded items
-    - clean up `loadPlayer(playerid, true)` calls
+x    - clean up `loadPlayer(playerid, ...)` calls
     - try to refactor more of the logic into TouchList
       - unify `index` and `playlist index`
       - TouchList `props.items`?
