@@ -100,6 +100,7 @@ module.exports = {
       },
       '/favicon.ico': REMOTE_LMS_URL,
     },
+    client: {overlay: {errors: true, warnings: false}},
   },
   target: 'web',
   optimization: {
