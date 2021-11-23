@@ -89,7 +89,7 @@ describe('playlist', function () {
           isPlaylistUpdate: true,
           playlist_loop: PLAYLIST_2,
         })))
-        assert.deepEqual(state, {...STATE, items: STATE.items.concat(PLAYLIST_2)})
+        assert.deepEqual(state, {...STATE, items: PLAYLIST_2})
       })
 
       it('should not fetch playlist on playlist update and playlist not changed', function () {
@@ -512,6 +512,67 @@ describe('playlist', function () {
     })
   })
 
+  describe("mergePlaylist", function () {
+    it("should merge identical lists", function () {
+      const result = mod.mergePlaylist(PLAYLIST_1, PLAYLIST_1)
+      assert.deepEqual(result, PLAYLIST_1)
+    })
+
+    it("should discard non-contiguous old items before new items", function () {
+      const result = mod.mergePlaylist(PLAYLIST_2, PLAYLIST_0)
+      assert.equal(result, PLAYLIST_2)  // note identity equality (===)
+    })
+
+    it("should discard non-contiguous old items after new items", function () {
+      const result = mod.mergePlaylist(PLAYLIST_0, PLAYLIST_2)
+      assert.equal(result, PLAYLIST_0)  // note identity equality (===)
+    })
+
+    it("should merge [1] into [1,2,3]", function () {
+      const one = {...PLAYLIST_1[0], title: "new title"}
+      const result = mod.mergePlaylist([one], PLAYLIST_1)
+      assert.deepEqual(result, [one, PLAYLIST_1[1], PLAYLIST_1[2]])
+    })
+
+    it("should merge [1,2,3] into [1]", function () {
+      const one = {...PLAYLIST_1[0], title: "old title"}
+      const result = mod.mergePlaylist(PLAYLIST_1, [one])
+      assert.deepEqual(result, PLAYLIST_1)
+    })
+
+    it("should merge [1,2,3] into [2]", function () {
+      const two = {...PLAYLIST_1[1], title: "old title"}
+      const result = mod.mergePlaylist(PLAYLIST_1, [two])
+      assert.deepEqual(result, PLAYLIST_1)
+    })
+
+    it("should merge [1,2,3] into [3,4,5]", function () {
+      const result = mod.mergePlaylist(PLAYLIST_1, PLAYLIST_OVERLAP)
+      assert.deepEqual(result, PLAYLIST_1.concat(PLAYLIST_OVERLAP.slice(1)))
+    })
+
+    it("should merge [1,2,3] into [4,5,6]", function () {
+      const result = mod.mergePlaylist(PLAYLIST_1, PLAYLIST_2)
+      assert.deepEqual(result, PLAYLIST_1.concat(PLAYLIST_2))
+    })
+
+    it("should merge [2] into [1,2,3]", function () {
+      const two = {...PLAYLIST_1[1], title: "new title"}
+      const result = mod.mergePlaylist([two], PLAYLIST_1)
+      assert.deepEqual(result, [PLAYLIST_1[0], two, PLAYLIST_1[2]])
+    })
+
+    it("should merge [3,4,5] into [1,2,3]", function () {
+      const result = mod.mergePlaylist(PLAYLIST_OVERLAP, PLAYLIST_1)
+      assert.deepEqual(result, PLAYLIST_1.slice(0, -1).concat(PLAYLIST_OVERLAP))
+    })
+
+    it("should merge [4,5,6] into [1,2,3]", function () {
+      const result = mod.mergePlaylist(PLAYLIST_2, PLAYLIST_1)
+      assert.deepEqual(result, PLAYLIST_1.concat(PLAYLIST_2))
+    })
+  })
+
   describe("Playlist component", function () {
     const opts = {context: {addKeydownHandler: () => {}}}
 
@@ -881,17 +942,17 @@ const PLAYLIST_OVERLAP = [
   {
     "url": "file:///...",
     "playlist index": 3,
-    "title": "song 4",
+    "title": "song 4 overlapped",
     "id": 1004,
   }, {
     "url": "file:///...",
     "playlist index": 4,
-    "title": "song 5",
+    "title": "song 5 overlapped",
     "id": 1005,
   }, {
     "url": "file:///...",
     "playlist index": 5,
-    "title": "song 6",
+    "title": "song 6 overlapped",
     "id": 1006,
   },
 ]

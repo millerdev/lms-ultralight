@@ -45,7 +45,7 @@ export const reducer = makeReducer({
       if (status.isPlaylistUpdate || changed) {
         // TODO merge will return wrong result if all items in playlist have
         // changed but only a subset is loaded in this update
-        data.items = mergePlaylist(state.items, list)
+        data.items = mergePlaylist(list, state.items)
         if (gotCurrent) {
           data.currentTrack = list[index - list[0][IX]]
         }
@@ -288,43 +288,32 @@ function isPlaylistChanged(prev, next) {
 }
 
 /**
- * Merge array of playlist items into existing playlist
+ * Merge newly loaded playlist items into existing playlist
  *
- * @param list - Array of playlist items.
- * @param array - Array of objects.
- * @returns Merged Array of playlist items.
+ * @param newList Array of new playlist items.
+ * @param oldList Array of old/existing playlist items.
+ * @returns Merged Array of playlist items. Old items are discarded if
+ * new items are non-contiguous or not overlapping.
  */
-function mergePlaylist(list, array) {
-  function next() {
-    if (i < len) {
-      const obj = array[i]
-      i += 1
-      return obj
-    }
-    return null
+export function mergePlaylist(newList, oldList) {
+  const newLen = newList.length
+  if (!newLen) {
+    return oldList
   }
-  const len = array.length
-  if (!len) {
-    return list
+  const oldLen = oldList.length
+  if (!oldLen
+      || oldList[oldLen - 1][IX] + 1 < newList[0][IX]
+      || newList[newLen - 1][IX] + 1 < oldList[0][IX]) {
+    return newList
   }
-  const merged = []
-  let i = 0
-  let newItem = next()
-  list.forEach(item => {
-    const index = item[IX]
-    while (newItem && newItem[IX] < index) {
-      merged.push(newItem)
-      newItem = next()
-    }
-    if (newItem && newItem[IX] !== index) {
-      merged.push(item)
-    }
-  })
-  while (newItem) {
-    merged.push(newItem)
-    newItem = next()
+  let start = 0, stop
+  if (newList[0][IX] < oldList[0][IX]) {
+    stop = newLen - (oldList[0][IX] - newList[0][IX])
+  } else {
+    start = newList[0][IX] - oldList[0][IX]
+    stop = start + newLen
   }
-  return merged
+  return oldList.slice(0, start).concat(newList, oldList.slice(stop))
 }
 
 export function loadTrackInfo(trackId) {
