@@ -589,6 +589,32 @@ describe('playlist', function () {
       assert.deepEqual(dom.find("TouchList").props().selection, new Set([2, 4]))
     })
 
+    it(`should not fetch playlist on play track at index`, () => {
+      const state = makeState("abcdef", 100, 200)
+      state.dispatch = {}
+      const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+      const promise = promiseChecker()
+      rewire(module, {
+        lms: {command: (playerid, ...args) => {
+          assert.equal(playerid, PLAYERID)
+          assert.deepEqual(args, ["playlist", "index", 103])
+          return promise
+            .then(() => {/* ignore clear selection */})
+            .then(loadPlayer => loadPlayer())
+            .catch(() => {/* ignore error */})
+            .then(callback => { assert.equal(callback, state.dispatch) })
+            .done()
+        }},
+        loadPlayer: (playerid, fetchPlaylist) => {
+          assert.equal(playerid, PLAYERID)
+          assert.equal(fetchPlaylist, undefined)
+        },
+      }, () => {
+        playlist.playTrackAtIndex(103)
+      })
+      promise.check()
+    })
+
     it('should convert selection indexes on delete', function () {
       const state = makeState("abCdEf", 10)
       state.dispatch = {}
@@ -608,7 +634,7 @@ describe('playlist', function () {
         },
         loadPlayer: (playerid, fetchPlaylist) => {
           assert.equal(playerid, PLAYERID)
-          assert(fetchPlaylist, 'fetchPlaylist is not true')
+          assert.equal(fetchPlaylist, undefined)
         },
       }, () => {
         playlist.deleteItems()
@@ -635,7 +661,7 @@ describe('playlist', function () {
         }},
         loadPlayer: (playerid, fetchPlaylist) => {
           assert.equal(playerid, PLAYERID)
-          assert(fetchPlaylist, 'fetchPlaylist is not true')
+          assert.equal(fetchPlaylist, undefined)
         },
       }, () => {
         playlist.deleteItems()
@@ -676,7 +702,7 @@ describe('playlist', function () {
         },
         loadPlayer: (playerid, fetchPlaylist) => {
           assert.equal(playerid, PLAYERID)
-          assert(fetchPlaylist, 'fetchPlaylist is not true')
+          assert.equal(fetchPlaylist, undefined)
         },
       }, () => {
         playlist.onMoveItems(new Set([1]), 6)

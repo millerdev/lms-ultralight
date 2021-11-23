@@ -399,7 +399,7 @@ export class Playlist extends React.Component {
     const { playerid, dispatch } = this.props
     lms.command(playerid, "playlist", "index", playlistIndex)
       .then(() => dispatch(actions.clearSelection()))
-      .then(() => loadPlayer(playerid, true))
+      .then(() => loadPlayer(playerid))
       .catch(err => operationError("Cannot play", err))
       .then(dispatch)
     this.hideTrackInfo()
@@ -432,7 +432,7 @@ export class Playlist extends React.Component {
     const plSelection = new Set([...selection].map(i => this.toPlaylistIndex(i)))
     const plToIndex = this.toPlaylistIndex(toIndex, true)
     moveItems(plSelection, plToIndex, playerid, dispatch, lms)
-      .then(() => loadPlayer(playerid, true))
+      .then(() => loadPlayer(playerid))
       .catch(err => operationError("Move error", err))
       .then(dispatch)
   }
@@ -457,12 +457,12 @@ export class Playlist extends React.Component {
     this.setState({prompt: {}})
     if (plSelection.length) {
       deleteSelection(playerid, plSelection, dispatch, lms)
-        .then(() => loadPlayer(playerid, true))
+        .then(() => loadPlayer(playerid))
         .catch(err => operationError("Delete error", err))
         .then(dispatch)
     } else {
       lms.command(playerid, "playlist", "clear")
-        .then(() => loadPlayer(playerid, true))
+        .then(() => loadPlayer(playerid))
         .catch(err => operationError("Cannot clear playlist", err))
         .then(dispatch)
     }
