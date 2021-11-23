@@ -396,6 +396,9 @@ export class Playlist extends React.Component {
     })
     this.getSelection = () => get(this.props.items, this.props.selection)
   }
+  componentDidCatch(error, errorInfo) {
+    window.console.error(error, errorInfo)
+  }
   toPlaylistIndex(touchlistIndex, maybeAtEnd=false) {
     if (maybeAtEnd && touchlistIndex === this.props.items.length) {
       return this.props.items[touchlistIndex - 1][IX] + 1
