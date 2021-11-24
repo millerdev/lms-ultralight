@@ -4,9 +4,10 @@
 x  - pad list with space for unloaded items
 x  - load more results on scroll near unloaded items
 x    - clean up `loadPlayer(playerid, ...)` calls
-    - try to refactor more of the logic into TouchList
-      - unify `index` and `playlist index`
-      - TouchList `props.items`?
+x  - load items when "loading" region consumes viewport
+  - remove react-resize-aware (use react-resize-detector instead)
+  - refactor loading logic into TouchList
+    - unify `index` and `playlist index`
   - load items near playing item (9 before, 90 after)
   - scroll to current item on playlist advance
     unless selection has changed in the past 5 minutes
@@ -18,6 +19,7 @@ x    - clean up `loadPlayer(playerid, ...)` calls
   - click "The Moody Blues"
   - click "No Album"
   - results should only contain "Moody Blues" tracks
+- add lazy loading to menu lists
 - browse music folder
   - clickable path elements in song info
 - fix media query override in semantic.min.css

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { useInView } from 'react-intersection-observer'
-import Measure from 'react-measure'
+import { useResizeDetector } from 'react-resize-detector'
 import { List, Ref } from 'semantic-ui-react'
 
 import './touch.styl'
@@ -81,7 +81,7 @@ export class TouchList extends React.Component {
   getChildContext() {
     return {
       TouchList_isSelected: this.isSelected,
-      TouchList_onLoadItems: this.props.onLoadItems || (() => null),
+      TouchList_onLoadItems: this.props.onLoadItems || (() => {}),
       TouchList_onItemSelected: this.onItemSelected,
       TouchList_slide: this.slide,
     }
@@ -209,19 +209,35 @@ export class TouchList extends React.Component {
   }
 }
 
-export const LoadingList = ({items, itemsOffset, itemsTotal, ...props}) => {
-  return <Measure client>{({ measureRef, contentRect }) => {
-    const before = itemsOffset || 0
-    const middle = items ? items.length : 0
-    const after = _.max([(itemsTotal || 0) - before - middle, 0])
-    const itemHeight = middle ? contentRect.client.height / middle : 0
-    props.style = {
-      ...props.style,
-      marginTop: before * itemHeight || 0,
-      marginBottom: after * itemHeight || 0,
-    }
-    return <Ref innerRef={measureRef}><List {...props} /></Ref>
-  }}</Measure>
+export const LoadingList = ({
+  items, itemsOffset, itemsTotal, onLoadItems=(() => {}), ...props
+}) => {
+  const { height, ref } = useResizeDetector({handleWidth: false})
+  // debounce wait (200) should be enough time to render and resize
+  const [debounced] = React.useState(() => _.debounce(v => v, 200))
+  // use leading edge when debounced value is undefined, else trailing
+  const stabilize = value => value && debounced(value) || value
+  const before = itemsOffset || 0
+  const middle = items ? items.length : 0
+  const after = _.max([(itemsTotal || 0) - before - middle, 0])
+  const itemHeight = stabilize(height / middle)
+  return <>
+    <LoadingSpacer
+      height={before * itemHeight}
+      loadItems={() => onLoadItems([0, before])}
+    />
+    <Ref innerRef={ref}><List {...props} /></Ref>
+    <LoadingSpacer
+      height={after * itemHeight}
+      loadItems={() => onLoadItems([before + middle, itemsTotal])}
+    />
+  </>
+}
+
+const LoadingSpacer = ({ height, loadItems }) => {
+  const { ref, inView } = useInView({skip: !height})
+  height && inView && loadItems()
+  return height ? <Ref innerRef={ref}><div style={{height}} /></Ref> : null
 }
 
 TouchList.childContextTypes = {
@@ -232,11 +248,11 @@ TouchList.childContextTypes = {
 }
 
 const TOUCHLIST_PROPS = {
-  // items* props are used by LoadingList
+  // "items" props are used by LoadingList
   // items: true,
   // itemsOffset: true,
   // itemsTotal: true,
-  onLoadItems: true,
+  // onLoadItems: true,
   selection: true,
   dataType: true,
   dropTypes: true,
@@ -322,10 +338,7 @@ export class TouchListItem extends React.Component {
 }
 
 export const LoadingListItem = ({loadItems, loadContext, index, ...props}) => {
-  const { ref, inView } = useInView({
-    triggerOnce: false,
-    skip: loadContext === undefined,
-  })
+  const { ref, inView } = useInView({skip: loadContext === undefined})
   inView && loadItems(loadContext, index)
   return <Ref innerRef={ref}><List.Item {...props} /></Ref>
 }

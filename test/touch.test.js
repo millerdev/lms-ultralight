@@ -106,61 +106,52 @@ function makeConfig(touchlist, selection) {
 }
 
 describe("LoadingList", function () {
-  let list
-
-  it("with no attributes should have no margins", function () {
-    list = render(<mod.LoadingList />)
-    const style = list.first().attr("style")
-    assert.equal(style, 'margin-top:0;margin-bottom:0')
-  })
-
-  it("should augment style", function () {
-    list = render(<mod.LoadingList style={{color: "red"}} />)
-    const style = list.first().attr("style")
-    assert.equal(style, 'color:red;margin-top:0;margin-bottom:0')
-  })
-
-  it("with items but not before/after should have no margins", function () {
-    renderWithClient({height: 10}, {items: [1, 2]}, list => {
-      const style = list.first().attr("style")
-      assert.equal(style, 'margin-top:0;margin-bottom:0')
+  it("with no props should not have spacers", function () {
+    renderWithHeight(undefined, {}, list => {
+      assert.equal(list.length, 1)
     })
   })
 
-  it("with items and before should have top margin", function () {
-    renderWithClient({height: 10}, {items: [1, 2], itemsOffset: 1}, list => {
-      const style = list.first().attr("style")
-      assert.equal(style, 'margin-top:5px;margin-bottom:0')
+  it("with items but not before/after should not have spacers", function () {
+    renderWithHeight(10, {items: [1, 2]}, list => {
+      assert.equal(list.length, 1)
     })
   })
 
-  it("with items and after should have bottom margin", function () {
-    renderWithClient({height: 12}, {items: [1, 2], itemsTotal: 3}, list => {
-      const style = list.first().attr("style")
-      assert.equal(style, 'margin-top:0;margin-bottom:6px')
+  it("with items and before should have space above", function () {
+    renderWithHeight(10, {items: [1, 2], itemsOffset: 1}, list => {
+      assert.equal(list.length, 2)
+      assert.equal(list.first().attr("style"), 'height:5px')
     })
   })
 
-  it("with before and after should have top and bottom margins", function () {
+  it("with items and after should have space below", function () {
+    renderWithHeight(12, {items: [1, 2], itemsTotal: 3}, list => {
+      assert.equal(list.length, 2)
+      assert.equal(list.last().attr("style"), 'height:6px')
+    })
+  })
+
+  it("with before and after should have space above and below", function () {
     const props = {items: [1, 2], itemsOffset: 1, itemsTotal: 6}
-    renderWithClient({height: 8}, props, list => {
-      const style = list.first().attr("style")
-      assert.equal(style, 'margin-top:4px;margin-bottom:12px')
+    renderWithHeight(8, props, list => {
+      assert.equal(list.length, 3)
+      assert.equal(list.first().attr("style"), 'height:4px')
+      assert.equal(list.last().attr("style"), 'height:12px')
     })
   })
 
-  it("with empty client should have no margins", function () {
+  it("with empty client should not have spacers", function () {
     const props = {items: [1, 2], itemsOffset: 1, itemsTotal: 6}
-    renderWithClient({}, props, list => {
-      const style = list.first().attr("style")
-      assert.equal(style, 'margin-top:0;margin-bottom:0')
+    renderWithHeight(undefined, props, list => {
+      assert.equal(list.length, 1)
     })
   })
 
-  function renderWithClient(client, props, check) {
+  function renderWithHeight(height, props, check) {
     let asserted = false
     rewire(module, {
-      Measure: ({children}) => children({contentRect: {client}}),
+      useResizeDetector: () => ({height}),
     }, () => {
       check(render(<mod.LoadingList {...props} />))
       asserted = true
