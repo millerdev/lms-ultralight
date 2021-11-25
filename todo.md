@@ -5,10 +5,13 @@ x  - pad list with space for unloaded items
 x  - load more results on scroll near unloaded items
 x    - clean up `loadPlayer(playerid, ...)` calls
 x  - load items when "loading" region consumes viewport
+x  - refactor loading logic into TouchList
   - remove react-resize-aware (use react-resize-detector instead)
-  - refactor loading logic into TouchList
-    - unify `index` and `playlist index`
+  - optimize LoadingContext change causes every item in the list to re-render
+    should only re-render "loading" items
   - load items near playing item (9 before, 90 after)
+  - optimize <LoadingListItem> renders 3x per click to select item
+    (props is a new object on each render)
   - scroll to current item on playlist advance
     unless selection has changed in the past 5 minutes
   - show loading indicator in unloaded space
@@ -28,6 +31,7 @@ x  - load items when "loading" region consumes viewport
 - fix icons
   - menu drill in (+ is the wrong icon)
   - playlist play/info (icons are too big)
+- refactor class components into functional components with hooks
 
 - upgrade libraries to latest versions
 

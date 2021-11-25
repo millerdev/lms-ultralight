@@ -731,33 +731,6 @@ describe('playlist', function () {
       assert(asserted, 'rewire assertions not run')
     })
 
-    describe("load ranges", function () {
-      function test(before, config, after=0, expect="") {
-        const cfg = JSON.stringify([before, config, after])
-        it(`for ${cfg} should be '${expect}'`, function () {
-          const numTracks = before + config.length + after
-          const state = makeState(config, before, numTracks)
-          state.dispatch = {}
-          const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
-          const actual = _.map(
-            playlist.loadRanges,
-            (item, key) => `${config[key]}:${item[0]}-${item[1]}`
-          ).join(",")
-          assert.equal(actual, expect)
-        })
-      }
-
-      test(0, "ab")
-      test(0, "abcdefghijkl")
-      test(2, "ab", 0, "a:2-0")
-      test(0, "ab", 2, "b:2-4")
-      test(2, "abcdef", 0, "a:2-0,e:2-0")
-      test(0, "abcdef", 140, "b:6-146,f:6-146")
-      test(5, "ab", 5, "a:5-0,b:7-12")
-      test(5, "abc", 5, "a:5-0,c:8-13")
-      test(3, "abcdefghijkl", 7, "a:3-0,e:3-0,h:15-22,l:15-22")
-    })
-
     describe("load items", function () {
       it("should dispatch load", function () {
         const state = makeState("abcdef", 10)

@@ -6,6 +6,7 @@ import { useInView } from 'react-intersection-observer'
 import { useResizeDetector } from 'react-resize-detector'
 import { List, Ref } from 'semantic-ui-react'
 
+import { memoize } from './util'
 import './touch.styl'
 
 export const SINGLE = "single"
@@ -46,10 +47,11 @@ export const TO_LAST = "to last"
  *   Signature: `onSelectionChanged(selection, isTouch)`
  * - onLoadItems: Callback function to load more items when approaching
  *   a boundary of already-loaded items. Will only be called if
- *   `itemsOffset` or `itemsTotal` are provided. The first argument is
- *   the `loadContext` of the nearest `TouchListItem` that triggered the
- *   load event.
- *   Signature: `onLoadItems(<loadContext>, <itemIndex>)`
+ *   `itemsOffset` or `itemsTotal` are provided. The `range` argument
+ *   is a two-item array of indices with the first being the most
+ *   important to load and the second being least important; the first
+ *   will be greater than the second when loading above `items`.
+ *   Signature: `onLoadItems(<range>)`
  */
 export class TouchList extends React.Component {
   constructor(props) {
@@ -81,7 +83,6 @@ export class TouchList extends React.Component {
   getChildContext() {
     return {
       TouchList_isSelected: this.isSelected,
-      TouchList_onLoadItems: this.props.onLoadItems || (() => {}),
       TouchList_onItemSelected: this.onItemSelected,
       TouchList_slide: this.slide,
     }
@@ -210,39 +211,59 @@ export class TouchList extends React.Component {
 }
 
 export const LoadingList = ({
-  items, itemsOffset, itemsTotal, onLoadItems=(() => {}), ...props
+  items, itemsOffset, itemsTotal, onLoadItems, ...props
 }) => {
   const { height, ref } = useResizeDetector({handleWidth: false})
   // debounce wait (200) should be enough time to render and resize
   const [debounced] = React.useState(() => _.debounce(v => v, 200))
   // use leading edge when debounced value is undefined, else trailing
   const stabilize = value => value && debounced(value) || value
-  const before = itemsOffset || 0
-  const middle = items ? items.length : 0
-  const after = _.max([(itemsTotal || 0) - before - middle, 0])
-  const itemHeight = stabilize(height / middle)
-  return <>
-    <LoadingSpacer
-      height={before * itemHeight}
-      loadItems={() => onLoadItems([0, before])}
-    />
+  const count = items ? items.length : 0
+  const itemHeight = stabilize(height / count)
+  const cx = buildLoadingContext(itemsOffset, count, itemsTotal, onLoadItems)
+  return <LoadingContext.Provider value={cx}>
+    <LoadingSpacer height={cx.before * itemHeight} range={cx.above} />
     <Ref innerRef={ref}><List {...props} /></Ref>
-    <LoadingSpacer
-      height={after * itemHeight}
-      loadItems={() => onLoadItems([before + middle, itemsTotal])}
-    />
-  </>
+    <LoadingSpacer height={cx.after * itemHeight} range={cx.below} />
+  </LoadingContext.Provider>
 }
 
-const LoadingSpacer = ({ height, loadItems }) => {
+const LoadingContext = React.createContext()
+const noop = () => {}
+
+export const buildLoadingContext = memoize((
+  offset, count, total, onLoadItems=noop,
+) => {
+  const before = offset || 0
+  const after = _.max([(total || 0) - before - count, 0])
+  const above = [before, 0]
+  const below = [before + count, total]
+  const ranges = {}
+  const tx = 10  // offset of inner trigger item
+  const st = tx - 1
+  if (count) {
+    if (above[0]) {
+      _.range(0, _.min([tx, count]), st).forEach(i => ranges[i] = above)
+    }
+    const last = count - 1
+    if (below[0] !== below[1]) {
+      _.range(last, _.max([0, last - tx]), -st).forEach(i => ranges[i] = below)
+    }
+  }
+  return {before, after, above, below, ranges, onLoadItems}
+})
+
+const LoadingSpacer = ({ height, range }) => {
+  const { onLoadItems } = React.useContext(LoadingContext)
   const { ref, inView } = useInView({skip: !height})
-  height && inView && loadItems()
-  return height ? <Ref innerRef={ref}><div style={{height}} /></Ref> : null
+  height && inView && onLoadItems(range)
+  return React.useMemo(() => {
+    return height ? <Ref innerRef={ref}><div style={{height}} /></Ref> : null
+  }, [height, ref])
 }
 
 TouchList.childContextTypes = {
   TouchList_isSelected: PropTypes.func.isRequired,
-  TouchList_onLoadItems: PropTypes.func.isRequired,
   TouchList_onItemSelected: PropTypes.func.isRequired,
   TouchList_slide: PropTypes.object.isRequired,
 }
@@ -268,9 +289,6 @@ const TOUCHLIST_PROPS = {
  *
  * Important props:
  * - index: required unique/consecutive index for this item.
- * - loadContext: optional object to be passed to `TouchList_onLoadItems`
- *   when this item is visible. An intersection observer will be setup
- *   for this item if the value of this property is not `undefined`.
  */
 export class TouchListItem extends React.Component {
   constructor() {
@@ -331,21 +349,21 @@ export class TouchListItem extends React.Component {
         props.className,
       ]).join(" ")}
       draggable
-      loadItems={this.context.TouchList_onLoadItems}
       {...passProps}
     />
   }
 }
 
-export const LoadingListItem = ({loadItems, loadContext, index, ...props}) => {
-  const { ref, inView } = useInView({skip: loadContext === undefined})
-  inView && loadItems(loadContext, index)
+export const LoadingListItem = ({index, ...props}) => {
+  const { onLoadItems, ranges } = React.useContext(LoadingContext)
+  const skip = !_.has(ranges, index)
+  const { ref, inView } = useInView({skip, triggerOnce: true})
+  inView && onLoadItems(ranges[index], index)
   return <Ref innerRef={ref}><List.Item {...props} /></Ref>
 }
 
 const TOUCHLISTITEM_PROPS = {
   //index: true,  consumed by LoadingListItem
-  //loadContext: true,  consumed by LoadingListItem
   onClick: false,
   onDragStart: false,
   onDragOver: false,
@@ -360,7 +378,6 @@ TouchList.Item = TouchListItem
 TouchListItem.contextTypes = {
   TouchList_isSelected: PropTypes.func.isRequired,
   TouchList_onItemSelected: PropTypes.func.isRequired,
-  TouchList_onLoadItems: PropTypes.func.isRequired,
   TouchList_slide: PropTypes.object.isRequired,
 }
 
