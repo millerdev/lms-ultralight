@@ -148,6 +148,13 @@ describe("LoadingList", function () {
     })
   })
 
+  it("with height and zero items should not render spacers", function () {
+    const props = {items: [], itemsOffset: 1, itemsTotal: 6}
+    renderWithHeight(3, props, list => {
+      assert.equal(list.length, 1)
+    })
+  })
+
   function renderWithHeight(height, props, check) {
     let asserted = false
     rewire(module, {

@@ -219,7 +219,7 @@ export const LoadingList = ({
   // use leading edge when debounced value is undefined, else trailing
   const stabilize = value => value && debounced(value) || value
   const count = items ? items.length : 0
-  const itemHeight = stabilize(height / count)
+  const itemHeight = count ? stabilize(height / count) : 0
   const cx = buildLoadingContext(itemsOffset, count, itemsTotal, onLoadItems)
   return <LoadingContext.Provider value={cx}>
     <LoadingSpacer height={cx.before * itemHeight} range={cx.above} />
