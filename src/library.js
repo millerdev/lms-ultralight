@@ -21,32 +21,36 @@ export const defaultState = {
 }
 
 export const reducer = makeReducer({
-  mediaBrowse: (state, action, section) => {
+  mediaBrowse: (state, action, section, range) => {
     return combine(
       {...state, key: section, isLoading: true},
-      [effect(doMediaBrowse, section)],
+      [effect(doMediaBrowse, section, undefined, undefined, range)],
     )
   },
-  mediaSearch: (state, action, query) => {
+  mediaSearch: (state, action, query, range) => {
     if (!query) {
       return defaultState
     }
     const resultKey = (query.section || "") + "?q=" + query.term
     return combine(
       {...state, resultKey, isLoading: true},
-      [effect(doMediaSearch, query, resultKey)],
+      [effect(doMediaSearch, query, resultKey, range)],
     )
   },
-  mediaLoad: (state, action, item) => {
+  mediaLoad: (state, action, item, range) => {
     const resultKey = item.type + "/" + item.id
     return combine(
       {...state, resultKey, isLoading: true},
-      [effect(doMediaLoad, item, resultKey)],
+      [effect(doMediaLoad, item, resultKey, range)],
     )
   },
-  gotMedia: (state, action, result, key) => (
-    state.resultKey === key ? {...state, isLoading: false, result} : state
-  ),
+  gotMedia: (state, action, result, key) => {
+    if (state.resultKey === key) {
+      result = mergeLoops(state.result, result)
+      return {...state, isLoading: false, result}
+    }
+    return state
+  },
   clearMedia: () => defaultState,
   mediaError: (state, action, err, message) => combine(
     {...state, isLoading: false},
@@ -54,7 +58,7 @@ export const reducer = makeReducer({
   ),
 }, defaultState)
 
-const doMediaBrowse = (section, search, key=name) => {
+const doMediaBrowse = (section, search, key="", range=[0, 100]) => {
   const sector = SECTIONS[section]
   const params = ["tags", "sort"]
     .filter(name => _.has(sector, name))
@@ -62,11 +66,10 @@ const doMediaBrowse = (section, search, key=name) => {
   if (search) {
     params.push(search)
   }
-  // TODO pagination
-  return lms.command("::", sector.cmd, 0, 100, ...params)
+  return lms.command("::", sector.cmd, ...range, ...params)
     .then(json => {
       const result = json.data.result
-      return actions.gotMedia(adaptMediaItems(result, sector), key)
+      return actions.gotMedia(adaptMediaItems(result, sector, range[0]), key)
     })
     .catch(error => actions.mediaError(error))
 }
@@ -76,9 +79,9 @@ const doMediaBrowse = (section, search, key=name) => {
  *
  * @returns a promise that resolves to an action
  */
-const doMediaSearch = (query, key) => {
+const doMediaSearch = (query, key, range) => {
   if (query.section) {
-    return doMediaBrowse(query.section, "search:" + query.term, key)
+    return doMediaBrowse(query.section, "search:" + query.term, key, range)
   }
   return lms.command("::", "search", 0, 5, "term:" + query.term, "extended:1")
     .then(({data}) => actions.gotMedia(adaptSearchResult(data.result), key))
@@ -120,7 +123,7 @@ export const mediaInfo = (item, history, basePath, previous) => {
  *
  * @returns a promise that resolves to an action
  */
-const doMediaLoad = (item, key) => {
+const doMediaLoad = (item, key, range) => {
   const sector = NEXT_SECTION[item.type]
   if (!sector) {
     return operationError("Unknown media item", item)
@@ -131,8 +134,7 @@ const doMediaLoad = (item, key) => {
     .map(name => name + ":" + sector[name])
   )
   const cmd = _.isArray(sector.cmd) ? sector.cmd : [sector.cmd]
-  // TODO pagination
-  return lms.command("::", ...cmd, 0, 100, ...params)
+  return lms.command("::", ...cmd, ...range, ...params)
     .then(json => {
       const result = json.data.result
       if (sector.type === "songinfo") {
@@ -141,7 +143,7 @@ const doMediaLoad = (item, key) => {
         songinfo.type = "track"
         return actions.gotMedia({songinfo}, key)
       }
-      return actions.gotMedia(adaptMediaItems(result, sector), key)
+      return actions.gotMedia(adaptMediaItems(result, sector), key, range[0])
     })
     .catch(error => actions.mediaError(error))
 }
@@ -154,9 +156,9 @@ const doMediaLoad = (item, key) => {
  *    - id: item id
  *    - type: item type (sector.type)
  *    - title: human-readable name
+ *    - index: item index
  *    - [tag]: tag key/value pairs per type
  */
-
 const adaptMediaItems = (result, sector, i=0) => [{
   sector,
   count: result.count || 0,
@@ -215,6 +217,17 @@ function getSearchPath(query, basePath) {
     pathname: basePath + (section ? "/" + section : ""),
     search: term ? "?q=" + term : "",
   }
+}
+
+export function mergeLoops(oldResult, newResult) {
+  if (!oldResult || oldResult.length !== newResult.length) {
+    return newResult
+  }
+  const mergeLists = require('./playlist').mergePlaylist
+  return _.zip(oldResult, newResult).map(pair => {
+    const [one, two] = pair
+    return {...two, loop: mergeLists(one.loop, two.loop, "index")}
+  })
 }
 
 const SECTIONS = _.chain([
@@ -418,6 +431,7 @@ export class BrowserItems extends React.Component {
     super(props)
     const resultKey = this.getResultKey()
     this.state = {nav: undefined, resultKey}
+    this.loading = new Set()
     if (!props.isLoading && props.resultKey !== resultKey) {
       props.dispatch(this.getActionFromLocation())
     }
@@ -433,6 +447,7 @@ export class BrowserItems extends React.Component {
         nav: _.get(this.props, "location.state.nav"),
         resultKey: this.getResultKey(),
       })
+      this.loading = new Set()  // HACK proper place to reset loading ranges?
       this.props.dispatch(this.getActionFromLocation())
     }
   }
@@ -456,7 +471,7 @@ export class BrowserItems extends React.Component {
   /**
    * Load results based on current location (path and query string)
    */
-  getActionFromLocation() {
+  getActionFromLocation(range) {
     const {basePath, location} = this.props
     const pathname = location.pathname
 
@@ -467,7 +482,7 @@ export class BrowserItems extends React.Component {
       exact: true,
     })
     if (itemMatch) {
-      return actions.mediaLoad(itemMatch.params)
+      return actions.mediaLoad(itemMatch.params, range)
     }
 
     // path: /:section? + ?q=term
@@ -484,7 +499,7 @@ export class BrowserItems extends React.Component {
         if (queryMatch) {
           query.section = queryMatch.params.section
         }
-        return actions.mediaSearch(query)
+        return actions.mediaSearch(query, range)
       }
     }
 
@@ -494,12 +509,29 @@ export class BrowserItems extends React.Component {
       exact: true,
     })
     if (sectionMatch) {
-      return actions.mediaBrowse(sectionMatch.params.section)
+      return actions.mediaBrowse(sectionMatch.params.section, range)
     }
 
     return actions.clearMedia()
   }
   mediaInfo = item => this.props.mediaInfo(item, this.state.nav)
+  LOAD_SIZE = 100
+  onLoadItems = range => {
+    const rng = JSON.stringify(range)
+    if (!range || this.loading.has(rng)) {
+      return
+    }
+    this.loading.add(rng)  // HACK maybe buggy way of tracking loading ranges
+    let [start, stop] = range
+    if (start > stop) {
+      [start, stop] = [_.max([start - this.LOAD_SIZE, stop]), start]
+    } else {
+      stop = _.min([start + this.LOAD_SIZE, stop])
+    }
+    const action = this.getActionFromLocation([start, stop - start])
+    setTimeout(() => this.props.dispatch(action), 0)
+    // TODO this.loading.delete(key) after range is loaded
+  }
   render() {
     const props = this.props
     const result = props.result
@@ -517,6 +549,7 @@ export class BrowserItems extends React.Component {
         {...props}
         items={result}
         mediaInfo={this.mediaInfo}
+        onLoadItems={this.onLoadItems}
       />
     }
     return <BrowseMenu basePath={props.basePath} loading={loading} />
@@ -549,6 +582,7 @@ export class MediaItems extends React.PureComponent {
       return {
         results,
         items: _.flatten(results.map(obj => obj.loop)),
+        total: _.sum(results.map(obj => obj.count)),
         selection: new Set(),
       }
     })
@@ -595,13 +629,15 @@ export class MediaItems extends React.PureComponent {
     this.forceUpdate()
   }
   render() {
-    const {results, items, selection} = this.getItems()
+    const {results, items, total, selection} = this.getItems()
     return <Media query="(max-width: 500px)">{ smallScreen =>
       <TouchList
           dataType={MEDIA_ITEMS}
           items={items}
+          itemsTotal={total}
           selection={selection}
-          onSelectionChanged={this.onSelectionChanged}>
+          onSelectionChanged={this.onSelectionChanged}
+          onLoadItems={this.props.onLoadItems}>
         {_.map(results, ({sector, loop}) => {
           return (results.length > 1 ? [
             <MediaHeader {...this.props} sector={sector} key={sector.type} />,

@@ -292,25 +292,26 @@ function isPlaylistChanged(prev, next) {
  *
  * @param newList Array of new playlist items.
  * @param oldList Array of old/existing playlist items.
+ * @param key Item index property.
  * @returns Merged Array of playlist items. Old items are discarded if
  * new items are non-contiguous or not overlapping.
  */
-export function mergePlaylist(newList, oldList) {
+export function mergePlaylist(newList, oldList, key=IX) {
   const newLen = newList.length
   if (!newLen) {
     return oldList
   }
   const oldLen = oldList.length
   if (!oldLen
-      || oldList[oldLen - 1][IX] + 1 < newList[0][IX]
-      || newList[newLen - 1][IX] + 1 < oldList[0][IX]) {
+      || oldList[oldLen - 1][key] + 1 < newList[0][key]
+      || newList[newLen - 1][key] + 1 < oldList[0][key]) {
     return newList
   }
   let start = 0, stop
-  if (newList[0][IX] < oldList[0][IX]) {
-    stop = newLen - (oldList[0][IX] - newList[0][IX])
+  if (newList[0][key] < oldList[0][key]) {
+    stop = newLen - (oldList[0][key] - newList[0][key])
   } else {
-    start = newList[0][IX] - oldList[0][IX]
+    start = newList[0][key] - oldList[0][key]
     stop = start + newLen
   }
   return oldList.slice(0, start).concat(newList, oldList.slice(stop))

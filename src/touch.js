@@ -358,7 +358,7 @@ export const LoadingListItem = ({index, ...props}) => {
   const { onLoadItems, ranges } = React.useContext(LoadingContext)
   const skip = !_.has(ranges, index)
   const { ref, inView } = useInView({skip, triggerOnce: true})
-  inView && onLoadItems(ranges[index], index)
+  inView && !skip && onLoadItems(ranges[index], index)
   return <Ref innerRef={ref}><List.Item {...props} /></Ref>
 }
 

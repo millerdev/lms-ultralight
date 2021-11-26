@@ -18,6 +18,40 @@ describe('library', function () {
       })
     })
   })
+
+  describe("mergeLoops", function () {
+    it("should merge contiguous results", function () {
+      const res1 = makeResult(2)
+      const res2 = makeResult(2, 2)
+      assert.deepEqual(
+        mod.mergeLoops(res1, res2),
+        [{loop: [0, 1, 2, 3].map(i => ({index: i}))}],
+      )
+    })
+
+    it("should merge new result into no result", function () {
+      const res1 = []
+      const res2 = makeResult(2)
+      assert.deepEqual(
+        mod.mergeLoops(res1, res2),
+        [{loop: [0, 1].map(i => ({index: i}))}],
+      )
+    })
+
+    it("should merge new result into no result", function () {
+      const res1 = makeResult(2)
+      const res2 = []
+      assert.deepEqual(
+        mod.mergeLoops(res1, res2),
+        [],
+      )
+    })
+
+    function makeResult(count, offset=0) {
+      return [{loop: Array.from(Array(count).keys())
+        .map(i => ({index: i + offset}))}]
+    }
+  })
 })
 
 function makeDispatch(n=1) {

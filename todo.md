@@ -7,16 +7,17 @@ x    - clean up `loadPlayer(playerid, ...)` calls
 x  - load items when "loading" region consumes viewport
 x  - refactor loading logic into TouchList
 x  - remove react-resize-aware (use react-resize-detector instead)
-  - optimize LoadingContext change causes every item in the list to re-render
-    - should only re-render new and "load trigger" items
-    - may be caused by loading new items
   - load items near playing item (9 before, 90 after)
-  - optimize <LoadingListItem> renders 3x per click to select item
-    (props is a new object on each render)
+    - scroll to playing item on load
   - scroll to current item on playlist advance
     unless selection has changed in the past 5 minutes
   - show loading indicator in unloaded space
   - put "Delete" and "Clear" playlist buttons in a bottom/left floating menu
+  - optimize LoadingContext change causes every item in the list to re-render
+    - should only re-render new and "load trigger" items
+    - may be caused by loading new items
+  - optimize <LoadingListItem> renders 3x per click to select item
+    (props is a new object on each render)
 - filter "No Album" results by current section criteria
   example: http://localhost:3000/menu/contributor/286
   - search "moody blues"
