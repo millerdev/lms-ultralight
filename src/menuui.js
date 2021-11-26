@@ -1,7 +1,7 @@
 import React from 'react'
 import Media from 'react-media'
 import { connect } from 'react-redux'
-import ResizeAware from 'react-resize-aware'
+import ReactResizeDetector from 'react-resize-detector'
 import { Link, Route, Switch } from 'react-router-dom'
 import { Icon, Image, Menu, Message, Sidebar, Transition } from 'semantic-ui-react'
 
@@ -80,7 +80,7 @@ class MainView extends React.Component {
     super()
     this.state = {playerHeight: 0}
   }
-  onPlayerResize = ({height}) => {
+  onPlayerResize = (width, height) => {
     if (this.state.playerHeight !== height) {
       this.setState({playerHeight: height})
     }
@@ -90,14 +90,11 @@ class MainView extends React.Component {
     return (
       <div className="mainview ui grid">
         { !props.miniPlayer &&
-          <ResizeAware
-            style={{position: 'fixed'}}
-            className="fixed-top"
-            onResize={this.onPlayerResize}
-            onlyEvent
-          >
-            <Player toggleMiniPlayer={props.toggleMiniPlayer} />
-          </ResizeAware>
+          <ReactResizeDetector onResize={this.onPlayerResize}>
+            <div className="fixed-top">
+              <Player toggleMiniPlayer={props.toggleMiniPlayer} />
+            </div>
+          </ReactResizeDetector>
         }
         <div
           className="sixteen wide column"

@@ -6,9 +6,10 @@ x  - load more results on scroll near unloaded items
 x    - clean up `loadPlayer(playerid, ...)` calls
 x  - load items when "loading" region consumes viewport
 x  - refactor loading logic into TouchList
-  - remove react-resize-aware (use react-resize-detector instead)
+x  - remove react-resize-aware (use react-resize-detector instead)
   - optimize LoadingContext change causes every item in the list to re-render
-    should only re-render "loading" items
+    - should only re-render new and "load trigger" items
+    - may be caused by loading new items
   - load items near playing item (9 before, 90 after)
   - optimize <LoadingListItem> renders 3x per click to select item
     (props is a new object on each render)

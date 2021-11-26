@@ -24,7 +24,6 @@
     "react-intersection-observer": "^8.32.3",
     "react-media": "^1.10.0",
     "react-redux": "^7.2.6",
-    "react-resize-aware": "^3.1.1",
     "react-resize-detector": "^6.7.6",
     "react-router-dom": "^5.3.0",
     "redux": "^4.1.2",
