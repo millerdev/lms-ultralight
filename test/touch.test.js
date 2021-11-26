@@ -191,5 +191,33 @@ describe("LoadingList", function () {
       test(0, 100, 140, "90:100-240,99:100-240")
       test(3, 100, 7, "0:3-0,9:3-0,90:103-110,99:103-110")
     })
+
+    describe("loadItems", function () {
+      it("should load small range at beginning", function () {
+        assert.deepEqual(loadItems([9, 0]), [0, 9])
+      })
+
+      it("should load at most 100 items at beginning", function () {
+        assert.deepEqual(loadItems([150, 0]), [50, 100])
+      })
+
+      it("should load small range at end", function () {
+        assert.deepEqual(loadItems([50, 56]), [50, 6])
+      })
+
+      it("should load at most 100 items at end", function () {
+        assert.deepEqual(loadItems([6, 199]), [6, 100])
+      })
+
+      function loadItems(rng) {
+        function onLoad(range) {
+          result = range
+        }
+        let result = "onLoad not called"
+        const { loadItems } = mod.buildLoadingContext(0, 0, 0, onLoad)
+        loadItems(rng)
+        return result
+      }
+    })
   })
 })

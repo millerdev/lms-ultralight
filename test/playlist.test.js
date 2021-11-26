@@ -747,7 +747,7 @@ describe('playlist', function () {
               .done()
           },
         }, () => {
-          playlist.onLoadItems([9, 0])
+          playlist.onLoadItems([0, 9])
         })
         promise.check()
         assert.deepEqual(Array.from(playlist.loading), [])
@@ -762,9 +762,9 @@ describe('playlist', function () {
             return fakePromise
           },
         }, () => {
-          playlist.onLoadItems([150, 0])
+          playlist.onLoadItems([50, 100])
         })
-        assert(playlist.loading.has('[150,0]'), 'not loading')
+        assert(playlist.loading.has('[50,100]'), 'not loading')
       })
 
       it("should load at most 100 items at end", function () {
@@ -776,9 +776,9 @@ describe('playlist', function () {
             return fakePromise
           },
         }, () => {
-          playlist.onLoadItems([6, 199])
+          playlist.onLoadItems([6, 100])
         })
-        assert(playlist.loading.has('[6,199]'), 'not loading')
+        assert(playlist.loading.has('[6,100]'), 'not loading')
       })
 
       it("should dedup loads", function () {
@@ -791,10 +791,10 @@ describe('playlist', function () {
             return fakePromise
           },
         }, () => {
-          playlist.onLoadItems([207, 500])
-          playlist.onLoadItems([200, 0])
-          playlist.onLoadItems([207, 500])
-          playlist.onLoadItems([200, 0])
+          playlist.onLoadItems([207, 100])
+          playlist.onLoadItems([100, 100])
+          playlist.onLoadItems([207, 100])
+          playlist.onLoadItems([100, 100])
         })
         assert.deepEqual(loads, [
           [207, 100],

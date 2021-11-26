@@ -515,20 +515,13 @@ export class BrowserItems extends React.Component {
     return actions.clearMedia()
   }
   mediaInfo = item => this.props.mediaInfo(item, this.state.nav)
-  LOAD_SIZE = 100
   onLoadItems = range => {
-    const rng = JSON.stringify(range)
-    if (!range || this.loading.has(rng)) {
+    const key = JSON.stringify(range)
+    if (!range || this.loading.has(key)) {
       return
     }
-    this.loading.add(rng)  // HACK maybe buggy way of tracking loading ranges
-    let [start, stop] = range
-    if (start > stop) {
-      [start, stop] = [_.max([start - this.LOAD_SIZE, stop]), start]
-    } else {
-      stop = _.min([start + this.LOAD_SIZE, stop])
-    }
-    const action = this.getActionFromLocation([start, stop - start])
+    this.loading.add(key)  // HACK maybe buggy way of tracking loading ranges
+    const action = this.getActionFromLocation(range)
     setTimeout(() => this.props.dispatch(action), 0)
     // TODO this.loading.delete(key) after range is loaded
   }

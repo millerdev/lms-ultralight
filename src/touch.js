@@ -48,10 +48,9 @@ export const TO_LAST = "to last"
  * - onLoadItems: Callback function to load more items when approaching
  *   a boundary of already-loaded items. Will only be called if
  *   `itemsOffset` or `itemsTotal` are provided. The `range` argument
- *   is a two-item array of indices with the first being the most
- *   important to load and the second being least important; the first
- *   will be greater than the second when loading above `items`.
- *   Signature: `onLoadItems(<range>)`
+ *   is a two-element array: first index and number of items to load.
+ *   Signature: `onLoadItems([index, count])`
+ * - maxLoad: Maximum number of items to load per batch.
  */
 export class TouchList extends React.Component {
   constructor(props) {
@@ -211,7 +210,7 @@ export class TouchList extends React.Component {
 }
 
 export const LoadingList = ({
-  items, itemsOffset, itemsTotal, onLoadItems, ...props
+  items, itemsOffset, itemsTotal, onLoadItems, maxLoad, ...props
 }) => {
   const { height, ref } = useResizeDetector({handleWidth: false})
   // debounce wait (200) should be enough time to render and resize
@@ -220,7 +219,8 @@ export const LoadingList = ({
   const stabilize = value => value && debounced(value) || value
   const count = items ? items.length : 0
   const itemHeight = count ? stabilize(height / count) : 0
-  const cx = buildLoadingContext(itemsOffset, count, itemsTotal, onLoadItems)
+  const cx = buildLoadingContext(
+    itemsOffset, count, itemsTotal, onLoadItems, maxLoad)
   return <LoadingContext.Provider value={cx}>
     <LoadingSpacer height={cx.before * itemHeight} range={cx.above} />
     <Ref innerRef={ref}><List {...props} /></Ref>
@@ -232,8 +232,17 @@ const LoadingContext = React.createContext()
 const noop = () => {}
 
 export const buildLoadingContext = memoize((
-  offset, count, total, onLoadItems=noop,
+  offset, count, total, onLoadItems=noop, maxLoad=100,
 ) => {
+  function loadItems(range, index) {
+    let [start, stop] = range
+    if (start > stop) {
+      [start, stop] = [_.max([start - maxLoad, stop]), start]
+    } else {
+      stop = _.min([start + maxLoad, stop])
+    }
+    onLoadItems([start, stop - start], index)
+  }
   const before = offset || 0
   const after = _.max([(total || 0) - before - count, 0])
   const above = [before, 0]
@@ -250,13 +259,13 @@ export const buildLoadingContext = memoize((
       _.range(last, _.max([0, last - tx]), -st).forEach(i => ranges[i] = below)
     }
   }
-  return {before, after, above, below, ranges, onLoadItems}
+  return {before, after, above, below, ranges, loadItems}
 })
 
 const LoadingSpacer = ({ height, range }) => {
-  const { onLoadItems } = React.useContext(LoadingContext)
+  const { loadItems } = React.useContext(LoadingContext)
   const { ref, inView } = useInView({skip: !height})
-  height && inView && onLoadItems(range)
+  height && inView && loadItems(range)
   return React.useMemo(() => {
     return height ? <Ref innerRef={ref}><div style={{height}} /></Ref> : null
   }, [height, ref])
@@ -274,6 +283,7 @@ const TOUCHLIST_PROPS = {
   // itemsOffset: true,
   // itemsTotal: true,
   // onLoadItems: true,
+  // maxLoad: true,
   selection: true,
   dataType: true,
   dropTypes: true,
@@ -355,10 +365,10 @@ export class TouchListItem extends React.Component {
 }
 
 export const LoadingListItem = ({index, ...props}) => {
-  const { onLoadItems, ranges } = React.useContext(LoadingContext)
+  const { loadItems, ranges } = React.useContext(LoadingContext)
   const skip = !_.has(ranges, index)
   const { ref, inView } = useInView({skip, triggerOnce: true})
-  inView && !skip && onLoadItems(ranges[index], index)
+  inView && !skip && loadItems(ranges[index], index)
   return <Ref innerRef={ref}><List.Item {...props} /></Ref>
 }
 

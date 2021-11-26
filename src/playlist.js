@@ -490,7 +490,6 @@ export class Playlist extends React.Component {
     this.hideTrackInfo()
     this.setState({touching: selection.size && isTouch})
   }
-  LOAD_SIZE = 100
   onLoadItems = (range) => {
     const key = JSON.stringify(range)
     if (!range || this.loading.has(key)) {
@@ -498,13 +497,7 @@ export class Playlist extends React.Component {
     }
     this.loading.add(key)
     const { playerid, dispatch } = this.props
-    let [start, stop] = range
-    if (start > stop) {
-      [start, stop] = [_.max([start - this.LOAD_SIZE, stop]), start]
-    } else {
-      stop = _.min([start + this.LOAD_SIZE, stop])
-    }
-    return loadPlayer(playerid, [start, stop - start])
+    return loadPlayer(playerid, range)
       .then(dispatch)
       .then(() => this.loading.delete(key))
   }
