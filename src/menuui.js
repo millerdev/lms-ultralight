@@ -75,39 +75,33 @@ const Player = connect(state => {
   return {...state.player, currentTrack: state.playlist.currentTrack}
 })(player.Player)
 
-class MainView extends React.Component {
-  constructor() {
-    super()
-    this.state = {playerHeight: 0}
-  }
-  onPlayerResize = (width, height) => {
-    if (this.state.playerHeight !== height) {
-      this.setState({playerHeight: height})
+const MainView = props => {
+  function onPlayerResize(width, height) {
+    if (playerHeight !== height) {
+      setPlayerHeight(height)
     }
   }
-  render() {
-    const props = this.props
-    return (
-      <div className="mainview ui grid">
-        { !props.miniPlayer &&
-          <ReactResizeDetector onResize={this.onPlayerResize}>
-            <div className="fixed-top">
-              <Player toggleMiniPlayer={props.toggleMiniPlayer} />
-            </div>
-          </ReactResizeDetector>
-        }
-        <div
-          className="sixteen wide column"
-          style={{
-            marginTop: props.miniPlayer ? 0 : this.state.playerHeight,
-            marginBottom: props.smallScreen && props.miniPlayer ? "3em" : 0,
-          }}
-        >
-          {props.children}
-        </div>
+  const [playerHeight, setPlayerHeight] = React.useState(0)
+  return (
+    <div className="mainview ui grid">
+      { !props.miniPlayer &&
+        <ReactResizeDetector onResize={onPlayerResize}>
+          <div className="fixed-top">
+            <Player toggleMiniPlayer={props.toggleMiniPlayer} />
+          </div>
+        </ReactResizeDetector>
+      }
+      <div
+        className="sixteen wide column"
+        style={{
+          marginTop: props.miniPlayer ? 0 : playerHeight,
+          marginBottom: props.smallScreen && props.miniPlayer ? "3em" : 0,
+        }}
+      >
+        {props.children}
       </div>
-    )
-  }
+    </div>
+  )
 }
 
 const PowerBar = props => {
