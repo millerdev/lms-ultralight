@@ -13,7 +13,7 @@ import { TouchList } from './touch'
 import { formatTime, memoize, objectId, operationError } from './util'
 import './playlist.styl'
 
-const IX = "playlist index"
+export const IX = "playlist index"
 export const SINGLE = "single"
 export const TO_LAST = "to last"
 

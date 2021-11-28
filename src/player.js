@@ -88,15 +88,27 @@ export const advanceToNextTrackAfter = (() => {
  *
  * @param playerid
  * @param fetchRange Range of playlist items to fetch: `[index, qty]`.
- * Legacy: load the first 100 items if `true`. Playlist items are not
- * fetched by default.
+ * Load 100 items near the current track if `true`. Playlist items are
+ * not fetched by default.
  * @param options See `reducer.gotPlayer()`.
  * @returns A promise.
  */
 export function loadPlayer(playerid, fetchRange=[], options={}) {
-  const args = fetchRange === true ? [0, 100] : fetchRange
-  return lms.getPlayerStatus(playerid, ...args)
-    .then(data => actions.gotPlayer(data, options))
+  const range = fetchRange === true ? [0, 100] : fetchRange
+  return lms.getPlayerStatus(playerid, ...range)
+    .then(data => {
+      const loop = data.playlist_loop
+      if (fetchRange === true && loop && loop.length) {
+        const IX = require("./playlist").IX
+        const playing = parseInt(data.playlist_cur_index)
+        if (playing < loop[0][IX] || playing > loop[loop.length - 1][IX]) {
+          const rng = [_.max([playing - 15, 0]), playing + 85]
+          return lms.getPlayerStatus(playerid, ...rng)
+            .then(data => actions.gotPlayer(data, options))
+        }
+      }
+      return actions.gotPlayer(data, options)
+    })
     .catch(err => operationError("Cannot load player", err))
 }
 

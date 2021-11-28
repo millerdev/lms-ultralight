@@ -1,7 +1,10 @@
 import _ from 'lodash'
 
+import { rewire } from './util'
+
 import { effect, getEffects, getState, split, IGNORE_ACTION } from '../src/effects'
 import * as mod from '../src/player'
+import {__RewireAPI__ as module} from '../src/player'
 
 describe('player', function () {
   describe('reducer', function () {
@@ -265,6 +268,51 @@ describe('player', function () {
       const promise = mod.advanceToNextTrackAfter(null, {})
       assert.equal(promise, IGNORE_ACTION)
     })
+  })
+
+  describe('loadPlayer', function () {
+    const IX = require("../src/playlist").IX
+
+    it('should load first 100 tracks', async function () {
+      const stati = [{...STATUS, playlist_loop: PLAYLIST_1}]
+      const [getPlayerStatusCalls, result] = await test(stati)
+      assert.deepEqual(getPlayerStatusCalls, [[0, 100]])
+      assert.equal(result.playlist_cur_index, '2')
+      assert.deepEqual(indices(result.playlist_loop), [1, 2, 3])
+    })
+
+    it('should load range containing playing track', async function () {
+      const loop2 = PLAYLIST_1.map((item, i) => ({...item, [IX]: i + 101}))
+      const stati = [
+        {...STATUS, playlist_cur_index: "102", playlist_loop: PLAYLIST_1},
+        {...STATUS, playlist_cur_index: "102", playlist_loop: loop2},
+      ]
+      const [getPlayerStatusCalls, result] = await test(stati)
+      assert.deepEqual(getPlayerStatusCalls, [[0, 100], [87, 187]])
+      assert.equal(result.playlist_cur_index, '102')
+      assert.deepEqual(indices(result.playlist_loop), [101, 102, 103])
+    })
+
+    function test(stati) {
+      const lmsStati = [...stati]
+      const getPlayerStatusCalls = []
+      return rewire(module, {
+        lms: {getPlayerStatus: (playerid, index, count) => {
+          assert.equal(playerid, PLAYERID)
+          getPlayerStatusCalls.push([index, count])
+          return Promise.resolve(lmsStati.shift())
+        }},
+        actions: {gotPlayer: data => {
+          return data
+        }},
+      }, () => {
+        return mod.loadPlayer(PLAYERID, true).then(result => {
+          return [getPlayerStatusCalls, result]
+        })
+      })
+    }
+
+    const indices = (loop) => loop.map(item => item[IX])
   })
 
   describe('loadPlayerAfter', function () {

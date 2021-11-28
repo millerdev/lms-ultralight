@@ -4,6 +4,7 @@ import _ from 'lodash'
  * Check promise callbacks
  *
  * Usage:
+ *  ```js
  *  const promise = promiseChecker(1)
  *  const foo = arg => 'foo ' + arg
  *
@@ -17,6 +18,7 @@ import _ from 'lodash'
  *
  *  # assert all checks performed
  *  promise.check()
+ *  ```
  */
 export function promiseChecker() {
   const makeHandler = type => ((...args) => {
@@ -64,6 +66,7 @@ export function rewire(__RewireAPI__, sets, callback) {
     if (result && result.finally) {
       return result.finally(() => resets.forEach(reset => reset()))
     }
+    return result
   } finally {
     if (!(result && result.finally)) {
       resets.forEach(reset => reset())
