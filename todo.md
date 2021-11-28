@@ -10,8 +10,7 @@ x  - remove react-resize-aware (use react-resize-detector instead)
 x  - load items near playing item (14 before, 85 after)
 x  - scroll to playing item on load
 x  - scroll to current item on playlist advance
-  - investigate why more than 100 items are being loaded
-    unless selection has changed in the past 5 minutes
+x  - investigate why more than 100 items are being loaded
   - show loading indicator in unloaded space
   - put "Delete" and "Clear" playlist buttons in a bottom/left floating menu
   - optimize LoadingContext change causes every item in the list to re-render

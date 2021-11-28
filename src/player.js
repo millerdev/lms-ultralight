@@ -102,7 +102,7 @@ export function loadPlayer(playerid, fetchRange=[], options={}) {
         const IX = require("./playlist").IX
         const playing = parseInt(data.playlist_cur_index)
         if (playing < loop[0][IX] || playing > loop[loop.length - 1][IX]) {
-          const rng = [_.max([playing - 15, 0]), playing + 85]
+          const rng = [_.max([playing - 15, 0]), 100]
           return lms.getPlayerStatus(playerid, ...rng)
             .then(data => actions.gotPlayer(data, options))
         }

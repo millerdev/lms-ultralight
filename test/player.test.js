@@ -288,7 +288,7 @@ describe('player', function () {
         {...STATUS, playlist_cur_index: "102", playlist_loop: loop2},
       ]
       const [getPlayerStatusCalls, result] = await test(stati)
-      assert.deepEqual(getPlayerStatusCalls, [[0, 100], [87, 187]])
+      assert.deepEqual(getPlayerStatusCalls, [[0, 100], [87, 100]])
       assert.equal(result.playlist_cur_index, '102')
       assert.deepEqual(indices(result.playlist_loop), [101, 102, 103])
     })
