@@ -93,6 +93,11 @@ module.exports = {
     host: DEV_HOST,
     port: DEV_PORT,
     hot: true,
+    historyApiFallback: {
+      rewrites: [
+        {from: /^\/menu/, to: '/'},
+      ],
+    },
     proxy: {
       '/lms': {
         target: REMOTE_LMS_URL,
