@@ -10,12 +10,13 @@ import * as lms from './lmsclient'
 import { MEDIA_ITEMS } from './library'
 import makeReducer from './store'
 import { TouchList } from './touch'
-import { formatTime, memoize, objectId, operationError } from './util'
+import { formatTime, memoize, objectId, operationError, timer } from './util'
 import './playlist.styl'
 
 export const IX = "playlist index"
 export const SINGLE = "single"
 export const TO_LAST = "to last"
+const TWO_MINUTES = 2 * 60 * 1000  // in ms
 
 export const defaultState = {
   playerid: null,
@@ -386,16 +387,27 @@ export class Playlist extends React.Component {
     })
     this.getSelection = () => get(this.props.items, this.props.selection)
     this.loading = new Set()
-    this.shouldScrollToPlayingItem = true
+    this.shouldAutoScroll = true
+    this.scrollBehavior = "instant"
+    this.scrollTimer = timer()
   }
   componentDidCatch(error, errorInfo) {
     window.console.error(error, errorInfo)
   }
   setPlayingItem = (ref) => {
-    if (this.shouldScrollToPlayingItem) {
-      this.shouldScrollToPlayingItem = false
-      setTimeout(() => window.scroll(0, ref.offsetTop - ref.clientHeight), 0)
+    if (this.shouldAutoScroll) {
+      this.scrollBehavior = "smooth"
+      setTimeout(() => window.scroll({
+        top: ref.offsetTop - ref.clientHeight,
+        left: 0,
+        behavior: this.scrollBehavior,
+      }), 0)
     }
+  }
+  pauseAutoScroll = (timeout=TWO_MINUTES) => {
+    this.shouldAutoScroll = false
+    this.scrollTimer.clear()
+    this.scrollTimer.after(timeout, () => this.shouldAutoScroll = true)
   }
   toPlaylistIndex(touchlistIndex, maybeAtEnd=false) {
     if (maybeAtEnd && touchlistIndex === this.props.items.length) {
@@ -496,6 +508,7 @@ export class Playlist extends React.Component {
     this.setInfoIndex(-1)
     this.hideTrackInfo()
     this.setState({touching: selection.size && isTouch})
+    this.pauseAutoScroll()
   }
   onLoadItems = (range) => {
     const key = JSON.stringify(range)
