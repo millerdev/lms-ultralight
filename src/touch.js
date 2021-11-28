@@ -364,16 +364,21 @@ export class TouchListItem extends React.Component {
   }
 }
 
-export const LoadingListItem = ({index, ...props}) => {
+export const LoadingListItem = ({index, setItemRef, ...props}) => {
   const { loadItems, ranges } = React.useContext(LoadingContext)
   const skip = !_.has(ranges, index)
-  const { ref, inView } = useInView({skip, triggerOnce: true})
+  const [inViewRef, inView] = useInView({skip, triggerOnce: true})
+  const ref = React.useCallback(node => {
+    setItemRef && setItemRef(node)
+    inViewRef(node)
+  }, [inViewRef, setItemRef])
   inView && !skip && loadItems(ranges[index], index)
   return <Ref innerRef={ref}><List.Item {...props} /></Ref>
 }
 
 const TOUCHLISTITEM_PROPS = {
   //index: true,  consumed by LoadingListItem
+  //setItemRef: true,  consumed by LoadingListItem
   onClick: false,
   onDragStart: false,
   onDragOver: false,

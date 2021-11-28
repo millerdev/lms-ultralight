@@ -386,9 +386,16 @@ export class Playlist extends React.Component {
     })
     this.getSelection = () => get(this.props.items, this.props.selection)
     this.loading = new Set()
+    this.shouldScrollToPlayingItem = true
   }
   componentDidCatch(error, errorInfo) {
     window.console.error(error, errorInfo)
+  }
+  setPlayingItem = (ref) => {
+    if (this.shouldScrollToPlayingItem) {
+      this.shouldScrollToPlayingItem = false
+      setTimeout(() => window.scroll(0, ref.offsetTop - ref.clientHeight), 0)
+    }
   }
   toPlaylistIndex(touchlistIndex, maybeAtEnd=false) {
     if (maybeAtEnd && touchlistIndex === this.props.items.length) {
@@ -528,6 +535,7 @@ export class Playlist extends React.Component {
             playTrack={this.playTrackAtIndex.bind(this, item[IX])}
             index={index}
             activeIcon={props.currentIndex === item[IX] ? "video play" : ""}
+            setItemRef={props.currentIndex === item[IX] && this.setPlayingItem}
             touching={!!(this.state.touching && selection.has(index))}
             setHideTrackInfoCallback={hideInfo}
             showInfoIcon={index === this.state.infoIndex}
@@ -579,6 +587,7 @@ export class PlaylistItem extends React.Component {
       old.item.id !== props.item.id ||
       old.touching !== props.touching ||
       old.activeIcon !== props.activeIcon ||
+      old.setItemRef !== props.setItemRef ||
       old.showInfoIcon !== props.showInfoIcon ||
       old.fullTrackInfo[old.item.id] !== props.fullTrackInfo[props.item.id]
     )
@@ -612,6 +621,7 @@ export class PlaylistItem extends React.Component {
       return <TouchList.Item
         index={props.index}
         onDoubleClick={props.playTrack}
+        setItemRef={props.setItemRef}
         draggable
       >
         <List.Content floated="right">

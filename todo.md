@@ -8,7 +8,8 @@ x  - load items when "loading" region consumes viewport
 x  - refactor loading logic into TouchList
 x  - remove react-resize-aware (use react-resize-detector instead)
 x  - load items near playing item (14 before, 85 after)
-  - scroll to playing item on load
+x  - scroll to playing item on load
+  - investigate why more than 100 items are being loaded
   - scroll to current item on playlist advance
     unless selection has changed in the past 5 minutes
   - show loading indicator in unloaded space
