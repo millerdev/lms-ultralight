@@ -387,6 +387,7 @@ export class Playlist extends React.Component {
     })
     this.getSelection = () => get(this.props.items, this.props.selection)
     this.loading = new Set()
+    this.shouldAutoLoad = false
     this.shouldAutoScroll = true
     this.scrollBehavior = "instant"
     this.scrollTimer = timer()
@@ -396,12 +397,17 @@ export class Playlist extends React.Component {
   }
   setPlayingItem = (ref) => {
     if (this.shouldAutoScroll) {
-      this.scrollBehavior = "smooth"
-      setTimeout(() => window.scroll({
-        top: ref.offsetTop - ref.clientHeight,
-        left: 0,
-        behavior: this.scrollBehavior,
-      }), 0)
+      setTimeout(() => {
+        window.scroll({
+          top: ref.offsetTop - ref.clientHeight,
+          left: 0,
+          behavior: this.scrollBehavior,
+        })
+        if (!this.shouldAutoLoad) {
+          this.scrollBehavior = "smooth"
+          setTimeout(() => this.shouldAutoLoad = true, 1000)
+        }
+      }, 0)
     }
   }
   pauseAutoScroll = (timeout=TWO_MINUTES) => {
@@ -512,7 +518,7 @@ export class Playlist extends React.Component {
   }
   onLoadItems = (range) => {
     const key = JSON.stringify(range)
-    if (!range || this.loading.has(key)) {
+    if (!this.shouldAutoLoad || !range || this.loading.has(key)) {
       return
     }
     this.loading.add(key)

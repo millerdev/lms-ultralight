@@ -736,6 +736,7 @@ describe('playlist', function () {
         const state = makeState("abcdef", 10)
         state.dispatch = {}
         const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+        playlist.shouldAutoLoad = true
         const promise = promiseChecker()
         rewire(module, {
           loadPlayer: (playerid, indexRange) => {
@@ -756,6 +757,7 @@ describe('playlist', function () {
       it("should load at most 100 items at beginning", function () {
         const state = makeState("abcdef", 151)
         const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+        playlist.shouldAutoLoad = true
         rewire(module, {
           loadPlayer: (playerid, indexRange) => {
             assert.deepEqual(indexRange, [50, 100])
@@ -770,6 +772,7 @@ describe('playlist', function () {
       it("should load at most 100 items at end", function () {
         const state = makeState("abcdef", 0, 200)
         const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+        playlist.shouldAutoLoad = true
         rewire(module, {
           loadPlayer: (playerid, indexRange) => {
             assert.deepEqual(indexRange, [6, 100])
@@ -784,6 +787,7 @@ describe('playlist', function () {
       it("should dedup loads", function () {
         const state = makeState("abcdef", 201, 500)
         const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+        playlist.shouldAutoLoad = true
         const loads = []
         rewire(module, {
           loadPlayer: (playerid, indexRange) => {
