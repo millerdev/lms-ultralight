@@ -396,7 +396,7 @@ export class Playlist extends React.Component {
     window.console.error(error, errorInfo)
   }
   setPlayingItem = (ref) => {
-    if (this.shouldAutoScroll) {
+    if (this.shouldAutoScroll && ref) {
       setTimeout(() => {
         window.scroll({
           top: ref.offsetTop - ref.clientHeight,
