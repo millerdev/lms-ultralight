@@ -238,6 +238,15 @@ describe('playlist', function () {
     })
   })
 
+  describe('moveItem', function () {
+    it("should handle loop starting with non-zero playlist index", () => {
+      const result = mod.moveItem(PLAYLIST_1, 2, 3)
+      assert.deepEqual(result.map(x => x[mod.IX]), [1, 2, 3])
+      assert.equal(result[1].title, "song 3")
+      assert.notDeepEqual(PLAYLIST_1, result)
+    })
+  })
+
   describe('moveItems', function () {
     function setup(altLMS) {
       const dispatched = []

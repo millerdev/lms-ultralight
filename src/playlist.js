@@ -359,10 +359,11 @@ export function deleteItem(list, index) {
  * @returns Array of playlist items.
  */
 export function moveItem(list, fromIndex, toIndex) {
+  const offset = list[0][IX]
   const fromObj = list[fromIndex]
   list = list.filter(item => item[IX] !== fromIndex)
   list.splice(toIndex > fromIndex ? toIndex - 1 : toIndex, 0, fromObj)
-  return list.map((item, i) => ({...item, [IX]: i}))
+  return list.map((item, i) => ({...item, [IX]: i + offset}))
 }
 
 export class Playlist extends React.Component {
