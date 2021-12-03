@@ -123,7 +123,7 @@ export const mediaInfo = (item, history, basePath, previous) => {
  *
  * @returns a promise that resolves to an action
  */
-const doMediaLoad = (item, key, range) => {
+const doMediaLoad = (item, key, range=[0, 100]) => {
   const sector = NEXT_SECTION[item.type]
   if (!sector) {
     return operationError("Unknown media item", item)
