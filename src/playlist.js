@@ -437,14 +437,14 @@ export class Playlist extends React.Component {
       this.setState({prompt: {}})
     }
   }
-  onTap(item, index) {
+  onTap(item) {
     // HACK hide info icon after touch
-    this.onLongTouch(item, index)
+    this.onLongTouch(item)
   }
-  onLongTouch(item, index) {
+  onLongTouch(item) {
     clearTimeout(this.infoTimer)
     // show info icon after selection changes
-    setTimeout(() => this.setInfoIndex(index), 0)
+    setTimeout(() => this.setInfoIndex(item[IX]), 0)
     // hide info icon after short delay
     this.infoTimer = setTimeout(() => this.setInfoIndex(-1), 3000)
     return true
@@ -557,7 +557,7 @@ export class Playlist extends React.Component {
             setItemRef={props.currentIndex === item[IX] && this.setPlayingItem}
             touching={!!(this.state.touching && selection.has(index))}
             setHideTrackInfoCallback={this.setHideTrackInfoCallback}
-            showInfoIcon={index === this.state.infoIndex}
+            showInfoIcon={item[IX] === this.state.infoIndex}
             fullTrackInfo={props.fullTrackInfo}
             history={props.history}
             location={props.location}
