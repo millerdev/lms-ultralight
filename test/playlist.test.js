@@ -595,7 +595,7 @@ describe('playlist', function () {
       const state = makeState("abCdEf", 10)
       assert.deepEqual(state.selection, new Set([12, 14]))
       const dom = shallow(<mod.Playlist {...state} />, opts)
-      assert.deepEqual(dom.find("TouchList").props().selection, new Set([2, 4]))
+      assert.deepEqual(dom.find("TouchList").props().selection, new Set([12, 14]))
     })
 
     it(`should not fetch playlist on play track at index`, () => {
@@ -634,7 +634,7 @@ describe('playlist', function () {
       rewire(module, {
         deleteSelection: (playerid, selection) => {
           assert.equal(playerid, PLAYERID)
-          assert.deepEqual(selection, [12, 14])  // verify selection
+          assert.deepEqual([...selection], [12, 14])  // verify selection
           return promise
             .then(loadPlayer => loadPlayer())
             .catch(() => {/* ignore */})
@@ -688,7 +688,7 @@ describe('playlist', function () {
       }
       const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
       assert.equal(playlist.props.selection.size, 1)
-      playlist.onSelectionChanged(new Set([2, 4, 5]), false)
+      playlist.onSelectionChanged(new Set([12, 14, 15]), false)
       assert(dispatched, "dispatch not called")
     })
 
@@ -714,7 +714,7 @@ describe('playlist', function () {
           assert.equal(fetchRange, undefined)
         },
       }, () => {
-        playlist.onMoveItems(new Set([1]), 6)
+        playlist.onMoveItems(new Set([11]), 16)
       })
       promise.check()
     })
@@ -735,7 +735,7 @@ describe('playlist', function () {
           asserted = true
         },
       }, () => {
-        playlist.onDrop(items, MEDIA_ITEMS, 6)
+        playlist.onDrop(items, MEDIA_ITEMS, 16)
       })
       assert(asserted, 'rewire assertions not run')
     })

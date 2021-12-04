@@ -18,9 +18,11 @@ export const TO_LAST = "to last"
  * Important props:
  * - items: Array of items, which will be serialized in drag/drop
  *   operations. Each item in this list should correspond to a
- *   `TouchList.Item` at the same position in the `TouchList`. All
- *   index arguments provided to event handlers can be used to
- *   reference items in this list.
+ *   `TouchList.Item` at the same position in the `TouchList`.
+ *   Index arguments provided to event handlers correspond to the
+ *   `index` passed to `TouchListItem`. Adding `itemsOffset` to an
+ *   index from this list should yield the corresponding
+ *   `TouchListItem`s `index`.
  * - itemsOffset: Count of items in the list before the first in
  *   `items`. Default: 0.
  * - itemsTotal: Total number of items in the list.
@@ -65,6 +67,9 @@ export class TouchList extends React.Component {
     this.lastSelected = []
     this.slide = makeSlider(this)
   }
+  get itemsOffset() {
+    return this.props.itemsOffset || 0
+  }
   componentDidMount() {
     this.slide.setTouchHandlers(ReactDOM.findDOMNode(this))
   }
@@ -94,14 +99,15 @@ export class TouchList extends React.Component {
   }
   getDragData(index) {
     const items = this.props.items
+    const offset = this.itemsOffset
     let selected
-    if (index < items.length) {
+    if (index - offset < items.length) {
       if (this.isSelected(index)) {
         selected = [...this.getSelection()]
           .sort()
-          .map(index => items[index])
+          .map(index => items[index - offset])
       } else {
-        selected = [items[index]]
+        selected = [items[index - offset]]
       }
     } else {
       return []
@@ -114,7 +120,7 @@ export class TouchList extends React.Component {
   }
   onTap(index, event) {
     if (this.props.onTap) {
-      const item = this.props.items[index]
+      const item = this.props.items[index - this.itemsOffset]
       return this.props.onTap(item, index, event)
     }
   }
@@ -149,7 +155,7 @@ export class TouchList extends React.Component {
   }
   onLongTouch(index) {
     if (this.props.onLongTouch) {
-      const item = this.props.items[index]
+      const item = this.props.items[index - this.itemsOffset]
       if (this.props.onLongTouch(item, index)) {
         this.toggleSelection(index)
       }
@@ -414,6 +420,9 @@ const excludeKeys = (src, keys, for_) => _.pickBy(src, (value, key) => {
 
 /**
  * List touch interaction and drag/drop manager
+ *
+ * Item indexes need not be zero-based as long as they are consistently
+ * mapped to the same item.
  *
  * Mouse interaction
  *  - click to select

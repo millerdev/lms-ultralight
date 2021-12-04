@@ -10,7 +10,7 @@ import * as lms from './lmsclient'
 import { MEDIA_ITEMS } from './library'
 import makeReducer from './store'
 import { TouchList } from './touch'
-import { formatTime, memoize, objectId, operationError, timer } from './util'
+import { formatTime, objectId, operationError, timer } from './util'
 import './playlist.styl'
 
 export const IX = "playlist index"
@@ -259,16 +259,16 @@ export function moveItems(selection, toIndex, playerid, dispatch, lms) {
 
 export function deleteSelection(playerid, selection, dispatch, lms) {
   return new Promise(resolve => {
-    function remove(items) {
-      if (!items.length) {
+    function remove(indices) {
+      if (!indices.length) {
         return resolve()
       }
-      const index = items.shift()
+      const index = indices.shift()
       lms.command(playerid, "playlist", "delete", index)
         .then(() => {
           // TODO abort if playerid or selection changed
           dispatch(actions.playlistItemDeleted(index))
-          remove(items)
+          remove(indices)
         })
         .catch(err => {
           dispatch(operationError("Delete error", err))
@@ -380,13 +380,6 @@ export class Playlist extends React.Component {
     context.addKeydownHandler(13 /* enter */, this.onEnterKey.bind(this))
     this.hideTrackInfo = () => {}
     this.saver = playlistSaver(this.afterSavePlaylist.bind(this))
-    const get = memoize((items, selection) => {
-      const indexMap = _.fromPairs(
-        items.map((item, i) => [item[IX], i])
-      )
-      return new Set([...selection].map(ix => indexMap[ix]))
-    })
-    this.getSelection = () => get(this.props.items, this.props.selection)
     this.loading = new Set()
     this.shouldAutoLoad = false
     this.shouldAutoScroll = true
@@ -415,12 +408,6 @@ export class Playlist extends React.Component {
     this.shouldAutoScroll = false
     this.scrollTimer.clear()
     this.scrollTimer.after(timeout, () => this.shouldAutoScroll = true)
-  }
-  toPlaylistIndex(touchlistIndex, maybeAtEnd=false) {
-    if (maybeAtEnd && touchlistIndex === this.props.items.length) {
-      return this.props.items[touchlistIndex - 1][IX] + 1
-    }
-    return this.props.items[touchlistIndex][IX]
   }
   playTrackAtIndex = playlistIndex => {
     const { playerid, dispatch } = this.props
@@ -456,15 +443,13 @@ export class Playlist extends React.Component {
   }
   onMoveItems(selection, toIndex) {
     const { playerid, dispatch } = this.props
-    const plSelection = new Set([...selection].map(i => this.toPlaylistIndex(i)))
-    const plToIndex = this.toPlaylistIndex(toIndex, true)
-    moveItems(plSelection, plToIndex, playerid, dispatch, lms)
+    moveItems(selection, toIndex, playerid, dispatch, lms)
       .then(() => loadPlayer(playerid))
       .catch(err => operationError("Move error", err))
       .then(dispatch)
   }
   onDeleteItems() {
-    const number = this.getSelection().size
+    const number = this.props.selection.size
     let prompt
     if (number) {
       prompt = "Delete " + number + " song" + (number > 1 ? "s" : "")
@@ -478,12 +463,10 @@ export class Playlist extends React.Component {
     }})
   }
   deleteItems() {
-    // NOTE: plSelection is an array, unlike most selections (works here)
-    const plSelection = [...this.getSelection()].map(i => this.toPlaylistIndex(i))
-    const { playerid, dispatch } = this.props
+    const { playerid, dispatch, selection } = this.props
     this.setState({prompt: {}})
-    if (plSelection.length) {
-      deleteSelection(playerid, plSelection, dispatch, lms)
+    if (selection.size) {
+      deleteSelection(playerid, selection, dispatch, lms)
         .then(() => loadPlayer(playerid))
         .catch(err => operationError("Delete error", err))
         .then(dispatch)
@@ -505,13 +488,11 @@ export class Playlist extends React.Component {
   onDrop(data, dataType, index) {
     if (dataType === MEDIA_ITEMS) {
       const {playerid, dispatch, numTracks} = this.props
-      const plIndex = this.toPlaylistIndex(index, true)
-      insertPlaylistItems(playerid, data, plIndex, dispatch, numTracks)
+      insertPlaylistItems(playerid, data, index, dispatch, numTracks)
     }
   }
   onSelectionChanged(selection, isTouch) {
-    const plSelection = new Set([...selection].map(i => this.toPlaylistIndex(i)))
-    this.props.dispatch(actions.selectionChanged(plSelection))
+    this.props.dispatch(actions.selectionChanged(selection))
     this.setInfoIndex(-1)
     this.hideTrackInfo()
     this.setState({touching: selection.size && isTouch})
@@ -533,14 +514,13 @@ export class Playlist extends React.Component {
   }
   render() {
     const props = this.props
-    const selection = this.getSelection()
     return <div>
       <TouchList
           className="playlist"
           items={props.items}
           itemsOffset={props.numTracks ? props.items[0][IX] : 0}
           itemsTotal={props.numTracks}
-          selection={selection}
+          selection={props.selection}
           dropTypes={[MEDIA_ITEMS]}
           onDrop={this.onDrop.bind(this)}
           onTap={this.onTap.bind(this)}
@@ -548,14 +528,14 @@ export class Playlist extends React.Component {
           onMoveItems={this.onMoveItems.bind(this)}
           onSelectionChanged={this.onSelectionChanged.bind(this)}
           onLoadItems={this.onLoadItems}>
-        {props.items.map((item, index) => {
+        {props.items.map(item => {
           return <PlaylistItem
             item={item}
             playTrackAtIndex={this.playTrackAtIndex}
-            index={index}
+            index={item[IX]}
             activeIcon={props.currentIndex === item[IX] ? "video play" : ""}
             setItemRef={props.currentIndex === item[IX] && this.setPlayingItem}
-            touching={!!(this.state.touching && selection.has(index))}
+            touching={!!(this.state.touching && props.selection.has(item[IX]))}
             setHideTrackInfoCallback={this.setHideTrackInfoCallback}
             showInfoIcon={item[IX] === this.state.infoIndex}
             fullTrackInfo={props.fullTrackInfo}
@@ -574,7 +554,7 @@ export class Playlist extends React.Component {
           onClick={() => this.onSavePlaylist()} />
         <Button
           icon="remove"
-          content={selection.size ? "Delete" : "Clear Playlist"}
+          content={props.selection.size ? "Delete" : "Clear Playlist"}
           labelPosition="left"
           onClick={() => this.onDeleteItems()} />
       </Button.Group>
