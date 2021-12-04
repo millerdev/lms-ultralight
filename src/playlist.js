@@ -422,7 +422,7 @@ export class Playlist extends React.Component {
     }
     return this.props.items[touchlistIndex][IX]
   }
-  playTrackAtIndex(playlistIndex) {
+  playTrackAtIndex = playlistIndex => {
     const { playerid, dispatch } = this.props
     lms.command(playerid, "playlist", "index", playlistIndex)
       .then(() => dispatch(actions.clearSelection()))
@@ -528,12 +528,11 @@ export class Playlist extends React.Component {
       .then(dispatch)
       .then(() => this.loading.delete(key))
   }
-  setHideTrackInfoCallback(callback) {
+  setHideTrackInfoCallback = callback => {
     this.hideTrackInfo = callback
   }
   render() {
     const props = this.props
-    const hideInfo = this.setHideTrackInfoCallback.bind(this)
     const selection = this.getSelection()
     return <div>
       <TouchList
@@ -552,12 +551,12 @@ export class Playlist extends React.Component {
         {props.items.map((item, index) => {
           return <PlaylistItem
             item={item}
-            playTrack={this.playTrackAtIndex.bind(this, item[IX])}
+            playTrackAtIndex={this.playTrackAtIndex}
             index={index}
             activeIcon={props.currentIndex === item[IX] ? "video play" : ""}
             setItemRef={props.currentIndex === item[IX] && this.setPlayingItem}
             touching={!!(this.state.touching && selection.has(index))}
-            setHideTrackInfoCallback={hideInfo}
+            setHideTrackInfoCallback={this.setHideTrackInfoCallback}
             showInfoIcon={index === this.state.infoIndex}
             fullTrackInfo={props.fullTrackInfo}
             history={props.history}
@@ -632,6 +631,9 @@ export class PlaylistItem extends React.Component {
     }
     event.stopPropagation()
   }
+  playTrack = () => {
+    this.props.playTrackAtIndex(this.props.item[IX])
+  }
   render() {
     const props = this.props
     const item = props.item
@@ -640,7 +642,7 @@ export class PlaylistItem extends React.Component {
       const heightStyle = smallScreen ? {height: 32} : {}
       return <TouchList.Item
         index={props.index}
-        onDoubleClick={props.playTrack}
+        onDoubleClick={this.playTrack}
         setItemRef={props.setItemRef}
         draggable
       >
