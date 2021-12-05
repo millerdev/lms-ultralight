@@ -220,13 +220,14 @@ export const LoadingList = ({
 }) => {
   const { height, ref } = useResizeDetector({handleWidth: false})
   // debounce wait (200) should be enough time to render and resize
+  const [cx] = React.useState({})
+  const [updateContext] = React.useState(() => memoize(updateLoadingContext))
   const [debounced] = React.useState(() => _.debounce(v => v, 200))
   // use leading edge when debounced value is undefined, else trailing
   const stabilize = value => value && debounced(value) || value
   const count = items ? items.length : 0
   const itemHeight = count ? stabilize(height / count) : 0
-  const cx = buildLoadingContext(
-    itemsOffset, count, itemsTotal, onLoadItems, maxLoad)
+  updateContext(cx, itemsOffset, count, itemsTotal, onLoadItems, maxLoad)
   return <LoadingContext.Provider value={cx}>
     <LoadingSpacer height={cx.before * itemHeight} range={cx.above} />
     <Ref innerRef={ref}><List {...props} /></Ref>
@@ -237,36 +238,39 @@ export const LoadingList = ({
 const LoadingContext = React.createContext()
 const noop = () => {}
 
-export const buildLoadingContext = memoize((
-  offset, count, total, onLoadItems=noop, maxLoad=100,
-) => {
-  function loadItems(range, index) {
-    let [start, stop] = range
-    if (start > stop) {
-      [start, stop] = [_.max([start - maxLoad, stop]), start]
-    } else {
-      stop = _.min([start + maxLoad, stop])
-    }
-    onLoadItems([start, stop - start], index)
-  }
-  const before = offset || 0
-  const after = _.max([(total || 0) - before - count, 0])
-  const above = [before, 0]
-  const below = [before + count, total]
-  const ranges = {}
-  const tx = 10  // offset of inner trigger item
-  const st = tx - 1
+export function updateLoadingContext(
+  cx, offset, count, total, onLoadItems=noop, maxLoad=100,
+) {
+  const before = cx.before = offset || 0
+  cx.after = _.max([(total || 0) - before - count, 0])
+  const above = cx.above = [before, 0]
+  const below = cx.below = [before + count, total]
+  const ranges = cx.ranges = {}
+  const triggerInset = 10
+  const step = triggerInset - 1
   if (count) {
     if (above[0]) {
-      _.range(0, _.min([tx, count]), st).forEach(i => ranges[i] = above)
+      _.range(0, _.min([triggerInset, count]), step)
+       .forEach(i => ranges[before + i] = above)
     }
-    const last = count - 1
+    const last = before + count - 1
     if (below[0] !== below[1]) {
-      _.range(last, _.max([0, last - tx]), -st).forEach(i => ranges[i] = below)
+      _.range(last, _.max([before, last - triggerInset]), -step)
+       .forEach(i => ranges[i] = below)
     }
   }
-  return {before, after, above, below, ranges, loadItems}
-})
+  cx.loadItems = (range, index) => {
+    if (index === undefined || cx.ranges[index] === range) {
+      let [start, stop] = range
+      if (start > stop) {
+        [start, stop] = [_.max([start - maxLoad, stop]), start]
+      } else {
+        stop = _.min([start + maxLoad, stop])
+      }
+      onLoadItems([start, stop - start], index)
+    }
+  }
+}
 
 const LoadingSpacer = ({ height, range }) => {
   const { loadItems } = React.useContext(LoadingContext)
@@ -375,7 +379,7 @@ export class TouchListItem extends React.Component {
 
 export const LoadingListItem = ({index, setItemRef, ...props}) => {
   const { loadItems, ranges } = React.useContext(LoadingContext)
-  const skip = !_.has(ranges, index)
+  const skip = !ranges[index]
   const [inViewRef, inView] = useInView({skip, triggerOnce: true})
   const ref = React.useCallback(node => {
     setItemRef && setItemRef(node)

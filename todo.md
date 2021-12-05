@@ -14,15 +14,16 @@ x  - investigate why more than 100 items are being loaded
   - show loading indicator in unloaded space
   - put "Delete" and "Clear" playlist buttons in a bottom/left floating menu
 x  - do not scroll after drag/drop
-  - optimize selecting an item re-renders all items in list
-    possibly caused by LoadingContext change
-  - optimize LoadingContext change causes every item in the list to re-render
-    - should only re-render new and "load trigger" items
-    - may be caused by loading new items
-    - split LoadingContext:
-      - `LoadingContext` value (reference) never changes after initial load
-        - update sub-values on each `TouchList` render
-      - `createContext()` for each loading index
+x  - optimize selecting an item re-renders all items in list
+x    possibly caused by LoadingContext change
+x  - optimize LoadingContext change causes every item in the list to re-render
+x    - should only re-render new and "load trigger" items
+x    - may be caused by loading new items
+x    - split LoadingContext:
+x      - `LoadingContext` value (reference) never changes after initial load
+x        - update sub-values on each `TouchList` render
+x      - `createContext()` for each loading index
+  - optimize moving item re-renders all loaded items
   - optimize <LoadingListItem> renders 3x per click to select item
     (props is a new object on each render)
 - filter "No Album" results by current section criteria

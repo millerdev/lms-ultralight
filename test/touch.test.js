@@ -166,13 +166,14 @@ describe("LoadingList", function () {
     assert(asserted, 'rewire assertions not run')
   }
 
-  describe("buildLoadingContext", function () {
+  describe("updateLoadingContext", function () {
     describe("ranges", () => {
       function test(before, count, after=0, expect="") {
         const cfg = JSON.stringify([before, count, after])
         it(`for ${cfg} should be '${expect}'`, function () {
           const total = before + count + after
-          const cx = mod.buildLoadingContext(before, count, total)
+          const cx = {}
+          mod.updateLoadingContext(cx, before, count, total)
           const actual = _.map(
             cx.ranges,
             (item, key) => `${key}:${item[0]}-${item[1]}`
@@ -182,14 +183,14 @@ describe("LoadingList", function () {
       }
 
       test(0, 2, 0)
-      test(2, 2, 0, "0:2-0")
+      test(2, 2, 0, "2:2-0")
       test(0, 2, 2, "1:2-4")
-      test(5, 2, 5, "0:5-0,1:7-12")
-      test(5, 3, 5, "0:5-0,2:8-13")
+      test(5, 2, 5, "5:5-0,6:7-12")
+      test(5, 3, 5, "5:5-0,7:8-13")
       test(0, 100, 0)
-      test(2, 100, 0, "0:2-0,9:2-0")
+      test(2, 100, 0, "2:2-0,11:2-0")
       test(0, 100, 140, "90:100-240,99:100-240")
-      test(3, 100, 7, "0:3-0,9:3-0,90:103-110,99:103-110")
+      test(3, 100, 7, "3:3-0,12:3-0,93:103-110,102:103-110")
     })
 
     describe("loadItems", function () {
@@ -214,8 +215,9 @@ describe("LoadingList", function () {
           result = range
         }
         let result = "onLoad not called"
-        const { loadItems } = mod.buildLoadingContext(0, 0, 0, onLoad)
-        loadItems(rng)
+        const cx = {}
+        mod.updateLoadingContext(cx, 0, 0, 0, onLoad)
+        cx.loadItems(rng)
         return result
       }
     })
