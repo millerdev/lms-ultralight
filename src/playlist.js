@@ -428,6 +428,7 @@ export class Playlist extends React.Component {
     this.onLongTouch(item)
   }
   onLongTouch = item => {
+    this.pauseAutoScroll()
     clearTimeout(this.infoTimer)
     // show info icon after selection changes
     setTimeout(() => this.setInfoIndex(item[IX]), 0)
@@ -441,6 +442,7 @@ export class Playlist extends React.Component {
     }
   }
   onMoveItems = (selection, toIndex) => {
+    this.pauseAutoScroll()
     const { playerid, dispatch } = this.props
     moveItems(selection, toIndex, playerid, dispatch, lms)
       .then(() => loadPlayer(playerid))
@@ -486,6 +488,7 @@ export class Playlist extends React.Component {
   }
   onDrop = (data, dataType, index) => {
     if (dataType === MEDIA_ITEMS) {
+      this.pauseAutoScroll()
       const {playerid, dispatch, numTracks} = this.props
       insertPlaylistItems(playerid, data, index, dispatch, numTracks)
     }

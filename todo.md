@@ -13,6 +13,9 @@ x  - scroll to current item on playlist advance
 x  - investigate why more than 100 items are being loaded
   - show loading indicator in unloaded space
   - put "Delete" and "Clear" playlist buttons in a bottom/left floating menu
+x  - do not scroll after drag/drop
+  - optimize selecting an item re-renders all items in list
+    possibly caused by LoadingContext change
   - optimize LoadingContext change causes every item in the list to re-render
     - should only re-render new and "load trigger" items
     - may be caused by loading new items
