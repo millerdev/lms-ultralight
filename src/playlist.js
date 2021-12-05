@@ -354,16 +354,19 @@ export function deleteItem(list, index) {
  * Move item in playlist and re-index other items
  *
  * @param list - Array of playlist items.
- * @param fromIndex - Index of item being moved.
- * @param toIndex - Index to which item is to be moved.
+ * @param fromIndex - Playlist index of item being moved.
+ * @param toIndex - Playlist index to which item is to be moved.
  * @returns Array of playlist items.
  */
 export function moveItem(list, fromIndex, toIndex) {
   const offset = list[0][IX]
-  const fromObj = list[fromIndex]
+  const fromObj = list[fromIndex - offset]
   list = list.filter(item => item[IX] !== fromIndex)
-  list.splice(toIndex > fromIndex ? toIndex - 1 : toIndex, 0, fromObj)
-  return list.map((item, i) => ({...item, [IX]: i + offset}))
+  const to = (toIndex > fromIndex ? toIndex - 1 : toIndex) - offset
+  list.splice(to, 0, fromObj)
+  return list.map((item, i) => (
+    item[IX] !== i + offset ? {...item, [IX]: i + offset} : item
+  ))
 }
 
 export class Playlist extends React.Component {

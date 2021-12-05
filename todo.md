@@ -23,7 +23,7 @@ x    - split LoadingContext:
 x      - `LoadingContext` value (reference) never changes after initial load
 x        - update sub-values on each `TouchList` render
 x      - `createContext()` for each loading index
-  - optimize moving item re-renders all loaded items
+x  - optimize moving item re-renders all loaded items
   - optimize <LoadingListItem> renders 3x per click to select item
     (props is a new object on each render)
 - filter "No Album" results by current section criteria

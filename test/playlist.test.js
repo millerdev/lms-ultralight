@@ -239,11 +239,28 @@ describe('playlist', function () {
   })
 
   describe('moveItem', function () {
+    const IX = mod.IX
+
     it("should handle loop starting with non-zero playlist index", () => {
-      const result = mod.moveItem(PLAYLIST_1, 2, 3)
-      assert.deepEqual(result.map(x => x[mod.IX]), [1, 2, 3])
+      const result = mod.moveItem(PLAYLIST_1, 2, 4)
+      assert.deepEqual(result.map(x => x[IX]), [1, 2, 3])
       assert.equal(result[1].title, "song 3")
       assert.notDeepEqual(PLAYLIST_1, result)
+    })
+
+    it("should not encounter undefined item", () => {
+      const list = PLAYLIST_1.map((item, i) => ({...item, [IX]: i + 101}))
+      const result = mod.moveItem(list, 103, 101)
+      assert.deepEqual(result.map(x => x[IX]), [101, 102, 103])
+      assert.equal(result[0].title, "song 3")
+      assert.notDeepEqual(PLAYLIST_1, result)
+    })
+
+    it("should not unnecessarily recreate items", () => {
+      const list = PLAYLIST_1.map((item, i) => ({...item, [IX]: i + 101}))
+      const result = mod.moveItem(list, 102, 101)
+      assert.deepEqual(result.map(x => x[IX]), [101, 102, 103])
+      assert.equal(result[2], list[2])
     })
   })
 
