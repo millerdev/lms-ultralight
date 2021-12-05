@@ -311,53 +311,56 @@ export class TouchListItem extends React.Component {
     super()
     this.state = {dropClass: null}
   }
+  get slide() {
+    return this.context.TouchList_slide
+  }
   componentWillUnmount() {
-    const slide = this.context.TouchList_slide
-    slide && slide.removeItem(this.props.index, this)
+    this.slide && this.slide.removeItem(this.props.index, this)
   }
   clearDropIndicator = () => {
     if (this.state.dropClass !== null) {
       this.setState({dropClass: null})
     }
   }
-  onDragOver(event, index) {
-    const dropIndex = this.context.TouchList_slide.dragOver(event, index)
+  onClick = event => {
+    const modifier = event.metaKey || event.ctrlKey
+      ? SINGLE : (event.shiftKey ? TO_LAST : null)
+    this.context.TouchList_onItemSelected(this.props.index, modifier)
+  }
+  onDragStart = event => this.slide.dragStart(event, this.props.index)
+  onDragOver = event => {
+    const index = this.props.index
+    const dropIndex = this.slide.dragOver(event, index)
     const dropClass = index === dropIndex - 1 ? "dropAfter" :
                       index === dropIndex ? "dropBefore" : null
     if (this.state.dropClass !== dropClass) {
       this.setState({dropClass})
     }
   }
-  onDrop(event, index) {
+  onDrop = event => {
     this.clearDropIndicator()
-    this.context.TouchList_slide.drop(event, index)
+    this.slide.drop(event, this.props.index)
   }
+  onContextMenu = event => event.preventDefault()
   render() {
     const props = this.props
     if (!_.has(props, "index")) {
       throw new Error("`TouchList.Item` `props.index` is required")
     }
     const passProps = excludeKeys(props, TOUCHLISTITEM_PROPS, "TouchList.Item")
-    const slide = this.context.TouchList_slide
-    const index = props.index
-    const selected = this.context.TouchList_isSelected(index)
+    const selected = this.context.TouchList_isSelected(props.index)
     // this seems hacky, but can't think of any other way get touch events
-    slide.addItem(index, this)
-    if (!_.has(props, "onContextMenu")) {
-      passProps.onContextMenu = event => event.preventDefault()
-    }
+    this.slide.addItem(props.index, this)
     return <LoadingListItem
-      onClick={event => {
-        const modifier = event.metaKey || event.ctrlKey ? SINGLE :
-          (event.shiftKey ? TO_LAST : null)
-        this.context.TouchList_onItemSelected(index, modifier)
-      }}
-      onDragStart={event => slide.dragStart(event, index)}
-      onDragOver={event => this.onDragOver(event, index)}
-      onDrop={event => this.onDrop(event, index)}
+      onClick={this.onClick}
+      onDragStart={this.onDragStart}
+      onDragOver={this.onDragOver}
+      onDrop={this.onDrop}
       onDragLeave={this.clearDropIndicator}
       onDragEnd={this.clearDropIndicator}
-      data-touchlist-item-index={index /* touchlistItemIndex */}
+      onDragEnd={this.clearDropIndicator}
+      onContextMenu={this.onContextMenu}
+      data-touchlist-item-index={props.index /* touchlistItemIndex */}
       className={_.filter([
         "touchlist-item",
         selected ? "selected" : "",

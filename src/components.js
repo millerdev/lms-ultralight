@@ -183,13 +183,12 @@ export const PlaylistButtons = props => {
   )
 }
 
-export const TrackInfoIcon = props => {
+export const TrackInfoIcon = React.memo(function TrackInfoIcon(props) {
   const icon = props.icon || "info circle"
   const floated = props.smallScreen ? " left floated" : ""
   const size = props.smallScreen ? "big" : "large"
-  const dim = props.smallScreen ? "32px" : "18px"
-  const dims = {height: dim, width: dim}
-  const iconDims = props.smallScreen ? dims : {}
+  const dims = ICON_STYLES[size]
+  const iconDims = props.smallScreen ? dims : NO_STYLE
   return <div
     onClick={props.onClick}
     className={"hover-icon-container tap-zone" + floated}
@@ -213,7 +212,13 @@ export const TrackInfoIcon = props => {
       <Icon name={icon} size={size} style={iconDims} fitted />
     </div>
   </div>
+})
+
+const ICON_STYLES = {
+  big: {height: "32px", width: "32px"},
+  large: {height: "18px", width: "18px"},
 }
+const NO_STYLE = {}
 
 export const DragHandle = () => (
   <span className="gap-left">

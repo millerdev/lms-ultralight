@@ -374,12 +374,11 @@ export class Playlist extends React.Component {
       prompt: {},
       touching: false,
     }
-    const onDelete = this.onDeleteItems.bind(this)
-    context.addKeydownHandler(8 /* backspace */, onDelete)
-    context.addKeydownHandler(46 /* delete */, onDelete)
-    context.addKeydownHandler(13 /* enter */, this.onEnterKey.bind(this))
+    context.addKeydownHandler(8 /* backspace */, this.onDeleteItems)
+    context.addKeydownHandler(46 /* delete */, this.onDeleteItems)
+    context.addKeydownHandler(13 /* enter */, this.onEnterKey)
     this.hideTrackInfo = () => {}
-    this.saver = playlistSaver(this.afterSavePlaylist.bind(this))
+    this.saver = playlistSaver(this.afterSavePlaylist)
     this.loading = new Set()
     this.shouldAutoLoad = false
     this.shouldAutoScroll = true
@@ -418,17 +417,17 @@ export class Playlist extends React.Component {
       .then(dispatch)
     this.hideTrackInfo()
   }
-  onEnterKey() {
+  onEnterKey = () => {
     if (this.state.prompt.action) {
       this.state.prompt.action()
       this.setState({prompt: {}})
     }
   }
-  onTap(item) {
+  onTap = item => {
     // HACK hide info icon after touch
     this.onLongTouch(item)
   }
-  onLongTouch(item) {
+  onLongTouch = item => {
     clearTimeout(this.infoTimer)
     // show info icon after selection changes
     setTimeout(() => this.setInfoIndex(item[IX]), 0)
@@ -441,14 +440,14 @@ export class Playlist extends React.Component {
       this.setState({infoIndex: index})
     }
   }
-  onMoveItems(selection, toIndex) {
+  onMoveItems = (selection, toIndex) => {
     const { playerid, dispatch } = this.props
     moveItems(selection, toIndex, playerid, dispatch, lms)
       .then(() => loadPlayer(playerid))
       .catch(err => operationError("Move error", err))
       .then(dispatch)
   }
-  onDeleteItems() {
+  onDeleteItems = () => {
     const number = this.props.selection.size
     let prompt
     if (number) {
@@ -459,10 +458,10 @@ export class Playlist extends React.Component {
     this.setState({prompt: {
       content: prompt + "?",
       yesText: (prompt || "").replace(/ .*$/, ""),
-      action: this.deleteItems.bind(this),
+      action: this.deleteItems,
     }})
   }
-  deleteItems() {
+  deleteItems = () => {
     const { playerid, dispatch, selection } = this.props
     this.setState({prompt: {}})
     if (selection.size) {
@@ -482,16 +481,16 @@ export class Playlist extends React.Component {
       this.setState({prompt})
     })
   }
-  afterSavePlaylist() {
+  afterSavePlaylist = () => {
     this.setState({prompt: {}})
   }
-  onDrop(data, dataType, index) {
+  onDrop = (data, dataType, index) => {
     if (dataType === MEDIA_ITEMS) {
       const {playerid, dispatch, numTracks} = this.props
       insertPlaylistItems(playerid, data, index, dispatch, numTracks)
     }
   }
-  onSelectionChanged(selection, isTouch) {
+  onSelectionChanged = (selection, isTouch) => {
     this.props.dispatch(actions.selectionChanged(selection))
     this.setInfoIndex(-1)
     this.hideTrackInfo()
@@ -522,11 +521,11 @@ export class Playlist extends React.Component {
           itemsTotal={props.numTracks}
           selection={props.selection}
           dropTypes={[MEDIA_ITEMS]}
-          onDrop={this.onDrop.bind(this)}
-          onTap={this.onTap.bind(this)}
-          onLongTouch={this.onLongTouch.bind(this)}
-          onMoveItems={this.onMoveItems.bind(this)}
-          onSelectionChanged={this.onSelectionChanged.bind(this)}
+          onDrop={this.onDrop}
+          onTap={this.onTap}
+          onLongTouch={this.onLongTouch}
+          onMoveItems={this.onMoveItems}
+          onSelectionChanged={this.onSelectionChanged}
           onLoadItems={this.onLoadItems}>
         {props.items.map(item => {
           return <PlaylistItem
@@ -591,7 +590,7 @@ export class PlaylistItem extends React.Component {
       old.fullTrackInfo[old.item.id] !== props.fullTrackInfo[props.item.id]
     )
   }
-  onToggleInfo(event) {
+  onToggleInfo = event => {
     this.setState((state, props) => {
       state = _.clone(state)
       state.expanded = !state.expanded
@@ -605,7 +604,7 @@ export class PlaylistItem extends React.Component {
     })
     event.stopPropagation()
   }
-  onCollapseInfo(event) {
+  onCollapseInfo = event => {
     if (this.state.expanded) {
       this.setState({expanded: false})
     }
@@ -614,12 +613,15 @@ export class PlaylistItem extends React.Component {
   playTrack = () => {
     this.props.playTrackAtIndex(this.props.item[IX])
   }
+  smallStyle = {height: 32}
+  noStyle = {}
   render() {
     const props = this.props
     const item = props.item
     const info = props.fullTrackInfo[item.id]
+    //console.log("playlist item", objectId(item))
     return <Media query="(max-width: 500px)">{ smallScreen => {
-      const heightStyle = smallScreen ? {height: 32} : {}
+      const heightStyle = smallScreen ? this.smallStyle : this.noStyle
       return <TouchList.Item
         index={props.index}
         onDoubleClick={this.playTrack}
@@ -642,7 +644,7 @@ export class PlaylistItem extends React.Component {
                 item={item}
                 activeIcon={props.activeIcon}
                 showInfoIcon={props.showInfoIcon}
-                onClick={this.onToggleInfo.bind(this)}
+                onClick={this.onToggleInfo}
                 smallScreen={smallScreen}
               />
             </span>
@@ -664,7 +666,7 @@ export class PlaylistItem extends React.Component {
                   className="tr-corner"
                 />
               }
-              onClose={this.onCollapseInfo.bind(this)}
+              onClose={this.onCollapseInfo}
             />
           </Segment> : null
         }
