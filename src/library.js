@@ -143,7 +143,7 @@ const doMediaLoad = (item, key, range=[0, 100]) => {
         songinfo.type = "track"
         return actions.gotMedia({songinfo}, key)
       }
-      return actions.gotMedia(adaptMediaItems(result, sector), key, range[0])
+      return actions.gotMedia(adaptMediaItems(result, sector, range[0]), key)
     })
     .catch(error => actions.mediaError(error))
 }
@@ -226,6 +226,9 @@ export function mergeLoops(oldResult, newResult) {
   const mergeLists = require('./playlist').mergePlaylist
   return _.zip(oldResult, newResult).map(pair => {
     const [one, two] = pair
+    if (one.sector !== two.sector) {
+      return two
+    }
     return {...two, loop: mergeLists(one.loop, two.loop, "index")}
   })
 }

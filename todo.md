@@ -11,8 +11,6 @@ x  - load items near playing item (14 before, 85 after)
 x  - scroll to playing item on load
 x  - scroll to current item on playlist advance
 x  - investigate why more than 100 items are being loaded
-  - show loading indicator in unloaded space
-  - put "Delete" and "Clear" playlist buttons in a bottom/left floating menu
 x  - do not scroll after drag/drop
 x  - optimize selecting an item re-renders all items in list
 x    possibly caused by LoadingContext change
@@ -26,6 +24,8 @@ x      - `createContext()` for each loading index
 x  - optimize moving item re-renders all loaded items
   - optimize <LoadingListItem> renders 3x per click to select item
     (props is a new object on each render)
+  - show loading indicator in unloaded space
+  - put "Delete" and "Clear" playlist buttons in a bottom/left floating menu
 - filter "No Album" results by current section criteria
   example: http://localhost:3000/menu/contributor/286
   - search "moody blues"
@@ -34,6 +34,7 @@ x  - optimize moving item re-renders all loaded items
   - results should only contain "Moody Blues" tracks
 - add lazy loading to menu lists
 - browse music folder
+  - add "Music Folder" item in main menu
   - clickable path elements in song info
 - fix media query override in semantic.min.css
   see commit 684a6cf960cdf5db2d2922aa66f9ffd2a917aab9
