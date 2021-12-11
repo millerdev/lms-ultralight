@@ -37,11 +37,11 @@ export const reducer = makeReducer({
       [effect(doMediaSearch, query, resultKey, range)],
     )
   },
-  mediaLoad: (state, action, item, range) => {
+  mediaLoad: (state, action, item, query, range) => {
     const resultKey = item.type + "/" + item.id
     return combine(
       {...state, resultKey, isLoading: true},
-      [effect(doMediaLoad, item, resultKey, range)],
+      [effect(doMediaLoad, item, query, resultKey, range)],
     )
   },
   gotMedia: (state, action, result, key) => {
@@ -123,7 +123,7 @@ export const mediaInfo = (item, history, basePath, previous) => {
  *
  * @returns a promise that resolves to an action
  */
-const doMediaLoad = (item, key, range=[0, 100]) => {
+const doMediaLoad = (item, query, key, range=[0, 100]) => {
   const sector = NEXT_SECTION[item.type]
   if (!sector) {
     return operationError("Unknown media item", item)
@@ -132,7 +132,7 @@ const doMediaLoad = (item, key, range=[0, 100]) => {
     ["tags", "sort"]
     .filter(name => _.has(sector, name))
     .map(name => name + ":" + sector[name])
-  )
+  ).concat(taggedParams(query))
   const cmd = _.isArray(sector.cmd) ? sector.cmd : [sector.cmd]
   return lms.command("::", ...cmd, ...range, ...params)
     .then(json => {
@@ -198,6 +198,37 @@ const adaptSearchResult = (result, i=0) => _.chain(result)
   // slightly non-intuitive: search, click playlists (searches in playlists)
   .concat([{sector: SECTIONS["playlists"], loop: []}])
   .value()
+
+/**
+ * Convert {key: "value", ...} query object to ["key:value", ...]
+ */
+export const taggedParams = query => _.map(query, (value, key) => {
+  const param = QUERY_PARAMS[key]
+  return param && param + ":" + value
+}).filter(v => v)
+
+const QUERY_PARAMS = {
+  // key: NEXT_SECTION[key].param
+  genre: "genre_id",
+  contributor: "artist_id",
+  album: "album_id",
+  track: "track_id",
+  playlist: "playlist_id",
+
+  // 'q' URL parameter becomes 'term' in BrowserItems.getActionFromLocation
+  term: "search",
+
+  // URL parameters may be entered by hand
+  library: "library_id",
+  artist: "artist_id",
+  role: "role_id",
+  search: "search",
+  compilation: "compilation",
+  artist_id: "artist_id",
+  role_id: "role_id",
+  library_id: "library_id",
+  year: "year",
+}
 
 function getPath(location) {
   return (
@@ -478,6 +509,12 @@ export class BrowserItems extends React.Component {
     const {basePath, location} = this.props
     const pathname = location.pathname
 
+    const query = location.search ? qs.parse(location.search) : {}
+    if (query.q) {
+      query.term = query.q
+      delete query.q
+    }
+
     // path: /:type/:id
     const types = _.keys(NEXT_SECTION).join("|")
     const itemMatch = matchPath(pathname, {
@@ -485,25 +522,21 @@ export class BrowserItems extends React.Component {
       exact: true,
     })
     if (itemMatch) {
-      return actions.mediaLoad(itemMatch.params, range)
+      return actions.mediaLoad(itemMatch.params, query, range)
     }
 
     // path: /:section? + ?q=term
     const sections = _.keys(SECTIONS).join("|")
     const sectionPattern = "/:section(" + sections + ")"
-    if (location.search) {
-      const params = qs.parse(location.search)
-      if (params.q) {
-        const query = {term: params.q}
-        const queryMatch = matchPath(pathname, {
-          path: basePath + sectionPattern,
-          exact: true,
-        })
-        if (queryMatch) {
-          query.section = queryMatch.params.section
-        }
-        return actions.mediaSearch(query, range)
+    if (query.term) {
+      const queryMatch = matchPath(pathname, {
+        path: basePath + sectionPattern,
+        exact: true,
+      })
+      if (queryMatch) {
+        query.section = queryMatch.params.section
       }
+      return actions.mediaSearch(query, range)
     }
 
     // path: /:section
