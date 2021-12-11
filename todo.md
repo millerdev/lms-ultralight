@@ -1,6 +1,7 @@
 # TODO
 
-- optimize package size and release new version
+- fix menu has large empty space at bottom after search
+  search for "moody"
 - browse music folder
   - add "Music Folder" item in main menu
   - clickable path elements in song info
@@ -50,6 +51,9 @@ x- add lazy loading to menu lists
 - fix unnecessary render in menu on gotPlayer
 - fix delete not deleting all selected items
 
+- optimize semantic-ui bundling
+  https://github.com/skleeschulte/babel-plugin-transform-semantic-ui-react-imports
+  https://stackoverflow.com/a/43288212/10840
 - add support for browsing file system via songinfo path elements
 - scroll currently playing playlist item near top of screen
   - scroll slowly at first 5s to allow manual intervention/override

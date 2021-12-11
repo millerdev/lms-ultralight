@@ -76,11 +76,11 @@ const rules = [
   },
   {
     test: /\.(woff2?|ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
-    type: 'asset/inline',
+    type: 'asset/resource',
   },
   {
     test: /\.(gif|jpg|jpeg|png)$/,
-    type: 'asset/inline',
+    type: 'asset/resource',
   },
 ]
 
