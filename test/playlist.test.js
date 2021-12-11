@@ -1,5 +1,5 @@
 import { shallow } from 'enzyme'
-import _ from 'lodash'
+import _ from 'lodash-es'
 import React from 'react'
 
 import { promiseChecker, rewire } from './util'

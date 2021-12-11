@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash-es'
 import Slider from 'rc-slider'
 import React from 'react'
 import PropTypes from 'prop-types'

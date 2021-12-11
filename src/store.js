@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash-es'
 import { createStore, compose } from 'redux'
 
 //import DevTools from './devtools'

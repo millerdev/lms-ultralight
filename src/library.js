@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash-es'
 import qs from 'query-string'
 import React from 'react'
 import Media from 'react-media'
@@ -140,8 +140,8 @@ const adaptMediaItems = (result, sector, i=0) => [{
   })),
 }]
 
-const adaptSearchResult = (result, i=0) => _.chain(result)
-  .map((value, key) => {
+const adaptSearchResult = (result, i=0) => _.sortBy(
+  _.map(result, (value, key) => {
     const match = /(.+)s_loop/.exec(key)
     if (match) {
       const type = match[1]
@@ -161,13 +161,12 @@ const adaptSearchResult = (result, i=0) => _.chain(result)
         })),
       }
     }
-  })
-  .filter()
-  .sortBy(item => item.sector.index)
-  // add "playlists" to allow search in playlists
-  // slightly non-intuitive: search, click playlists (searches in playlists)
-  .concat([{sector: SECTIONS["playlists"], loop: []}])
-  .value()
+  }).filter(v => v),
+  item => item.sector.index
+)
+// add "playlists" to allow search in playlists
+// slightly non-intuitive: search, click playlists (searches in playlists)
+.concat([{sector: SECTIONS["playlists"], loop: []}])
 
 /**
  * Convert {key: "value", ...} query object to ["key:value", ...]
@@ -269,7 +268,7 @@ export function mergeLoops(oldResult, newResult) {
   })
 }
 
-const SECTIONS = _.chain([
+const SECTIONS = _.fromPairs([
   {
     section: "artists",
     type: "contributor",
@@ -295,10 +294,10 @@ const SECTIONS = _.chain([
     title: "Playlists",
     cmd: "playlists",
   },
-]).map((info, i) => {
-  info.index = i
-  return [info.section, info]
-}).fromPairs().value()
+].map((sector, i) => {
+  sector.index = i
+  return [sector.section, sector]
+}))
 
 const TYPE_TO_SECTION = {
   "contributor": "artists",

@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash-es'
 import React from 'react'
 import PropTypes from 'prop-types'
 import { Button, Dimmer, Icon, Image, Item, Loader } from 'semantic-ui-react'
