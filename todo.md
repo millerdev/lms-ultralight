@@ -1,6 +1,19 @@
 # TODO
 
-- fix playlist only loads first 100 tracks
+- optimize package size and release new version
+- browse music folder
+  - add "Music Folder" item in main menu
+  - clickable path elements in song info
+- fix media query override in semantic.min.css
+  see commit 684a6cf960cdf5db2d2922aa66f9ffd2a917aab9
+  reverted to standard semantic.min.css in 2eb603d8cd3194769c5d6afbc047896dedd2085f
+- show loading indicator in unloaded space in TouchList
+- put "Delete" and "Clear" playlist buttons in a bottom/left floating menu
+- fix icons
+  - playlist play/info (icons are too big)
+  - MediaInfo icons should be links with href="<url>"
+x  - menu drill in (+ is the wrong icon)
+x- fix playlist only loads first 100 tracks
 x  - pad list with space for unloaded items
 x  - load more results on scroll near unloaded items
 x    - clean up `loadPlayer(playerid, ...)` calls
@@ -22,27 +35,16 @@ x      - `LoadingContext` value (reference) never changes after initial load
 x        - update sub-values on each `TouchList` render
 x      - `createContext()` for each loading index
 x  - optimize moving item re-renders all loaded items
-  - optimize <LoadingListItem> renders 3x per click to select item
-    (props is a new object on each render)
-  - show loading indicator in unloaded space
-  - put "Delete" and "Clear" playlist buttons in a bottom/left floating menu
+xx  - optimize <LoadingListItem> renders 3x per click to select item
+x    (props is a new object on each render)
 x- filter "No Album" results by current section criteria
 x- rename mediaInfo to mediaNav
 x- drop media filters from links in track info view
-- add lazy loading to menu lists
-- browse music folder
-  - add "Music Folder" item in main menu
-  - clickable path elements in song info
-- fix media query override in semantic.min.css
-  see commit 684a6cf960cdf5db2d2922aa66f9ffd2a917aab9
-  reverted to standard semantic.min.css in 2eb603d8cd3194769c5d6afbc047896dedd2085f
-- fix icons
-  - menu drill in (+ is the wrong icon)
-  - playlist play/info (icons are too big)
-- refactor class components into functional components with hooks
-- run tests in browser at http://localhost:3000/test
+x- add lazy loading to menu lists
 
 - upgrade libraries to latest versions
+- run tests in browser at http://localhost:3000/test
+- refactor class components into functional components with hooks
 
 - fix breadcrumbs do not update properly after BrowserSync reload + click new crumb link
 - fix unnecessary render in menu on gotPlayer
