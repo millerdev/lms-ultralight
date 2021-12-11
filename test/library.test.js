@@ -53,6 +53,59 @@ describe('library', function () {
     }
   })
 
+  describe("mediaInfo", function () {
+    const basePath = "/menu"
+
+    it("should add parameter to history", () => {
+      const item = {type: "contributor", id: 24, title: "Cher"}
+      const [ path, nav ] = getPathNav(item)
+      assert.equal(path, "/menu/contributor/24")
+      assert.deepEqual(nav, {
+        name: "Cher",
+        pathspec: {pathname: "/menu/contributor/24", search: ""},
+        params: {'contributor': 24},
+        previous: undefined,
+      })
+    })
+
+    it("should merge parameter with previous parameters", () => {
+      const previous = {params: {'contributor': 24}}
+      const item = {type: "album", id: 3, title: "No Album"}
+      const [ path, nav ] = getPathNav(item, previous)
+      assert.equal(path, "/menu/album/3?contributor=24")
+      assert.deepEqual(nav, {
+        name: "No Album",
+        pathspec: {pathname: "/menu/album/3", search: "?contributor=24"},
+        params: {'album': 3, 'contributor': 24},
+        previous,
+      })
+    })
+
+    it("should not merge query term from previous search", () => {
+      const previous = {
+        name: "cher",
+        term: "cher",
+        pathspec: {pathname: "/menu", search: "?q=cher"},
+      }
+      const item = {type: "contributor", id: 24, title: "Cher"}
+      const [ path, nav ] = getPathNav(item, previous)
+      assert.equal(path, "/menu/contributor/24")
+      assert.deepEqual(nav, {
+        name: "Cher",
+        pathspec: {pathname: "/menu/contributor/24", search: ""},
+        params: {'contributor': 24},
+        previous,
+      })
+    })
+
+    function getPathNav(item, previous) {
+      const location = {}
+      const history = {push: (to, state) => _.assign(location, {to, state})}
+      mod.mediaInfo(item, history, basePath, previous).show()
+      return [location.to, location.state.nav]
+    }
+  })
+
   describe("taggedParams", function () {
     it("should convert key to section param", () => {
       assert.deepEqual(

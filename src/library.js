@@ -95,6 +95,7 @@ const doMediaSearch = (query, key, range) => {
  * - name: human-readable name (required)
  * - pathspec: location path components object: pathname, search, hash
  *             https://reacttraining.com/react-router/web/api/location
+ * - params: query parameters
  * - previous: previous nav object (optional)
  *
  * Other nav-specific keys may be present.
@@ -105,16 +106,19 @@ const doMediaSearch = (query, key, range) => {
  *    to be used as an onClick handler.
  */
 export const mediaInfo = (item, history, basePath, previous) => {
+  const { params } = previous || {}
   const pathname = basePath + "/" + item.type + "/" + (item.id || "")
+  const search = params ? "?" + qs.stringify(params) : ""
   const nav = {
     name: item.title || "Media",
-    pathspec: {pathname},
+    pathspec: {pathname, search},
+    params: {...params, [item.type]: item.id},
     previous,
   }
-  const to = {pathname, state: {nav}}
+  const to = {...nav.pathspec, state: {nav}}
   return {
     link: () => <Link to={to}>{nav.name}</Link>,
-    show: () => history.push(pathname, {nav}),
+    show: () => history.push(getPath(nav.pathspec), {nav}),
   }
 }
 

@@ -26,12 +26,8 @@ x  - optimize moving item re-renders all loaded items
     (props is a new object on each render)
   - show loading indicator in unloaded space
   - put "Delete" and "Clear" playlist buttons in a bottom/left floating menu
-- filter "No Album" results by current section criteria
-  example: http://localhost:3000/menu/contributor/286
-  - search "moody blues"
-  - click "The Moody Blues"
-  - click "No Album"
-  - results should only contain "Moody Blues" tracks
+x- filter "No Album" results by current section criteria
+- rename mediaInfo => {link, show} to mediaNav => {link, go}
 - add lazy loading to menu lists
 - browse music folder
   - add "Music Folder" item in main menu
