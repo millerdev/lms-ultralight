@@ -258,7 +258,9 @@ function getSearchPath(query, basePath) {
 }
 
 export function mergeLoops(oldResult, newResult) {
-  if (!oldResult || oldResult.length !== newResult.length) {
+  if (!oldResult
+      || oldResult.length !== newResult.length
+      || newResult.length > 1) {
     return newResult
   }
   const mergeLists = require('./playlist').mergePlaylist
