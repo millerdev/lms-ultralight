@@ -80,14 +80,14 @@ export class MainMenu extends React.Component {
   getChildContext() {
     return {
       addKeydownHandler: this.addKeydownHandler,
-      mediaInfo: this.mediaInfo,
+      mediaNav: this.mediaNav,
     }
   }
   addKeydownHandler = (code, handler) => {
     this.keydownHandlers[code] = handler
   }
-  mediaInfo = (item, nav) => (
-    library.mediaInfo(item, this.props.history, "/menu", nav)
+  mediaNav = (item, nav) => (
+    library.mediaNav(item, this.props.history, "/menu", nav)
   )
   onKeyDown(event) {
     if (
@@ -132,7 +132,7 @@ export class MainMenu extends React.Component {
         messages={menu.messages}
         onHideError={this.onHideError}
         onPlayerSelected={this.onPlayerSelected}
-        mediaInfo={this.mediaInfo}
+        mediaNav={this.mediaNav}
         miniPlayer={this.state.miniPlayer}
         toggleMiniPlayer={this.toggleMiniPlayer}
         menuDidShow={this.didShow}
@@ -147,7 +147,7 @@ export class MainMenu extends React.Component {
 
 MainMenu.childContextTypes = {
   addKeydownHandler: PropTypes.func.isRequired,
-  mediaInfo: PropTypes.func.isRequired,
+  mediaNav: PropTypes.func.isRequired,
 }
 
 

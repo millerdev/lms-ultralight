@@ -89,40 +89,6 @@ const doMediaSearch = (query, key, range) => {
 }
 
 /**
- * Create media link object
- *
- * `nav` object specification
- * - name: human-readable name (required)
- * - pathspec: location path components object: pathname, search, hash
- *             https://reacttraining.com/react-router/web/api/location
- * - params: query parameters
- * - previous: previous nav object (optional)
- *
- * Other nav-specific keys may be present.
- *
- * Returns an object with two function properties
- * - link: create a <Link> element.
- * - show: load the media item immediately and update history. Suitable
- *    to be used as an onClick handler.
- */
-export const mediaInfo = (item, history, basePath, previous) => {
-  const { params } = previous || {}
-  const pathname = basePath + "/" + item.type + "/" + (item.id || "")
-  const search = params ? "?" + qs.stringify(params) : ""
-  const nav = {
-    name: item.title || "Media",
-    pathspec: {pathname, search},
-    params: {...params, [item.type]: item.id},
-    previous,
-  }
-  const to = {...nav.pathspec, state: {nav}}
-  return {
-    link: () => <Link to={to}>{nav.name}</Link>,
-    show: () => history.push(getPath(nav.pathspec), {nav}),
-  }
-}
-
-/**
  * Load media item details
  *
  * @returns a promise that resolves to an action
@@ -232,6 +198,40 @@ const QUERY_PARAMS = {
   role_id: "role_id",
   library_id: "library_id",
   year: "year",
+}
+
+/**
+ * Create media navigation object
+ *
+ * `nav` object specification
+ * - name: human-readable name (required)
+ * - pathspec: location path components object: pathname, search, hash
+ *             https://reacttraining.com/react-router/web/api/location
+ * - params: query parameters
+ * - previous: previous nav object (optional)
+ *
+ * Other nav-specific keys may be present.
+ *
+ * Returns an object with two function properties
+ * - link: create a <Link> element.
+ * - show: load the media item immediately and update history. Suitable
+ *    to be used as an onClick handler.
+ */
+ export const mediaNav = (item, history, basePath, previous) => {
+  const { params } = previous || {}
+  const pathname = basePath + "/" + item.type + "/" + (item.id || "")
+  const search = params ? "?" + qs.stringify(params, {sort: false}) : ""
+  const nav = {
+    name: item.title || "Media",
+    pathspec: {pathname, search},
+    params: {...params, [item.type]: item.id},
+    previous,
+  }
+  const to = {...nav.pathspec, state: {nav}}
+  return {
+    link: () => <Link to={to}>{nav.name}</Link>,
+    show: () => history.push(getPath(nav.pathspec), {nav}),
+  }
 }
 
 function getPath(location) {
@@ -462,7 +462,7 @@ export class BrowserHistory extends React.PureComponent {
   }
 }
 
-const IGNORE_DIFF = {playctl: true, match: true, mediaInfo: true}
+const IGNORE_DIFF = {playctl: true, match: true, mediaNav: true}
 
 export class BrowserItems extends React.Component {
   constructor(props) {
@@ -554,7 +554,7 @@ export class BrowserItems extends React.Component {
 
     return actions.clearMedia()
   }
-  mediaInfo = item => this.props.mediaInfo(item, this.state.nav)
+  mediaNav = item => this.props.mediaNav(item, this.state.nav)
   onLoadItems = range => {
     const key = JSON.stringify(range)
     if (!range || this.loading.has(key)) {
@@ -575,13 +575,13 @@ export class BrowserItems extends React.Component {
           item={result.songinfo}
           playctl={props.playctl}
           imageSize="tiny"
-          mediaInfo={this.mediaInfo}
+          mediaNav={this.mediaNav}
         />
       }
       return <MediaItems
         {...props}
         items={result}
-        mediaInfo={this.mediaInfo}
+        mediaNav={this.mediaNav}
         onLoadItems={this.onLoadItems}
       />
     }
@@ -677,7 +677,7 @@ export class MediaItems extends React.PureComponent {
           ] : []).concat(loop.map((item, i) =>
             <MediaItem
               smallScreen={smallScreen}
-              mediaInfo={this.props.mediaInfo}
+              mediaNav={this.props.mediaNav}
               playItem={this.playItem}
               playNext={this.getPlayNextFunc(selection, item)}
               addToPlaylist={this.addToPlaylist}
@@ -738,7 +738,7 @@ export class MediaItem extends React.Component {
           <TrackInfoIcon
             {...props}
             icon={item.type === "track" ? null : "plus square outline"}
-            onClick={props.mediaInfo(item).show}
+            onClick={props.mediaNav(item).show}
             smallScreen={smallScreen}
           />
           <span className={gap}>{item.title}</span>

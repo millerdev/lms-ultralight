@@ -53,7 +53,7 @@ describe('library', function () {
     }
   })
 
-  describe("mediaInfo", function () {
+  describe("mediaNav", function () {
     const basePath = "/menu"
 
     it("should add parameter to history", () => {
@@ -101,7 +101,7 @@ describe('library', function () {
     function getPathNav(item, previous) {
       const location = {}
       const history = {push: (to, state) => _.assign(location, {to, state})}
-      mod.mediaInfo(item, history, basePath, previous).show()
+      mod.mediaNav(item, history, basePath, previous).show()
       return [location.to, location.state.nav]
     }
   })

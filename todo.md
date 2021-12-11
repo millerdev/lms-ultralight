@@ -27,7 +27,8 @@ x  - optimize moving item re-renders all loaded items
   - show loading indicator in unloaded space
   - put "Delete" and "Clear" playlist buttons in a bottom/left floating menu
 x- filter "No Album" results by current section criteria
-- rename mediaInfo => {link, show} to mediaNav => {link, go}
+x- rename mediaInfo to mediaNav
+- drop media filters from links in track info view
 - add lazy loading to menu lists
 - browse music folder
   - add "Music Folder" item in main menu
