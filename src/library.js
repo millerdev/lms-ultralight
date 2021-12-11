@@ -151,7 +151,10 @@ const adaptSearchResult = (result, i=0) => _.sortBy(
       }
       return {
         sector,
-        count: result[type + "s_count"],
+        // Use length for results rather than `result[type + "s_count"]`
+        // to avoid large empty space created by TouchList below results
+        // since more items will not load anyway.
+        count: value.length,
         loop: _.map(value, item => ({
           ...item,
           id: item[type + "_id"],

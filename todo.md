@@ -1,7 +1,5 @@
 # TODO
 
-- fix menu has large empty space at bottom after search
-  search for "moody"
 - browse music folder
   - add "Music Folder" item in main menu
   - clickable path elements in song info
