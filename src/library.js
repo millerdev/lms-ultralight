@@ -218,7 +218,8 @@ const QUERY_PARAMS = {
  *    to be used as an onClick handler.
  */
  export const mediaNav = (item, history, basePath, previous) => {
-  const { params } = previous || {}
+  const merge = _.get(previous, "params.track") === undefined
+  const { params } = merge && previous || {}
   const pathname = basePath + "/" + item.type + "/" + (item.id || "")
   const search = params ? "?" + qs.stringify(params, {sort: false}) : ""
   const nav = {

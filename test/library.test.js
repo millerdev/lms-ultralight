@@ -98,6 +98,19 @@ describe('library', function () {
       })
     })
 
+    it("should not merge track parameters", () => {
+      const previous = {params: {'contributor': 24, 'album': 3, track: 215}}
+      const item = {type: "album", id: 3, title: "No Album"}
+      const [ path, nav ] = getPathNav(item, previous)
+      assert.equal(path, "/menu/album/3")
+      assert.deepEqual(nav, {
+        name: "No Album",
+        pathspec: {pathname: "/menu/album/3", search: ""},
+        params: {'album': 3},
+        previous,
+      })
+    })
+
     function getPathNav(item, previous) {
       const location = {}
       const history = {push: (to, state) => _.assign(location, {to, state})}
