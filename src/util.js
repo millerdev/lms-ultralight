@@ -1,4 +1,4 @@
-import _ from 'lodash-es'
+import _ from 'lodash'
 
 export function formatTime(seconds) {
   if (!seconds) {

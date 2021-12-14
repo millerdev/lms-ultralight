@@ -1,4 +1,4 @@
-import _ from 'lodash-es'
+import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
 import Media from 'react-media'

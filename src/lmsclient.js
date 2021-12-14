@@ -1,6 +1,6 @@
 // Logitech Media Server client
 import axios from 'axios'
-import _ from 'lodash-es'
+import _ from 'lodash'
 
 import { operationError } from './util'
 

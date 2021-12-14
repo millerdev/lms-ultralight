@@ -7,7 +7,7 @@
  * It also provides a way to cancel a promised action without causing a
  * subsequent dispatch.
  */
-import _ from 'lodash-es'
+import _ from 'lodash'
 
 let debug = true
 export function setDebugMode(enabled) {

@@ -1,5 +1,5 @@
 import { render, shallow } from 'enzyme'
-import _ from 'lodash-es'
+import _ from 'lodash'
 import React from 'react'
 
 import { rewire } from './util'
