@@ -1,8 +1,13 @@
 # TODO
 
 - browse music folder
-  - add "Music Folder" item in main menu
+x  - add "Music Folder" item in main menu
   - clickable path elements in song info
+- fix library loading after Music Folder > drill in > go back (does not update items)
+- fix merge playlist results should be smarter
+  - do not merge when playlist track count changed (library is fixed now, but maybe not playlist)
+  - do not merge when results overlap with existing loaded items? (could be problematic)
+- fix add "No Album" item to playlist adds all tracks in that album (should use query params)
 - fix media query override in semantic.min.css
   see commit 684a6cf960cdf5db2d2922aa66f9ffd2a917aab9
   reverted to standard semantic.min.css in 2eb603d8cd3194769c5d6afbc047896dedd2085f

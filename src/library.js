@@ -186,6 +186,7 @@ const QUERY_PARAMS = {
   contributor: "artist_id",
   album: "album_id",
   track: "track_id",
+  folder: "folder_id",
   playlist: "playlist_id",
 
   // 'q' URL parameter becomes 'term' in BrowserItems.getActionFromLocation
@@ -220,8 +221,8 @@ const QUERY_PARAMS = {
  * - show: load the media item immediately and update history. Suitable
  *    to be used as an onClick handler.
  */
- export const mediaNav = (item, history, basePath, previous) => {
-  const merge = _.get(previous, "params.track") === undefined
+export const mediaNav = (item, history, basePath, previous) => {
+  const merge = shouldMergeNav(item, previous)
   const { params } = merge && previous || {}
   const pathname = basePath + "/" + item.type + "/" + (item.id || "")
   const search = params ? "?" + qs.stringify(params, {sort: false}) : ""
@@ -236,6 +237,12 @@ const QUERY_PARAMS = {
     link: () => <Link to={to}>{nav.name}</Link>,
     show: () => history.push(getPath(nav.pathspec), {nav}),
   }
+}
+
+function shouldMergeNav(item, previous) {
+  const params = _.get(previous, "params")
+  return _.get(params, "track") === undefined
+    && !_.has(params, item.type)
 }
 
 function getPath(location) {
@@ -267,7 +274,7 @@ export function mergeLoops(oldResult, newResult) {
   const mergeLists = require('./playlist').mergePlaylist
   return _.zip(oldResult, newResult).map(pair => {
     const [one, two] = pair
-    if (one.sector !== two.sector) {
+    if (one.sector !== two.sector || one.count !== two.count) {
       return two
     }
     return {...two, loop: mergeLists(one.loop, two.loop, "index")}
@@ -299,6 +306,13 @@ const SECTIONS = _.chain([
     type: "playlist",
     title: "Playlists",
     cmd: "playlists",
+  }, {
+    section: "folder",
+    type: "folder",
+    title: "Music Folder",
+    tags: "c",  // coverid
+    cmd: "musicfolder",
+    titleKey: "filename",
   },
 ]).map((info, i) => {
   info.index = i
@@ -348,6 +362,14 @@ const NEXT_SECTION = {
     cmd: ["playlists", "tracks"],
     param: "playlist_id",
     tags: "acjt",  // artist, coverid, artwork_track_id, track
+  },
+  folder: {
+    section: "folder",
+    type: "folder",
+    cmd: ["musicfolder"],
+    param: "folder_id",
+    tags: "c",  // coverid
+    titleKey: "filename",
   },
 }
 
@@ -474,7 +496,10 @@ export class BrowserItems extends React.Component {
   constructor(props) {
     super(props)
     const resultKey = this.getResultKey()
-    this.state = {nav: undefined, resultKey}
+    this.state = {
+      nav: _.get(this.props, "location.state.nav"),
+      resultKey,
+    }
     this.loading = new Set()
     if (!props.isLoading && props.resultKey !== resultKey) {
       props.dispatch(this.getActionFromLocation())

@@ -98,6 +98,23 @@ describe('library', function () {
       })
     })
 
+    it("should not merge previous folder", () => {
+      const previous = {
+        name: "Cher",
+        pathspec: {pathname: "/menu/folder/230", search: ""},
+        params: {folder: 230},
+      }
+      const item = {type: "folder", id: 231, title: "The Greatest Hits"}
+      const [ path, nav ] = getPathNav(item, previous)
+      assert.equal(path, "/menu/folder/231")
+      assert.deepEqual(nav, {
+        name: "The Greatest Hits",
+        pathspec: {pathname: "/menu/folder/231", search: ""},
+        params: {'folder': 231},
+        previous,
+      })
+    })
+
     it("should not merge track parameters", () => {
       const previous = {params: {'contributor': 24, 'album': 3, track: 215}}
       const item = {type: "album", id: 3, title: "No Album"}
@@ -157,11 +174,11 @@ describe('library', function () {
 
   describe("mergeLoops", function () {
     it("should merge contiguous results", function () {
-      const res1 = makeResult(2)
-      const res2 = makeResult(2, 2)
+      const res1 = makeResult(2, 0, 4)
+      const res2 = makeResult(2, 2, 4)
       assert.deepEqual(
         mod.mergeLoops(res1, res2),
-        [{loop: [0, 1, 2, 3].map(i => ({index: i}))}],
+        [{loop: [0, 1, 2, 3].map(i => ({index: i})), count: 4}],
       )
     })
 
@@ -170,11 +187,11 @@ describe('library', function () {
       const res2 = makeResult(2)
       assert.deepEqual(
         mod.mergeLoops(res1, res2),
-        [{loop: [0, 1].map(i => ({index: i}))}],
+        [{loop: [0, 1].map(i => ({index: i})), count: 2}],
       )
     })
 
-    it("should merge new result into no result", function () {
+    it("should not merge new result into no result", function () {
       const res1 = makeResult(2)
       const res2 = []
       assert.deepEqual(
@@ -183,9 +200,20 @@ describe('library', function () {
       )
     })
 
-    function makeResult(count, offset=0) {
-      return [{loop: Array.from(Array(count).keys())
-        .map(i => ({index: i + offset}))}]
+    it("should not merge results with different counts", function () {
+      const res1 = makeResult(2)
+      const res2 = makeResult(1, 2)
+      assert.deepEqual(
+        mod.mergeLoops(res1, res2),
+        res2,
+      )
+    })
+
+    function makeResult(len, offset=0, count=len + offset) {
+      return [{
+        loop: Array.from(Array(len).keys()).map(i => ({index: i + offset})),
+        count,
+      }]
     }
   })
 })
