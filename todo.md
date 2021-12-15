@@ -3,7 +3,7 @@
 - browse music folder
 x  - add "Music Folder" item in main menu
   - clickable path elements in song info
-- fix library loading after Music Folder > drill in > go back (does not update items)
+x- fix library loading after Music Folder > drill in > go back (does not update items)
 - fix merge playlist results should be smarter
   - do not merge when playlist track count changed (library is fixed now, but maybe not playlist)
   - do not merge when results overlap with existing loaded items? (could be problematic)

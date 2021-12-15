@@ -133,9 +133,9 @@ const adaptMediaItems = (result, sector, i=0) => [{
   sector,
   count: result.count || 0,
   loop: (result[sector.section + "_loop"] || []).map(item => ({
-    ...item,
     type: sector.type,
-    title: item[sector.titleKey] || item.title || item[sector.type],
+    ...item,
+    title: item[sector.titleKey] || item.title || item[item.type || sector.type],
     index: i++,
   })),
 }]
