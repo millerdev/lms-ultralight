@@ -23,8 +23,8 @@ export const defaultState = {
 export const reducer = makeReducer({
   mediaBrowse: (state, action, section, range) => {
     return combine(
-      {...state, key: section, isLoading: true},
-      [effect(doMediaBrowse, section, undefined, undefined, range)],
+      {...state, resultKey: section, isLoading: true},
+      [effect(doMediaBrowse, section, undefined, section, range)],
     )
   },
   mediaSearch: (state, action, query, range) => {
