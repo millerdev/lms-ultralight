@@ -155,6 +155,24 @@ describe('playlist', function () {
           items: PLAYLIST_1.slice(0, -1).concat(PLAYLIST_OVERLAP),
         })
       })
+
+      it('should not merge new playlist with different length', function () {
+        const state = {...STATE, items: PLAYLIST_1}
+        const result = getState(reduce(state, gotPlayer({
+          ...STATUS,
+          playlist_cur_index: 5,
+          playlist_tracks: 300,
+          isPlaylistUpdate: true,
+          playlist_loop: PLAYLIST_2,
+        })))
+        assert.deepEqual(result, {
+          ...STATE,
+          currentIndex: 5,
+          currentTrack: PLAYLIST_2[1],
+          numTracks: 300,
+          items: PLAYLIST_2,
+        })
+      })
     })
 
     describe('advanceToNextTrack', function () {

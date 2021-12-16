@@ -44,9 +44,8 @@ export const reducer = makeReducer({
       const gotCurrent = index >= list[0][IX] && index <= list[list.length - 1][IX]
       data.currentIndex = index
       if (status.isPlaylistUpdate || changed) {
-        // TODO merge will return wrong result if all items in playlist have
-        // changed but only a subset is loaded in this update
-        data.items = mergePlaylist(list, state.items)
+        const sameSize = data.numTracks === state.numTracks
+        data.items = sameSize ? mergePlaylist(list, state.items) : list
         if (gotCurrent) {
           data.currentTrack = list[index - list[0][IX]]
         }
@@ -290,6 +289,9 @@ function isPlaylistChanged(prev, next) {
 
 /**
  * Merge newly loaded playlist items into existing playlist
+ *
+ * FIXME returns wrong result if all items in playlist have changed
+ * but only a subset is merged.
  *
  * @param newList Array of new playlist items.
  * @param oldList Array of old/existing playlist items.
