@@ -1,9 +1,10 @@
 # TODO
 
-- browse music folder
-x  - add "Music Folder" item in main menu
 - fix add "No Album" item to playlist adds all tracks in that album (should use query params)
 - fix drag/drop from library fails with error
+  - isItemLoaded > false > loadPlayer is very slow on drag multiple
+    also has big jump on load first item
+- fix select range with shift doesn't always work (selects entire list?)
 - fix media query override in semantic.min.css
   see commit 684a6cf960cdf5db2d2922aa66f9ffd2a917aab9
   reverted to standard semantic.min.css in 2eb603d8cd3194769c5d6afbc047896dedd2085f
@@ -14,6 +15,8 @@ x  - add "Music Folder" item in main menu
   - playlist play/info (icons are too big)
   - MediaInfo icons should be links with href="<url>"
 x  - menu drill in (+ is the wrong icon)
+x- browse music folder
+x  - add "Music Folder" item in main menu
 x- fix library loading after Music Folder > drill in > go back (does not update items)
 x- fix merge playlist results should be smarter
 x  - do not merge when playlist track count changed (library is fixed now, but maybe not playlist)

@@ -87,7 +87,7 @@ export const reducer = makeReducer({
     }
     return combine(state, effects)
   },
-  playlistItemMoved: (state, action, fromIndex, toIndex) => {
+  playlistItemMoved: (state, action, fromIndex, toIndex, item) => {
     const selection = state.selection
     let currentIndex = state.currentIndex
     let between, stop, step
@@ -114,12 +114,13 @@ export const reducer = makeReducer({
     )
     return {
       ...state,
-      items: moveItem(state.items, fromIndex, toIndex),
+      items: moveItem(state.items, fromIndex, toIndex, item),
       selection: new Set(
         [...selection].filter(x => !deselect.has(x)).map(reindex)
       ),
       currentIndex: currentIndex,
       currentTrack: {...state.currentTrack, [IX]: currentIndex},
+      numTracks: _.max([state.numTracks, fromIndex + 1]),
     }
   },
   playlistItemDeleted: (state, action, index) => {
@@ -178,14 +179,14 @@ function insertPlaylistItems(playerid, items, index, dispatch, numTracks) {
     const param = lms.getControlParam(item)
     if (param) {
       lms.command(playerid, "playlistcontrol", "cmd:add", param)
-        // TODO do not hard-code playlist range
-        .then(() => lms.getPlayerStatus(playerid, 0, 100))
+        .then(() => lms.getPlayerStatus(playerid, numTracks, 100))
         .then(data => {
+          // Move item from end of playlist to insert position
           // HACK will new items be in the playlist when moveItems is called?
-          dispatch(actions.gotPlayer(data))
+          //dispatch(actions.gotPlayer(data))
           if (index < numTracks) {
             const selection = new Set(_.range(numTracks, data.playlist_tracks))
-            return moveItems(selection, index, playerid, dispatch, lms)
+            return moveItems(selection, index, playerid, dispatch, lms, data.playlist_loop)
           }
         })
         .then(() => lms.getPlayerStatus(playerid))
@@ -208,18 +209,30 @@ function insertPlaylistItems(playerid, items, index, dispatch, numTracks) {
   insert(items, index, numTracks)
 }
 
-export function moveItems(selection, toIndex, playerid, dispatch, lms) {
+/**
+ * Move items to playlist index
+ *
+ * @param selection Array of item indices to move.
+ * @param toIndex Playlist index where items should be moved.
+ * ...
+ * @param items Optional array of items that are being moved and
+ * have not yet been loaded into the playlist.
+ * @returns A promise that resoves when the move is complete.
+ */
+export function moveItems(selection, toIndex, playerid, dispatch, lms, items) {
   return new Promise(resolve => {
-    function move(items) {
-      if (!items.length) {
+    function move(pairs) {
+      if (!pairs.length) {
         return resolve(true)
       }
-      const [from, to] = items.shift()
+      const [from, to] = pairs.shift()
       lms.command(playerid, "playlist", "move", from, to > from ? to - 1 : to)
         .then(() => {
           // TODO abort if playerid or selection changed
-          dispatch(actions.playlistItemMoved(from, to))
-          move(items)
+          const haveItem = items && items.length && items[0][IX] === from
+          const item = haveItem ? items.shift() : null
+          dispatch(actions.playlistItemMoved(from, to, item))
+          move(pairs)
         })
         .catch(err => {
           dispatch(operationError("Move error", err))
@@ -240,19 +253,19 @@ export function moveItems(selection, toIndex, playerid, dispatch, lms) {
       return selected.map(i => i < toIndex ? [i, min--] : [i, max++])
     }
     const isValidMove = (from, to) => from !== to && from + 1 !== to
-    let items
+    let pairs
     if (selection.size) {
       const selected = [...selection].sort()
       const botMoves = getMoves(selected.filter(i => i < toIndex).reverse())
       const topMoves = getMoves(selected.filter(i => i >= toIndex))
-      items = botMoves.concat(topMoves).filter(([f, t]) => isValidMove(f, t))
-      if (!items.length) {
+      pairs = botMoves.concat(topMoves).filter(([f, t]) => isValidMove(f, t))
+      if (!pairs.length) {
         return resolve(false)
       }
     } else {
       return resolve(false)
     }
-    move(items)
+    move(pairs)
   })
 }
 
@@ -360,12 +373,14 @@ export function deleteItem(list, index) {
  * @param toIndex - Playlist index to which item is to be moved.
  * @returns Array of playlist items.
  */
-export function moveItem(list, fromIndex, toIndex) {
+export function moveItem(list, fromIndex, toIndex, item) {
   const offset = list[0][IX]
-  const fromObj = list[fromIndex - offset]
+  const fromObj = item || list[fromIndex - offset] || {title: "..."}
   list = list.filter(item => item[IX] !== fromIndex)
   const to = (toIndex > fromIndex ? toIndex - 1 : toIndex) - offset
-  list.splice(to, 0, fromObj)
+  if (0 <= to && to <= list.length) {
+    list.splice(to, 0, fromObj)
+  }
   return list.map((item, i) => (
     item[IX] !== i + offset ? {...item, [IX]: i + offset} : item
   ))

@@ -9,7 +9,7 @@
  */
 import _ from 'lodash'
 
-let debug = true
+let debug = false
 export function setDebugMode(enabled) {
   debug = enabled
 }

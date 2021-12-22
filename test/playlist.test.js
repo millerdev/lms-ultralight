@@ -203,7 +203,7 @@ describe('playlist', function () {
     function reducerTest(name, action, startConfig, endConfig) {
       it(startConfig + " [" + name + "] -> " + endConfig, function () {
         const state = makeState(startConfig)
-        const [result, effects] = split(getState(reduce(state, action)))
+        const [result, effects] = split(reduce(state, action))
         assert.equal(
           stripLastSelected(makeConfig(result)),
           stripLastSelected(endConfig)
@@ -240,6 +240,43 @@ describe('playlist', function () {
       test("aB(c)DeFg | bdf", 6, 1, "agB(c)Def | bd")
       test("agB(c)Def | bd", 5, 2, "ageB(c)df | b")
       test("ageB(c)df | b", 4, 3, "age(c)bdf")
+
+      it("should move unloaded item", function () {
+        // can happen during insert from browser
+        const item = {title: "x", [mod.IX]: 50, url: "file:///x"}
+        const action = reduce.actions.playlistItemMoved(50, 22, item)
+        const state = makeState("a(b)c", 20, 50)
+        const result = getState(reduce(state, action))
+        assert.deepEqual(result, makeState("a(b)xc", 20, 51))
+      })
+
+      it("should move unloaded and unavailable item", function () {
+        // can happen during insert from browser
+        const action = reduce.actions.playlistItemMoved(50, 22)
+        const state = makeState("a(b)c", 20, 50)
+        const result = getState(reduce(state, action))
+        const expected = makeState("a(b)xc", 20, 51)
+        expected.items[2] = {"title": "...", [mod.IX]: 22}
+        assert.deepEqual(result, expected)
+      })
+
+      it("should move item beyond unloaded items", function () {
+        // can happen during insert from browser
+        const action = reduce.actions.playlistItemMoved(2, 5)
+        const state = makeState("a(b)c", 0, 5)
+        const result = getState(reduce(state, action))
+        const expected = makeState("a(b)", 0, 5)
+        assert.deepEqual(result, expected)
+      })
+
+      it("should move second item beyond unloaded items", function () {
+        // can happen during insert from browser
+        const action = reduce.actions.playlistItemMoved(2, 9)
+        const state = makeState("a(b)cdef", 0, 10)
+        const result = getState(reduce(state, action))
+        const expected = makeState("a(b)def", 0, 10)
+        assert.deepEqual(result, expected)
+      })
     })
 
     describe("playlistItemDeleted", function () {
@@ -302,7 +339,7 @@ describe('playlist', function () {
       const foo = setup()
       return mod.moveItems(new Set([1]), 0, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
-          actions.playlistItemMoved(1, 0),
+          actions.playlistItemMoved(1, 0, null),
         ])
         assert(moved, "should signal move")
       })
@@ -312,7 +349,7 @@ describe('playlist', function () {
       const foo = setup()
       return mod.moveItems(new Set([0]), 2, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
-          actions.playlistItemMoved(0, 2),
+          actions.playlistItemMoved(0, 2, null),
         ])
         assert(moved, "should signal move")
       })
@@ -346,7 +383,7 @@ describe('playlist', function () {
       const foo = setup()
       return mod.moveItems(new Set([2, 3]), 1, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
-          actions.playlistItemMoved(1, 4),
+          actions.playlistItemMoved(1, 4, null),
         ])
         assert(moved, "should signal move")
       })
@@ -356,7 +393,7 @@ describe('playlist', function () {
       const foo = setup()
       return mod.moveItems(new Set([2, 3]), 5, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
-          actions.playlistItemMoved(4, 2),
+          actions.playlistItemMoved(4, 2, null),
         ])
         assert(moved, "should signal move")
       })
@@ -366,8 +403,8 @@ describe('playlist', function () {
       const foo = setup()
       return mod.moveItems(new Set([2, 3]), 0, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
-          actions.playlistItemMoved(2, 0),
-          actions.playlistItemMoved(3, 1),
+          actions.playlistItemMoved(2, 0, null),
+          actions.playlistItemMoved(3, 1, null),
         ])
         assert(moved, "should signal move")
       })
@@ -377,8 +414,8 @@ describe('playlist', function () {
       const foo = setup()
       return mod.moveItems(new Set([2, 3]), 6, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
-          actions.playlistItemMoved(3, 6),
-          actions.playlistItemMoved(2, 5),
+          actions.playlistItemMoved(3, 6, null),
+          actions.playlistItemMoved(2, 5, null),
         ])
         assert(moved, "should signal move")
       })
@@ -388,8 +425,8 @@ describe('playlist', function () {
       const foo = setup()
       return mod.moveItems(new Set([2, 3, 5]), 7, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
-          actions.playlistItemMoved(4, 2),
-          actions.playlistItemMoved(6, 3),
+          actions.playlistItemMoved(4, 2, null),
+          actions.playlistItemMoved(6, 3, null),
         ])
         assert(moved, "should signal move")
       })
@@ -399,8 +436,8 @@ describe('playlist', function () {
       const foo = setup()
       return mod.moveItems(new Set([2, 3, 6, 7]), 5, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
-          actions.playlistItemMoved(4, 2),
-          actions.playlistItemMoved(5, 8),
+          actions.playlistItemMoved(4, 2, null),
+          actions.playlistItemMoved(5, 8, null),
         ])
         assert(moved, "should signal move")
       })
@@ -410,9 +447,9 @@ describe('playlist', function () {
       const foo = setup()
       return mod.moveItems(new Set([2, 3, 8, 9]), 5, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
-          actions.playlistItemMoved(4, 2),
-          actions.playlistItemMoved(8, 5),
-          actions.playlistItemMoved(9, 6),
+          actions.playlistItemMoved(4, 2, null),
+          actions.playlistItemMoved(8, 5, null),
+          actions.playlistItemMoved(9, 6, null),
         ])
         assert(moved, "should signal move")
       })
@@ -422,9 +459,9 @@ describe('playlist', function () {
       const foo = setup()
       return mod.moveItems(new Set([2, 3, 8, 9]), 7, ...foo.args).then(moved => {
         assert.deepEqual(foo.dispatched, [
-          actions.playlistItemMoved(3, 7),
-          actions.playlistItemMoved(2, 6),
-          actions.playlistItemMoved(7, 10),
+          actions.playlistItemMoved(3, 7, null),
+          actions.playlistItemMoved(2, 6, null),
+          actions.playlistItemMoved(7, 10, null),
         ])
         assert(moved, "should signal move")
       })
@@ -434,8 +471,8 @@ describe('playlist', function () {
       const foo = setup()
       return mod.moveItems(new Set([0, 1, 3, 9]), 3, ...foo.args).then(() => {
         assert.deepEqual(foo.dispatched, [
-          actions.playlistItemMoved(2, 0),
-          actions.playlistItemMoved(9, 4),
+          actions.playlistItemMoved(2, 0, null),
+          actions.playlistItemMoved(9, 4, null),
         ])
       })
     })
@@ -444,8 +481,21 @@ describe('playlist', function () {
       const foo = setup()
       return mod.moveItems(new Set([0, 1, 3, 4, 9]), 3, ...foo.args).then(() => {
         assert.deepEqual(foo.dispatched, [
-          actions.playlistItemMoved(2, 0),
-          actions.playlistItemMoved(9, 5),
+          actions.playlistItemMoved(2, 0, null),
+          actions.playlistItemMoved(9, 5, null),
+        ])
+      })
+    })
+
+    it('should move new items to insertion position', function () {
+      const foo = setup()
+      const items = [
+        {title: "a", [mod.IX]: 3},
+        {title: "b", [mod.IX]: 4},
+      ]
+      return mod.moveItems(new Set([3, 4]), 2, ...foo.args, items).then(() => {
+        assert.deepEqual(foo.dispatched, [
+          actions.playlistItemMoved(2, 5, null),
         ])
       })
     })
@@ -459,7 +509,7 @@ describe('playlist', function () {
       const foo = setup(lms)
       return mod.moveItems(new Set([0, 1]), 6, ...foo.args).then(() => {
         assert.deepEqual(foo.dispatched, [
-          actions.playlistItemMoved(1, 6),
+          actions.playlistItemMoved(1, 6, null),
           operationError("Move error"),
         ])
       })
@@ -766,7 +816,7 @@ describe('playlist', function () {
           assert.equal(data, items)
           assert.equal(index, 16)
           assert.equal(dispatch, state.dispatch)
-          assert.equal(numTracks, 15)
+          assert.equal(numTracks, 16)
           asserted = true
         },
       }, () => {
@@ -903,8 +953,8 @@ function makeState(config, firstIndex=0, numTracks) {
       .value()
     ),
     currentIndex: current,
-    currentTrack: items[current],
-    numTracks: _.max([numTracks || 0, firstIndex + playchars.length - 1]),
+    currentTrack: items[current - firstIndex],
+    numTracks: _.max([numTracks || 0, firstIndex + playchars.length]),
   }
 }
 
