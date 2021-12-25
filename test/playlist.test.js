@@ -173,6 +173,16 @@ describe('playlist', function () {
           items: PLAYLIST_2,
         })
       })
+
+      it('should not reload playlist on ignore timestamp', function () {
+        const state = {...STATE, items: PLAYLIST_1, timestamp: null}
+        const [result, effects] = split(reduce(state, gotPlayer(STATUS)))
+        assert.deepEqual(
+          result,
+          {...state, timestamp: STATUS.playlist_timestamp}
+        )
+        assert.deepEqual(effects, [])
+      })
     })
 
     describe('advanceToNextTrack', function () {
@@ -196,6 +206,34 @@ describe('playlist', function () {
       })
     })
 
+    describe('playlistChanged', function () {
+      const playlistChanged = reduce.actions.playlistChanged
+      it('should update playlist timestamp and length', function () {
+        const status = {
+          playerid: PLAYERID,
+          playlist_timestamp: 1010101,
+          playlist_tracks: 42,
+        }
+        const [state, effects] =
+          split(reduce(STATE, playlistChanged(status)))
+        assert.deepEqual(state, {...STATE, timestamp: 1010101, numTracks: 42})
+        assert.deepEqual(effects, [])
+      })
+
+      it('should throw if player changed', function () {
+        // Unlikely edge case where the active player changes while
+        // inserting items. The operation should stop.
+        const status = {
+          playerid: "2:2:2:2",
+          playlist_timestamp: 1010101,
+          playlist_tracks: 42,
+        }
+        chai.assert.throws(() => {
+          reduce(STATE, playlistChanged(status))
+        }, /active player changed unexpectedly/)
+      })
+    })
+
     function stripLastSelected(config) {
       return config.replace(/ \| .*/, "")
     }
@@ -208,7 +246,7 @@ describe('playlist', function () {
           stripLastSelected(makeConfig(result)),
           stripLastSelected(endConfig)
         )
-        assert.deepEqual(result, makeState(endConfig))
+        assert.deepEqual(result, {...makeState(endConfig), timestamp: null})
         assert.equal(result.currentTrack["playlist index"],
                      result.currentIndex)
         assert.deepEqual(effects, [])
@@ -247,7 +285,7 @@ describe('playlist', function () {
         const action = reduce.actions.playlistItemMoved(50, 22, item)
         const state = makeState("a(b)c", 20, 50)
         const result = getState(reduce(state, action))
-        assert.deepEqual(result, makeState("a(b)xc", 20, 51))
+        assert.deepEqual(result, makeState("a(b)xc", 20, 51, null))
       })
 
       it("should move unloaded and unavailable item", function () {
@@ -255,7 +293,7 @@ describe('playlist', function () {
         const action = reduce.actions.playlistItemMoved(50, 22)
         const state = makeState("a(b)c", 20, 50)
         const result = getState(reduce(state, action))
-        const expected = makeState("a(b)xc", 20, 51)
+        const expected = makeState("a(b)xc", 20, 51, null)
         expected.items[2] = {"title": "...", [mod.IX]: 22}
         assert.deepEqual(result, expected)
       })
@@ -265,7 +303,7 @@ describe('playlist', function () {
         const action = reduce.actions.playlistItemMoved(2, 5)
         const state = makeState("a(b)c", 0, 5)
         const result = getState(reduce(state, action))
-        const expected = makeState("a(b)", 0, 5)
+        const expected = makeState("a(b)", 0, 5, null)
         assert.deepEqual(result, expected)
       })
 
@@ -274,7 +312,7 @@ describe('playlist', function () {
         const action = reduce.actions.playlistItemMoved(2, 9)
         const state = makeState("a(b)cdef", 0, 10)
         const result = getState(reduce(state, action))
-        const expected = makeState("a(b)def", 0, 10)
+        const expected = makeState("a(b)def", 0, 10, null)
         assert.deepEqual(result, expected)
       })
     })
@@ -929,7 +967,7 @@ describe('playlist', function () {
  * - letter in (parens) is current track, defaults to first track
  * - letters after " | " are lastSelected items
  */
-function makeState(config, firstIndex=0, numTracks) {
+function makeState(config, firstIndex=0, numTracks, timestamp) {
   const index = c => indexMap[c.toLowerCase()]
   const match = /^((?:[a-z]|\([a-z]\))+)(?: \| ([a-z]*))?$/i.exec(config)
   const playchars = match ? _.filter(match[1].split(""), c => /[a-z]/i.test(c)) : []
@@ -946,6 +984,7 @@ function makeState(config, firstIndex=0, numTracks) {
   return {
     ...STATE,
     items: items,
+    timestamp: timestamp !== undefined ? timestamp : STATE.timestamp,
     selection: new Set(
       _(playchars)
       .filter(c => /[A-Z]/.test(c))

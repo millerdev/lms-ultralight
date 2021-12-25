@@ -87,6 +87,16 @@ export const reducer = makeReducer({
     }
     return combine(state, effects)
   },
+  playlistChanged: (state, action, status) => {
+    if (state.playerid !== status.playerid) {
+      throw new Error("active player changed unexpectedly")
+    }
+    return {
+      ...state,
+      timestamp: status.playlist_timestamp,
+      numTracks: status.playlist_tracks,
+    }
+  },
   playlistItemMoved: (state, action, fromIndex, toIndex, item) => {
     const selection = state.selection
     let currentIndex = state.currentIndex
@@ -115,6 +125,7 @@ export const reducer = makeReducer({
     return {
       ...state,
       items: moveItem(state.items, fromIndex, toIndex, item),
+      timestamp: null,
       selection: new Set(
         [...selection].filter(x => !deselect.has(x)).map(reindex)
       ),
@@ -127,12 +138,13 @@ export const reducer = makeReducer({
     const oldItems = state.items
     const items = deleteItem(oldItems, index)
     if (items === oldItems) {
-      return state
+      return {...state, timestamp: null}
     }
     const reindex = x => x > index ? x -= 1 : x
     const data = {
       items,
       numTracks: state.numTracks - 1,
+      timestamp: null,
       selection: new Set(
         [...state.selection]
         .filter(x => x !== index)
@@ -181,10 +193,9 @@ function insertPlaylistItems(playerid, items, index, dispatch, numTracks) {
       lms.command(playerid, "playlistcontrol", "cmd:add", param)
         .then(() => lms.getPlayerStatus(playerid, numTracks, 100))
         .then(data => {
-          // Move item from end of playlist to insert position
-          // HACK will new items be in the playlist when moveItems is called?
-          //dispatch(actions.gotPlayer(data))
+          dispatch(actions.playlistChanged(data))
           if (index < numTracks) {
+            // Move item from end of playlist to insert position
             const selection = new Set(_.range(numTracks, data.playlist_tracks))
             return moveItems(selection, index, playerid, dispatch, lms, data.playlist_loop)
           }
@@ -199,7 +210,7 @@ function insertPlaylistItems(playerid, items, index, dispatch, numTracks) {
           }
         })
         .catch(err => {
-          dispatch(operationError("Move error", err))
+          dispatch(operationError("Insert error", err))
         })
     } else {
       window.console.log("unknown item", item)
@@ -292,9 +303,18 @@ export function deleteSelection(playerid, selection, dispatch, lms) {
 }
 
 function isPlaylistChanged(prev, next) {
+  // The playlist timestamp is ignored in this comparison if it has been
+  // set to `null` to prevent unnecessarily loading a batch of playlist
+  // items during a move or delete operation. Move and delete responses
+  // do not include the updated playlist timestamp, and it is not
+  // possible to get that information without a subsequent `loadPlayer`.
+  //
+  // Controlflow: playlistItem(Moved|Deleted) set timestamp: null >
+  // loadPlayer > gotPlayer updates timestamp and does not trigger
+  // subsequent loadPlayer effect
   const playlistSig = obj => [
     obj.playerid,
-    obj.timestamp,
+    prev.timestamp === null ? "-" : obj.timestamp,
     obj.numTracks,
   ].join("  ")
   return playlistSig(prev) !== playlistSig(next)

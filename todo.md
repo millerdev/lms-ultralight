@@ -1,9 +1,6 @@
 # TODO
 
 - fix add "No Album" item to playlist adds all tracks in that album (should use query params)
-- fix drag/drop from library fails with error
-  - isItemLoaded > false > loadPlayer is very slow on drag multiple
-    also has big jump on load first item
 - fix select range with shift doesn't always work (selects entire list?)
 - fix media query override in semantic.min.css
   see commit 684a6cf960cdf5db2d2922aa66f9ffd2a917aab9
