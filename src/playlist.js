@@ -554,6 +554,7 @@ export class Playlist extends React.Component {
   setHideTrackInfoCallback = callback => {
     this.hideTrackInfo = callback
   }
+  DROP_TYPES = [MEDIA_ITEMS]
   render() {
     const props = this.props
     return <div>
@@ -563,7 +564,7 @@ export class Playlist extends React.Component {
           itemsOffset={props.numTracks ? props.items[0][IX] : 0}
           itemsTotal={props.numTracks}
           selection={props.selection}
-          dropTypes={[MEDIA_ITEMS]}
+          dropTypes={this.DROP_TYPES}
           onDrop={this.onDrop}
           onTap={this.onTap}
           onLongTouch={this.onLongTouch}

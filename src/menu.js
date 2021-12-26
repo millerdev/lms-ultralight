@@ -103,14 +103,8 @@ export class MainMenu extends React.Component {
     this.setState({miniPlayer: value})
   }
   playctl() {
-    return playerControl(
-      this.props.player.playerid,
-      this.props.dispatch,
-      {
-        player: this.props.player,
-        playlist: this.props.playlist,
-      },
-    )
+    const { player, playlist, dispatch } = this.props
+    return playerControl(player.playerid, dispatch, {player, playlist})
   }
   onPlayerSelected = playerid => {
     localStorage.currentPlayer = playerid
