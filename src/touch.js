@@ -63,7 +63,6 @@ export class TouchList extends React.Component {
     this.id = _.uniqueId("touch-list-")
     // use internal selection if selection not provided
     this.internalSelection = props.selection ? null : new Set()
-    this.oldSelection = this.getSelection()
     this.lastSelected = []
     this.slide = makeSlider(this)
   }
@@ -76,11 +75,14 @@ export class TouchList extends React.Component {
   componentWillUnmount() {
     this.slide.setTouchHandlers(null)
   }
-  componentDidUpdate() {
-    const newSelection = this.getSelection()
-    if (!_.isEqual(newSelection, this.oldSelection)) {
+  componentDidUpdate(prevProps) {
+    const oldSelection = prevProps.selection
+    const newSelection = this.selection
+    // Always true when internalSelection is used since
+    // prevProps.selection is undefined. Will that cause problems?
+    if (oldSelection !== newSelection) {
       const lastSelected = this.lastSelected.filter(i => newSelection.has(i))
-      this._updateItemSelections(newSelection, lastSelected, this.oldSelection)
+      this._updateItemSelections(newSelection, lastSelected, oldSelection)
     }
     return null
   }
@@ -91,11 +93,11 @@ export class TouchList extends React.Component {
       TouchList_slide: this.slide,
     }
   }
-  getSelection() {
+  get selection() {
     return this.internalSelection || this.props.selection
   }
   isSelected = (index) => {
-    return this.getSelection().has(index)
+    return this.selection.has(index)
   }
   getDragData(index) {
     const items = this.props.items
@@ -103,7 +105,7 @@ export class TouchList extends React.Component {
     let selected
     if (index - offset < items.length) {
       if (this.isSelected(index)) {
-        selected = [...this.getSelection()]
+        selected = [...this.selection]
           .sort()
           .map(index => items[index - offset])
       } else {
@@ -129,7 +131,7 @@ export class TouchList extends React.Component {
       this.selectionChanged(new Set([index]), [index], isTouch)
       return
     }
-    let selection = this.getSelection()
+    let selection = this.selection
     let lastSelected = this.lastSelected
     if (modifier === SINGLE) {
       if (!selection.has(index)) {
@@ -170,18 +172,12 @@ export class TouchList extends React.Component {
     this.selectionChanged(new Set(), [])
   }
   selectionChanged(selection, lastSelected, isTouch=false) {
-    if (!_.isEqual(selection, this.oldSelection)) {
-      const oldSelection = this.oldSelection
-      const func = this.props.onSelectionChanged
-      if (func) {
-        this.oldSelection = selection
-        this.lastSelected = lastSelected
-        func(selection, isTouch)
-      }
-      this._updateItemSelections(selection, lastSelected, oldSelection)
-    } else if (!_.isEqual(lastSelected, this.lastSelected)) {
+    const func = this.props.onSelectionChanged
+    if (func) {
       this.lastSelected = lastSelected
+      func(selection, isTouch)
     }
+    this._updateItemSelections(selection, lastSelected, this.selection)
   }
   _updateItemSelections(newSelection, lastSelected, oldSelection) {
     function diff(set1, set2) {
@@ -190,8 +186,6 @@ export class TouchList extends React.Component {
     if (this.internalSelection) {
       this.internalSelection = newSelection
     }
-    // this.oldSelection mirrors the state of the DOM
-    // can they ever get out of sync?
     const selected = diff(newSelection, oldSelection)
     const deselected = diff(oldSelection, newSelection)
     if (selected.size) {
@@ -201,7 +195,6 @@ export class TouchList extends React.Component {
       this.slide.selectionDidChange(deselected)
     }
     // does this internal state break any React contracts?
-    this.oldSelection = newSelection
     this.lastSelected = lastSelected
   }
   render() {
@@ -531,7 +524,7 @@ function makeSlider(touchlist) {
     holdTimer = setTimeout(() => {
       isHolding = true
       if (!isTouchMove(startPosition, latestPosition) && !isTouchDrag) {
-        if (selected && touchlist.getSelection().size) {
+        if (selected && touchlist.selection.size) {
           touchlist.clearSelection()
           isHolding = false
           latestPosition = null  // do nothing on touchEnd
@@ -574,7 +567,7 @@ function makeSlider(touchlist) {
           touchlist.toggleSelection(index)
         }
       }
-    } else if (touchlist.getSelection().size) {
+    } else if (touchlist.selection.size) {
       if (latestPosition.index !== null) {
         const toIndex = allowedDropIndex(event, latestPosition.index)
         if (toIndex !== null) {
@@ -736,7 +729,7 @@ function makeSlider(touchlist) {
       const dataTypes = getDataTypes(event)
       const moveIndex = getMoveIndex(event, dataTypes)
       if (moveIndex !== null) {
-        let selection = touchlist.getSelection()
+        let selection = touchlist.selection
         if (!selection.has(moveIndex)) {
           selection = new Set([moveIndex])
         }

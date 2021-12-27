@@ -1,7 +1,6 @@
 # TODO
 
 - fix add "No Album" item to playlist adds all tracks in that album (should use query params)
-- fix select range with shift doesn't always work (selects entire list?)
 - fix media query override in semantic.min.css
   see commit 684a6cf960cdf5db2d2922aa66f9ffd2a917aab9
   reverted to standard semantic.min.css in 2eb603d8cd3194769c5d6afbc047896dedd2085f
