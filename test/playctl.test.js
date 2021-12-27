@@ -45,6 +45,23 @@ describe('playctl', function () {
       })
     })
 
+    it('should play and add tracks with tagged parameters', function () {
+      const playctl = mod.playerControl(PLAYERID, DISPATCH, STATE)
+      const items = ["item-2", "item-4", "item-6"]
+      const params = ["artist_id:41", "album_id:15"]
+      const actions = []
+      return rewireLMS(actions, () => (
+        playctl.playItems(items, params).then(played => {
+          assert.deepEqual(actions, [
+            "load item-2 artist_id:41 album_id:15",
+            "add item-4 artist_id:41 album_id:15",
+            "add item-6 artist_id:41 album_id:15",
+          ])
+          assert.deepEqual(played, items)
+        })
+      ))
+    })
+
     it('should add multiple tracks to playlist', function () {
       const playctl = mod.playerControl(PLAYERID, DISPATCH, STATE)
       const items = ["item-2", "item-5"]
@@ -54,6 +71,22 @@ describe('playctl', function () {
           assert.deepEqual(actions, [
             "add item-2",
             "add item-5",
+          ])
+          assert.deepEqual(added, items)
+        })
+      )
+    })
+
+    it('should add tracks with tagged parameters to playlist', function () {
+      const playctl = mod.playerControl(PLAYERID, DISPATCH, STATE)
+      const items = ["item-2", "item-5"]
+      const params = ["artist_id:20"]
+      const actions = []
+      return rewireLMS(actions, () =>
+        playctl.addToPlaylist(items, params).then(added => {
+          assert.deepEqual(actions, [
+            "add item-2 artist_id:20",
+            "add item-5 artist_id:20",
           ])
           assert.deepEqual(added, items)
         })
@@ -84,10 +117,10 @@ function rewireLMS(actions, callback, results) {
   const nextResult = () => results ? results[i++] : true
   return rewire(module, {
     lms: {
-      playlistControl: (playerid, cmd, item, dispatch) => {
+      playlistControl: (playerid, cmd, item, params, dispatch) => {
         assert.equal(playerid, PLAYERID)
         assert.equal(dispatch, DISPATCH)
-        actions.push(cmd + " " + item)
+        actions.push(cmd + " " + [item].concat(params).join(" "))
         return Promise.resolve(nextResult())
       },
       command: (playerid, ...cmd) => {

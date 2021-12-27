@@ -613,6 +613,7 @@ export class BrowserItems extends React.Component {
         {...props}
         items={result}
         mediaNav={this.mediaNav}
+        mediaParams={taggedParams(this.state.nav.params)}
         onLoadItems={this.onLoadItems}
       />
     }
@@ -667,13 +668,18 @@ export class MediaItems extends React.PureComponent {
     this.forceUpdate()
   }
   playItem = (item) => {
-    this.props.playctl.playItems(this.getSelected(item)).then(this.deselect)
+    const params = this.props.mediaParams
+    this.props.playctl.playItems(this.getSelected(item), params)
+      .then(this.deselect)
   }
   playNext = (item) => {
-    this.props.playctl.playNext(item).then(this.deselect)
+    const params = this.props.mediaParams
+    this.props.playctl.playNext(item, params).then(this.deselect)
   }
   addToPlaylist = (item) => {
-    this.props.playctl.addToPlaylist(this.getSelected(item)).then(this.deselect)
+    const params = this.props.mediaParams
+    this.props.playctl.addToPlaylist(this.getSelected(item), params)
+      .then(this.deselect)
   }
   playOrEnqueue = (item) => {
     const props = this.props
@@ -697,6 +703,7 @@ export class MediaItems extends React.PureComponent {
     return <Media query="(max-width: 500px)">{ smallScreen =>
       <TouchList
           dataType={MEDIA_ITEMS}
+          dragData={{params: this.props.mediaParams}}
           items={items}
           itemsTotal={total}
           selection={selection}

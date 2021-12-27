@@ -99,16 +99,17 @@ function exec(playerid, command) {
  * @param playerid
  * @param cmd - One of "load", "insert", or "add".
  * @param item - Search result object with "type".
+ * @param params - List of tagged parameters constraining item selection.
  * @param dispatch - Redux dispatch function.
  * @returns A promise that resolves with a result of `true` if the
  *  action succeeded, else `false`.
  */
-export function playlistControl(playerid, cmd, item, dispatch) {
+export function playlistControl(playerid, cmd, item, params, dispatch) {
   const loadPlayer = require("./player").loadPlayer
   const error = operationError("Cannot " + cmd + " " + item[item.type])
   const param = getControlParam(item)
   if (param) {
-    return command(playerid, "playlistcontrol", "cmd:" + cmd, param)
+    return command(playerid, "playlistcontrol", "cmd:" + cmd, param, ...params)
       .then(() => loadPlayer(playerid, true))
       .catch(() => error)
       .then(action => {

@@ -182,7 +182,7 @@ export function loadPlayer(...args) {
   return require("./player").loadPlayer(...args)
 }
 
-function insertPlaylistItems(playerid, items, index, dispatch, numTracks) {
+function insertPlaylistItems(playerid, items, params, index, dispatch, numTracks) {
   const insert = (items, index, numTracks) => {
     if (!items.length) {
       return
@@ -190,7 +190,7 @@ function insertPlaylistItems(playerid, items, index, dispatch, numTracks) {
     const item = items.shift()
     const param = lms.getControlParam(item)
     if (param) {
-      lms.command(playerid, "playlistcontrol", "cmd:add", param)
+      lms.command(playerid, "playlistcontrol", "cmd:add", param, ...params)
         .then(() => lms.getPlayerStatus(playerid, numTracks, 100))
         .then(data => {
           dispatch(actions.playlistChanged(data))
@@ -530,8 +530,9 @@ export class Playlist extends React.Component {
   onDrop = (data, dataType, index) => {
     if (dataType === MEDIA_ITEMS) {
       this.pauseAutoScroll()
+      const { items, params=[] } = data
       const {playerid, dispatch, numTracks} = this.props
-      insertPlaylistItems(playerid, data, index, dispatch, numTracks)
+      insertPlaylistItems(playerid, items, params, index, dispatch, numTracks)
     }
   }
   onSelectionChanged = (selection, isTouch) => {

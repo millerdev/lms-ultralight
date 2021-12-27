@@ -1,16 +1,16 @@
 # TODO
 
-- fix add "No Album" item to playlist adds all tracks in that album (should use query params)
 - fix media query override in semantic.min.css
   see commit 684a6cf960cdf5db2d2922aa66f9ffd2a917aab9
   reverted to standard semantic.min.css in 2eb603d8cd3194769c5d6afbc047896dedd2085f
-- show loading indicator in unloaded space in TouchList
 - put "Delete" and "Clear" playlist buttons in a bottom/left floating menu
+- show loading indicator in unloaded space in TouchList
 - make path elements in song path (parent folders) clickable
 - fix icons
   - playlist play/info (icons are too big)
   - MediaInfo icons should be links with href="<url>"
 x  - menu drill in (+ is the wrong icon)
+x- fix add "No Album" item to playlist adds all tracks in that album (should use query params)
 x- browse music folder
 x  - add "Music Folder" item in main menu
 x- fix library loading after Music Folder > drill in > go back (does not update items)

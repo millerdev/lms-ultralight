@@ -846,19 +846,20 @@ describe('playlist', function () {
       const state = makeState("abcdef", 10)
       state.dispatch = {}
       const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
-      const items = [{}]
+      const data = {items: [{item: "..."}], params: ["tag:value"]}
       let asserted = false
       rewire(module, {
-        insertPlaylistItems: (playerid, data, index, dispatch, numTracks) => {
+        insertPlaylistItems: (playerid, items, params, index, dispatch, numTracks) => {
           assert.equal(playerid, PLAYERID)
-          assert.equal(data, items)
+          assert.equal(items, data.items)
+          assert.equal(params, data.params)
           assert.equal(index, 16)
           assert.equal(dispatch, state.dispatch)
           assert.equal(numTracks, 16)
           asserted = true
         },
       }, () => {
-        playlist.onDrop(items, MEDIA_ITEMS, 16)
+        playlist.onDrop(data, MEDIA_ITEMS, 16)
       })
       assert(asserted, 'rewire assertions not run')
     })

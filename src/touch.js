@@ -30,13 +30,18 @@ export const TO_LAST = "to last"
  * - selection: `Set` of selected indexes. If not provided the selection
  *   will be maintained internally. Each index in this set should
  *   correspond to the index of an item in the `items` list.
+ * - dataType: Data type of items dragged from this list.
  * - dropTypes: Array of data types that can be dropped in this list.
  *   Dropping is not supported if this prop is not provided.
+ * - dragData: JSON-serializable object containing extra data to
+ *   be included in drag/drop operations.
  * - onTap: Callback function handling tap on list item element
  *   with the class "tap-zone". Return `true` to also toggle item
  *   selection.
- *   event handling. Signature: `onTap(item, index, event)`
- * - onDrop: Callback function for handling dropped content.
+ *   Signature: `onTap(item, index, event)`
+ * - onDrop: Callback function for handling dropped content. The first
+ *   argument will be an object with an `items` member, and `dragData`
+ *   will be merged in if available.
  *   Signature: `onDrop(data, dataType, index, event)`
  * - onLongTouch: Callback function for handling long-touch event.
  *   Return `true` to also toggle item selection (the default action).
@@ -112,9 +117,9 @@ export class TouchList extends React.Component {
         selected = [items[index - offset]]
       }
     } else {
-      return []
+      selected = []
     }
-    return selected
+    return {...this.props.dragData, items: selected}
   }
   getAllowedDropType(possibleTypes) {
     const dropTypes = _.zipObject(this.props.dropTypes)
@@ -290,6 +295,7 @@ const TOUCHLIST_PROPS = {
   selection: true,
   dataType: true,
   dropTypes: true,
+  dragData: true,
   onDrop: true,
   onLongTouch: true,
   onMoveItems: true,

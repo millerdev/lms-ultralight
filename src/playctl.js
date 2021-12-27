@@ -29,19 +29,19 @@ export const playerControl = (playerid, dispatch, state) => {
       .then(dispatch)
   }
 
-  self.playItems = items => {
+  self.playItems = (items, params=[]) => {
     const played = []
-    let promise = lms.playlistControl(playerid, "load", items[0], dispatch)
+    let promise = lms.playlistControl(playerid, "load", items[0], params, dispatch)
       .then(success => success && played.push(items[0]))
     if (items.length > 1) {
-      promise = self.addToPlaylist(items.slice(1), promise)
+      promise = self.addToPlaylist(items.slice(1), params, promise)
         .then(added => played.push(...added))
     }
     return promise.then(() => played)
   }
 
-  self.playNext = item => {
-    return lms.playlistControl(playerid, "insert", item, dispatch)
+  self.playNext = (item, params=[]) => {
+    return lms.playlistControl(playerid, "insert", item, params, dispatch)
       .then(success => {
         if (success && !state.player.isPlaying) {
           return lms.command(playerid, "playlist", "index", "+1")
@@ -55,23 +55,13 @@ export const playerControl = (playerid, dispatch, state) => {
       .then(success => success ? [item] : [])
   }
 
-  self.addToPlaylist = (items, promise=resolved(true)) => {
+  self.addToPlaylist = (items, params=[], promise=resolved(true)) => {
     const added = []
     const addItem = (promise, item) => promise.then(() => {
-      return lms.playlistControl(playerid, "add", item, dispatch)
+      return lms.playlistControl(playerid, "add", item, params, dispatch)
         .then(success => success && added.push(item))
     })
     return items.reduce(addItem, promise).then(() => added)
-  }
-
-  self.playOrEnqueue = item => {
-    if (!state.playlist.numTracks) {
-      self.playItems([item])
-    } else if (!state.player.isPlaying) {
-      self.playNext(item)
-    } else {
-      self.addToPlaylist([item])
-    }
   }
 
   return self
