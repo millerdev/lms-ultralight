@@ -450,6 +450,7 @@ export class Playlist extends React.Component {
   }
   playTrackAtIndex = playlistIndex => {
     const { playerid, dispatch } = this.props
+    this.pauseAutoScroll()
     lms.command(playerid, "playlist", "index", playlistIndex)
       .then(() => dispatch(actions.clearSelection()))
       .then(() => loadPlayer(playerid))
@@ -663,7 +664,6 @@ export class PlaylistItem extends React.Component {
     const props = this.props
     const item = props.item
     const info = props.fullTrackInfo[item.id]
-    //console.log("playlist item", objectId(item))
     return <Media query="(max-width: 500px)">{ smallScreen => {
       const heightStyle = smallScreen ? this.smallStyle : this.noStyle
       return <TouchList.Item
@@ -706,7 +706,7 @@ export class PlaylistItem extends React.Component {
               isLoading={!info}
               button={
                 <Button icon="play"
-                  onClick={props.playTrack}
+                  onClick={this.playTrack}
                   className="tr-corner"
                 />
               }
