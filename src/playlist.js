@@ -2,7 +2,7 @@ import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
 import Media from 'react-media'
-import { Button, Confirm, Input, List, Segment } from 'semantic-ui-react'
+import { Confirm, Dropdown, Input, List, Segment } from 'semantic-ui-react'
 
 import { DragHandle, MediaInfo, TrackInfoIcon } from './components'
 import { effect, combine } from './effects'
@@ -559,9 +559,8 @@ export class Playlist extends React.Component {
   DROP_TYPES = [MEDIA_ITEMS]
   render() {
     const props = this.props
-    return <div>
+    return <div className="playlist">
       <TouchList
-          className="playlist"
           items={props.items}
           itemsOffset={props.numTracks ? props.items[0][IX] : 0}
           itemsTotal={props.numTracks}
@@ -591,18 +590,18 @@ export class Playlist extends React.Component {
           />
         })}
       </TouchList>
-      <Button.Group basic size="small">
-        <Button
-          icon="save"
-          content="Save Playlist"
-          labelPosition="left"
-          onClick={() => this.onSavePlaylist()} />
-        <Button
-          icon="remove"
-          content={props.selection.size ? "Delete" : "Clear Playlist"}
-          labelPosition="left"
-          onClick={() => this.onDeleteItems()} />
-      </Button.Group>
+      <Dropdown icon="bars" floating button className="icon">
+        <Dropdown.Menu direction="right">
+          <Dropdown.Item
+            icon="save"
+            text="Save Playlist"
+            onClick={() => this.onSavePlaylist()} />
+          <Dropdown.Item
+            icon="remove"
+            text={props.selection.size ? "Delete" : "Clear Playlist"}
+            onClick={() => this.onDeleteItems()} />
+        </Dropdown.Menu>
+      </Dropdown>
       <Confirm
         open={Boolean(this.state.prompt.action)}
         content={this.state.prompt.content}
