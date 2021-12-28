@@ -4,7 +4,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import { useInView } from 'react-intersection-observer'
 import { useResizeDetector } from 'react-resize-detector'
-import { List, Ref } from 'semantic-ui-react'
+import { List, Loader, Ref } from 'semantic-ui-react'
 
 import { memoize } from './util'
 import './touch.styl'
@@ -275,7 +275,13 @@ const LoadingSpacer = ({ height, range }) => {
   const { ref, inView } = useInView({skip: !height})
   height && inView && loadItems(range)
   return React.useMemo(() => {
-    return height ? <Ref innerRef={ref}><div style={{height}} /></Ref> : null
+    return height
+      ? <Ref innerRef={ref}>
+          <div className="touchlist loading" style={{height}}>
+            <Loader active />
+          </div>
+        </Ref>
+      : null
   }, [height, ref])
 }
 

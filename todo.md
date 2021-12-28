@@ -4,7 +4,6 @@
   see commit 684a6cf960cdf5db2d2922aa66f9ffd2a917aab9
   reverted to standard semantic.min.css in 2eb603d8cd3194769c5d6afbc047896dedd2085f
 - put "Delete" and "Clear" playlist buttons in a bottom/left floating menu
-- show loading indicator in unloaded space in TouchList
 - make path elements in song path (parent folders) clickable
 - fix icons
   - playlist play/info (icons are too big)
