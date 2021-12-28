@@ -613,7 +613,7 @@ export class BrowserItems extends React.Component {
         {...props}
         items={result}
         mediaNav={this.mediaNav}
-        mediaParams={taggedParams(this.state.nav.params)}
+        mediaParams={taggedParams(_.get(this.state.nav, "params", {}))}
         onLoadItems={this.onLoadItems}
       />
     }
