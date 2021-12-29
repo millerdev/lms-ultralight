@@ -204,7 +204,7 @@ export const RepeatShuffleGroup = ({
         <i className="fa fa-fw fa-lg fa-repeat"></i>,
       ]}
       value={repeatMode}
-      onChange={setRepeatMode}
+      setValue={setRepeatMode}
       disabled={disabled} />
     <NWayButton
       active={active}
@@ -217,20 +217,22 @@ export const RepeatShuffleGroup = ({
         </span>,
       ]}
       value={shuffleMode}
-      onChange={setShuffleMode}
+      setValue={setShuffleMode}
       disabled={disabled} />
   </Button.Group>
 )
 
-const NWayButton = props => {
-  const next = props.value + 1 >= props.markup.length ? 0 : props.value + 1
-  return <Button
-      active={props.active}
-      className={props.className}
-      onClick={() => props.onChange(props.values ? props.values[next] : next)}
-      disabled={props.disabled}
-      >{props.markup[props.value]}</Button>
-}
+const NWayButton = ({
+  markup,
+  value,
+  setValue,
+  next=(value + 1 >= markup.length ? 0 : value + 1),
+  ...props
+}) => (
+  <Button onClick={() => setValue(next)} {...props}>
+    {markup[value]}
+  </Button>
+)
 
 export const TrackInfoIcon = React.memo(function TrackInfoIcon(props) {
   const icon = props.icon || "info circle"
