@@ -1,5 +1,13 @@
 # Ultralight change log
 
+## 2021-12-29 - v0.5.0
+- Add support for playlists with >100 tracks.
+- Auto-scroll playlist on load and track advance.
+- Add media folder browser.
+- Filter "No Album" by current selection criteria.
+- Move playlist actions to floating menu.
+- Fixed bugs.
+
 ## 2019-11-27 - v0.4.4 (unreleased)
 - Deselect items in browser on play/play next/add to playlist.
 

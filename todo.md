@@ -1,90 +1,37 @@
 # TODO
 
+- add routes for (default theme) settings when Ultralight is the default
+- invalidate browser cache on install new version on server
+- distribute as proper LMS plugin (show in "Inactive plugins" in settings)
 - make path elements in song path (parent folders) clickable
-- fix playlist menu position on show large player
 - fix memory leak error on switch to/from responsive mode
-- change repeat/shuffle buttons to volume up/down now that repeat/shuffle are in playlist menu
 - playlist menu should not close on click repeat/shuffle buttons (and maybe prev/next too)
+- change repeat/shuffle buttons in large player view to volume up/down now that
+  repeat/shuffle are in playlist menu
 - add operating system media playback integration
-- fix icons
-  - MediaInfo icons should be links with href="<url>"
-x  - playlist play/info (icons are too big)
-x  - menu drill in (+ is the wrong icon)
-x- fix add "No Album" item to playlist adds all tracks in that album (should use query params)
-x- browse music folder
-x  - add "Music Folder" item in main menu
-x- fix library loading after Music Folder > drill in > go back (does not update items)
-x- fix merge playlist results should be smarter
-x  - do not merge when playlist track count changed (library is fixed now, but maybe not playlist)
-xx  - do not merge when results overlap with existing loaded items? (could be problematic)
-x- fix playlist only loads first 100 tracks
-x  - pad list with space for unloaded items
-x  - load more results on scroll near unloaded items
-x    - clean up `loadPlayer(playerid, ...)` calls
-x  - load items when "loading" region consumes viewport
-x  - refactor loading logic into TouchList
-x  - remove react-resize-aware (use react-resize-detector instead)
-x  - load items near playing item (14 before, 85 after)
-x  - scroll to playing item on load
-x  - scroll to current item on playlist advance
-x  - investigate why more than 100 items are being loaded
-x  - do not scroll after drag/drop
-x  - optimize selecting an item re-renders all items in list
-x    possibly caused by LoadingContext change
-x  - optimize LoadingContext change causes every item in the list to re-render
-x    - should only re-render new and "load trigger" items
-x    - may be caused by loading new items
-x    - split LoadingContext:
-x      - `LoadingContext` value (reference) never changes after initial load
-x        - update sub-values on each `TouchList` render
-x      - `createContext()` for each loading index
-x  - optimize moving item re-renders all loaded items
-xx  - optimize <LoadingListItem> renders 3x per click to select item
-x    (props is a new object on each render)
-x- filter "No Album" results by current section criteria
-x- rename mediaInfo to mediaNav
-x- drop media filters from links in track info view
-x- add lazy loading to menu lists
+- fix playlist menu position on show large player
+  - possibly hide playlist entirely?
+- MediaInfo icons should be links with href="<url>"
 
-- compare bundle size to v0.3.3a0 or v0.3.2
 - upgrade libraries to latest versions
 - run tests in browser at http://localhost:3000/test
-- refactor class components into functional components with hooks
-
 - browsersync does not always reload the page
 - HMR does not apply changes correctly
 - fix breadcrumbs do not update properly after BrowserSync reload + click new crumb link
-- fix unnecessary render in menu on gotPlayer
-- fix delete not deleting all selected items
+
+- compare bundle size to v0.3.3a0 or v0.3.2 and optimize if possible
+- optimize semantic-ui bundling
+  https://github.com/skleeschulte/babel-plugin-transform-semantic-ui-react-imports
+  https://stackoverflow.com/a/43288212/10840
 - fix media query override in semantic.min.css (is this still needed?)
   see commit:21d9fe4c5da60c260ef0b417403cd4e8a69b013d
   see also commit:684a6cf960cdf5db2d2922aa66f9ffd2a917aab9
   reverted to standard semantic.min.css in 2eb603d8cd3194769c5d6afbc047896dedd2085f
-
-- optimize semantic-ui bundling
-  https://github.com/skleeschulte/babel-plugin-transform-semantic-ui-react-imports
-  https://stackoverflow.com/a/43288212/10840
-- add support for browsing file system via songinfo path elements
-- scroll currently playing playlist item near top of screen
-  - scroll slowly at first 5s to allow manual intervention/override
-- implement pagination
-  - load more playlist items on scroll (virtualized list)
-    - option: react-beautiful-dnd
-      - pattern for multi-drag
-        https://github.com/atlassian/react-beautiful-dnd/blob/master/docs/patterns/multi-drag.md
-      - he's working on virtualization as of June 10, 2018
-        https://github.com/atlassian/react-beautiful-dnd/issues/68
-    - option: react-sortable-hoc + react-tiny-virtual-list
-      https://github.com/clauderic/react-sortable-hoc/
-      https://github.com/clauderic/react-tiny-virtual-list/
-      - need to implement multi-drag (no pattern provided)
+- fix unnecessary render in menu on gotPlayer
+- fix delete not deleting all selected items
 - hotkey help screen
 - hotkey for menu
-- add current tack icon, title, artist to menu bar
-- file path should be a clickable link to download the file
 - translate text: error messages, track info field names, search, etc.
-- add "..." item at end of search result section to get more results
-- add play progress bar along bottom edge of power bar (when scrolled below seek bar)
 - playlist
   - track info popup
     - button to remove from playlist
@@ -95,7 +42,6 @@ x- add lazy loading to menu lists
 - add more content types to search
   - playlists? - looks like this is possible (cmd "playlists search:<term>")
   - folders/files?
-- enter/return key should accept delete confirmation
 - swipe to delete track(s) (delete multiple if selected)
 - get better slider controls? (maybe not since upgrade)
 - add volume buttons to end of slider when < ?480px?
