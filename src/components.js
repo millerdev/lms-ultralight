@@ -188,7 +188,6 @@ export const TrackInfoIcon = React.memo(function TrackInfoIcon(props) {
   const floated = props.smallScreen ? " left floated" : ""
   const size = props.smallScreen ? "big" : "large"
   const dims = ICON_STYLES[size]
-  const iconDims = props.smallScreen ? dims : NO_STYLE
   return <div
     onClick={props.onClick}
     className={"hover-icon-container tap-zone" + floated}
@@ -198,7 +197,7 @@ export const TrackInfoIcon = React.memo(function TrackInfoIcon(props) {
         className="hover-icon"
         name={props.showInfoIcon ? icon : props.activeIcon}
         size={size}
-        style={iconDims}
+        style={dims}
         fitted
       /> :
       <Image
@@ -209,16 +208,15 @@ export const TrackInfoIcon = React.memo(function TrackInfoIcon(props) {
       />
     }
     <div className="middle">
-      <Icon name={icon} size={size} style={iconDims} fitted />
+      <Icon name={icon} size={size} style={dims} fitted />
     </div>
   </div>
 })
 
 const ICON_STYLES = {
   big: {height: "32px", width: "32px"},
-  large: {height: "18px", width: "18px"},
+  large: {height: "20px", width: "20px"},
 }
-const NO_STYLE = {}
 
 export const DragHandle = () => (
   <span className="gap-left">

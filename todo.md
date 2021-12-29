@@ -1,9 +1,10 @@
 # TODO
 
 - make path elements in song path (parent folders) clickable
+- add repeat and shuffle buttons to playlist menu on small screen
 - fix icons
-  - playlist play/info (icons are too big)
   - MediaInfo icons should be links with href="<url>"
+x  - playlist play/info (icons are too big)
 x  - menu drill in (+ is the wrong icon)
 x- fix add "No Album" item to playlist adds all tracks in that album (should use query params)
 x- browse music folder
