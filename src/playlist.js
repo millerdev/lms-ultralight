@@ -2,7 +2,7 @@ import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
 import Media from 'react-media'
-import { Confirm, Dropdown, Input, List, Segment } from 'semantic-ui-react'
+import { Button, Confirm, Dropdown, Input, List, Segment } from 'semantic-ui-react'
 
 import { DragHandle, MediaInfo, TrackInfoIcon } from './components'
 import { effect, combine } from './effects'
@@ -590,18 +590,23 @@ export class Playlist extends React.Component {
           />
         })}
       </TouchList>
-      <Dropdown icon="bars" floating button className="icon">
-        <Dropdown.Menu direction="right">
-          <Dropdown.Item
-            icon="save"
-            text="Save Playlist"
-            onClick={() => this.onSavePlaylist()} />
-          <Dropdown.Item
-            icon="remove"
-            text={props.selection.size ? "Delete" : "Clear Playlist"}
-            onClick={() => this.onDeleteItems()} />
-        </Dropdown.Menu>
-      </Dropdown>
+      <Media query="(max-width: 500px)">{ smallScreen => {
+        const classes = smallScreen ? "icon above-player-bar" : "icon"
+        return (
+          <Dropdown icon="bars" floating button className={classes}>
+            <Dropdown.Menu direction="right">
+              <Dropdown.Item
+                icon="save"
+                text="Save Playlist"
+                onClick={() => this.onSavePlaylist()} />
+              <Dropdown.Item
+                icon="remove"
+                text={props.selection.size ? "Delete" : "Clear Playlist"}
+                onClick={() => this.onDeleteItems()} />
+            </Dropdown.Menu>
+          </Dropdown>
+        )
+      }}</Media>
       <Confirm
         open={Boolean(this.state.prompt.action)}
         content={this.state.prompt.content}
