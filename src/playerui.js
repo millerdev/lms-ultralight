@@ -5,22 +5,13 @@ import PropTypes from 'prop-types'
 import { Button, Item } from 'semantic-ui-react'
 import 'rc-slider/assets/index.css'
 
-import { drillable } from './components'
+import { drillable, RepeatShuffleGroup } from './components'
 import * as lms from './lmsclient'
 import { formatTime } from './util'
 import 'font-awesome/css/font-awesome.css'
 import './player.styl'
 
 const ToolTipSlider = Slider.createSliderWithTooltip(Slider)
-
-const NWayButton = props => {
-  const next = props.value + 1 >= props.markup.length ? 0 : props.value + 1
-  return <Button
-      className={props.className}
-      onClick={() => props.onChange(props.values ? props.values[next] : next)}
-      disabled={props.disabled}
-      >{props.markup[props.value]}</Button>
-}
 
 const CurrentTrackInfo = (props, {mediaNav}) => (
   <Item.Group>
@@ -123,33 +114,13 @@ export const PlayerUI = props => (
           <VolumeSlider {...props} />
         </div>
         <div className="right floated eight wide mobile four wide tablet two wide computer column right aligned">
-          <Button.Group basic size="small">
-            <NWayButton
-              className="repeat-toggle"
-              markup={[
-                <i className="fa fa-fw fa-lg fa-long-arrow-right"></i>,
-                <span className="fa-stack icon-repeat-one">
-                  <i className="fa fa-repeat fa-stack-2x"></i>
-                  <i className="fa fa-stack-1x">1</i>
-                </span>,
-                <i className="fa fa-fw fa-lg fa-repeat"></i>,
-              ]}
-              value={props.repeatMode}
-              onChange={value => props.command("playlist", "repeat", value)}
-              disabled={!props.playerid} />
-            <NWayButton
-              markup={[
-                <i className="fa fa-fw fa-lg fa-sort-amount-asc"></i>,
-                <i className="fa fa-fw fa-lg fa-random"></i>,
-                <span className="fa-stack fa-fw fa-lg icon-shuffle-album">
-                  <i className="fa fa-square-o fa-stack-2x"></i>
-                  <i className="fa fa-random fa-stack-1x"></i>
-                </span>,
-              ]}
-              value={props.shuffleMode}
-              onChange={value => props.command("playlist", "shuffle", value)}
-              disabled={!props.playerid} />
-          </Button.Group>
+          <RepeatShuffleGroup
+            repeatMode={props.repeatMode}
+            setRepeatMode={value => props.command("playlist", "repeat", value)}
+            shuffleMode={props.shuffleMode}
+            setShuffleMode={value => props.command("playlist", "shuffle", value)}
+            disabled={!props.playerid}
+          />
         </div>
       </div>
       <div className="mobile only row">

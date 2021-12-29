@@ -1,7 +1,8 @@
 # TODO
 
 - make path elements in song path (parent folders) clickable
-- add repeat and shuffle buttons to playlist menu on small screen
+- fix playlist menu position on show large player
+- fix memory leak error on switch to/from responsive mode
 - fix icons
   - MediaInfo icons should be links with href="<url>"
 x  - playlist play/info (icons are too big)

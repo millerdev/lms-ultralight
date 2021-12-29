@@ -4,7 +4,7 @@ import React from 'react'
 import Media from 'react-media'
 import { Button, Confirm, Dropdown, Input, List, Segment } from 'semantic-ui-react'
 
-import { DragHandle, MediaInfo, TrackInfoIcon } from './components'
+import { DragHandle, MediaInfo, RepeatShuffleGroup, TrackInfoIcon } from './components'
 import { effect, combine } from './effects'
 import * as lms from './lmsclient'
 import { MEDIA_ITEMS } from './library'
@@ -22,6 +22,8 @@ export const defaultState = {
   playerid: null,
   items: [],
   timestamp: null,
+  repeatMode: 0,
+  shuffleMode: 0,
   numTracks: 0,
   currentIndex: null,
   currentTrack: {},
@@ -36,6 +38,8 @@ export const reducer = makeReducer({
     const data = {
       playerid: status.playerid,
       numTracks: status.playlist_tracks,
+      repeatMode: status["playlist repeat"],
+      shuffleMode: status["playlist shuffle"],
       timestamp: status.playlist_timestamp || null,
     }
     if (list) {
@@ -449,20 +453,18 @@ export class Playlist extends React.Component {
     this.scrollTimer.after(timeout, () => this.shouldAutoScroll = true)
   }
   playTrackAtIndex = playlistIndex => {
-    const { playerid, dispatch } = this.props
     this.pauseAutoScroll()
-    lms.command(playerid, "playlist", "index", playlistIndex)
-      .then(() => dispatch(actions.clearSelection()))
-      .then(() => loadPlayer(playerid))
-      .catch(err => operationError("Cannot play", err))
-      .then(dispatch)
+    this.command("playlist", "index", playlistIndex)
+      .then(() => this.props.dispatch(actions.clearSelection()))
     this.hideTrackInfo()
   }
-  playNext = () => this.playIndex("+1")
-  playPrev = () => this.playIndex("-1")
-  playIndex = index => {
+  playNext = () => this.command("playlist", "index", "+1")
+  playPrev = () => this.command("playlist", "index", "-1")
+  setRepeatMode = mode => this.command("playlist", "repeat", mode)
+  setShuffleMode = mode => this.command("playlist", "shuffle", mode)
+  command = (...args) => {
     const { playerid, dispatch } = this.props
-    lms.command(playerid, "playlist", "index", index)
+    return lms.command(playerid, ...args)
       .then(() => loadPlayer(playerid))
       .catch(err => operationError("Cannot play", err))
       .then(dispatch)
@@ -607,11 +609,21 @@ export class Playlist extends React.Component {
               <Dropdown.Item
                 icon="save"
                 text="Save Playlist"
-                onClick={() => this.onSavePlaylist()} />
+                onClick={() => this.onSavePlaylist()}
+              />
               <Dropdown.Item
                 icon="remove"
                 text={props.selection.size ? "Delete" : "Clear Playlist"}
-                onClick={() => this.onDeleteItems()} />
+                onClick={() => this.onDeleteItems()}
+              />
+              <RepeatShuffleGroup
+                active
+                repeatMode={props.repeatMode}
+                setRepeatMode={this.setRepeatMode}
+                shuffleMode={props.shuffleMode}
+                setShuffleMode={this.setShuffleMode}
+                disabled={!props.playerid}
+              />
               <Media query="(max-width: 700px)">{ narrow => narrow ?
                 <Button.Group basic widths={2}>
                   <Button icon="backward" active onClick={this.playPrev} />

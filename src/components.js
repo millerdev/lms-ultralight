@@ -183,6 +183,55 @@ export const PlaylistButtons = props => {
   )
 }
 
+export const RepeatShuffleGroup = ({
+  repeatMode,
+  setRepeatMode,
+  shuffleMode,
+  setShuffleMode,
+  active=false,
+  disabled=false,
+}) => (
+  <Button.Group basic size="small" widths={2}>
+    <NWayButton
+      active={active}
+      className="repeat-toggle"
+      markup={[
+        <i className="fa fa-fw fa-lg fa-long-arrow-right"></i>,
+        <span className="fa-stack icon-repeat-one">
+          <i className="fa fa-repeat fa-stack-2x"></i>
+          <i className="fa fa-stack-1x">1</i>
+        </span>,
+        <i className="fa fa-fw fa-lg fa-repeat"></i>,
+      ]}
+      value={repeatMode}
+      onChange={setRepeatMode}
+      disabled={disabled} />
+    <NWayButton
+      active={active}
+      markup={[
+        <i className="fa fa-fw fa-lg fa-sort-amount-asc"></i>,
+        <i className="fa fa-fw fa-lg fa-random"></i>,
+        <span className="fa-stack fa-fw fa-lg icon-shuffle-album">
+          <i className="fa fa-square-o fa-stack-2x"></i>
+          <i className="fa fa-random fa-stack-1x"></i>
+        </span>,
+      ]}
+      value={shuffleMode}
+      onChange={setShuffleMode}
+      disabled={disabled} />
+  </Button.Group>
+)
+
+const NWayButton = props => {
+  const next = props.value + 1 >= props.markup.length ? 0 : props.value + 1
+  return <Button
+      active={props.active}
+      className={props.className}
+      onClick={() => props.onChange(props.values ? props.values[next] : next)}
+      disabled={props.disabled}
+      >{props.markup[props.value]}</Button>
+}
+
 export const TrackInfoIcon = React.memo(function TrackInfoIcon(props) {
   const icon = props.icon || "info circle"
   const floated = props.smallScreen ? " left floated" : ""

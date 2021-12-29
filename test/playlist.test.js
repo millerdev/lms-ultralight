@@ -731,10 +731,10 @@ describe('playlist', function () {
           assert.equal(playerid, PLAYERID)
           assert.deepEqual(args, ["playlist", "index", 103])
           return promise
-            .then(() => {/* ignore clear selection */})
             .then(loadPlayer => loadPlayer())
             .catch(() => {/* ignore error */})
             .then(callback => { assert.equal(callback, state.dispatch) })
+            .then(() => {/* ignore clear selection */})
             .done()
         }},
         loadPlayer: (playerid, fetchRange) => {
@@ -1117,6 +1117,8 @@ const STATE = {
   ...mod.defaultState,
   playerid: PLAYERID,
   timestamp: 1482495558.93241,
+  repeatMode: 2,
+  shuffleMode: 1,
   numTracks: 7,
   currentIndex: 2,
   currentTrack: {
