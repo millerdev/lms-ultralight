@@ -1,8 +1,5 @@
 # TODO
 
-- fix media query override in semantic.min.css
-  see commit 684a6cf960cdf5db2d2922aa66f9ffd2a917aab9
-  reverted to standard semantic.min.css in 2eb603d8cd3194769c5d6afbc047896dedd2085f
 - make path elements in song path (parent folders) clickable
 - fix icons
   - playlist play/info (icons are too big)
@@ -44,13 +41,20 @@ x- rename mediaInfo to mediaNav
 x- drop media filters from links in track info view
 x- add lazy loading to menu lists
 
+- compare bundle size to v0.3.3a0 or v0.3.2
 - upgrade libraries to latest versions
 - run tests in browser at http://localhost:3000/test
 - refactor class components into functional components with hooks
 
+- browsersync does not always reload the page
+- HMR does not apply changes correctly
 - fix breadcrumbs do not update properly after BrowserSync reload + click new crumb link
 - fix unnecessary render in menu on gotPlayer
 - fix delete not deleting all selected items
+- fix media query override in semantic.min.css (is this still needed?)
+  see commit:21d9fe4c5da60c260ef0b417403cd4e8a69b013d
+  see also commit:684a6cf960cdf5db2d2922aa66f9ffd2a917aab9
+  reverted to standard semantic.min.css in 2eb603d8cd3194769c5d6afbc047896dedd2085f
 
 - optimize semantic-ui bundling
   https://github.com/skleeschulte/babel-plugin-transform-semantic-ui-react-imports
