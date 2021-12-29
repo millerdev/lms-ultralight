@@ -458,6 +458,15 @@ export class Playlist extends React.Component {
       .then(dispatch)
     this.hideTrackInfo()
   }
+  playNext = () => this.playIndex("+1")
+  playPrev = () => this.playIndex("-1")
+  playIndex = index => {
+    const { playerid, dispatch } = this.props
+    lms.command(playerid, "playlist", "index", index)
+      .then(() => loadPlayer(playerid))
+      .catch(err => operationError("Cannot play", err))
+      .then(dispatch)
+  }
   onEnterKey = () => {
     if (this.state.prompt.action) {
       this.state.prompt.action()
@@ -603,6 +612,12 @@ export class Playlist extends React.Component {
                 icon="remove"
                 text={props.selection.size ? "Delete" : "Clear Playlist"}
                 onClick={() => this.onDeleteItems()} />
+              <Media query="(max-width: 700px)">{ narrow => narrow ?
+                <Button.Group basic widths={2}>
+                  <Button icon="backward" active onClick={this.playPrev} />
+                  <Button icon="forward" active onClick={this.playNext} />
+                </Button.Group>
+              : null }</Media>
             </Dropdown.Menu>
           </Dropdown>
         )
