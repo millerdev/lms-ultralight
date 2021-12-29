@@ -8,7 +8,6 @@ import 'rc-slider/assets/index.css'
 import { drillable, RepeatShuffleGroup } from './components'
 import * as lms from './lmsclient'
 import { formatTime } from './util'
-import 'font-awesome/css/font-awesome.css'
 import './player.styl'
 
 const ToolTipSlider = Slider.createSliderWithTooltip(Slider)

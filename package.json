@@ -1,6 +1,6 @@
 {
   "name": "ultralight",
-  "version": "0.5.0b4",
+  "version": "0.5.0b5",
   "description": "Ultralight - a Logitech Media Server skin",
   "author": "Daniel Miller",
   "license": "MIT",
@@ -12,7 +12,6 @@
   "dependencies": {
     "@babel/runtime": "^7.16.3",
     "axios": "^0.24.0",
-    "font-awesome": "^4.7.0",
     "intersection-observer": "^0.12.0",
     "lodash": "^4.17.15",
     "prop-types": "^15.7.2",

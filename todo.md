@@ -3,6 +3,9 @@
 - make path elements in song path (parent folders) clickable
 - fix playlist menu position on show large player
 - fix memory leak error on switch to/from responsive mode
+- change repeat/shuffle buttons to volume up/down now that repeat/shuffle are in playlist menu
+- playlist menu should not close on click repeat/shuffle buttons (and maybe prev/next too)
+- add operating system media playback integration
 - fix icons
   - MediaInfo icons should be links with href="<url>"
 x  - playlist play/info (icons are too big)
