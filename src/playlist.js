@@ -38,6 +38,7 @@ export const reducer = makeReducer({
     const data = {
       playerid: status.playerid,
       numTracks: status.playlist_tracks,
+      currentTrack: state.currentTrack,
       repeatMode: status["playlist repeat"],
       shuffleMode: status["playlist shuffle"],
       timestamp: status.playlist_timestamp || null,
@@ -53,7 +54,7 @@ export const reducer = makeReducer({
         if (gotCurrent) {
           data.currentTrack = list[index - list[0][IX]]
         }
-      } else {
+      } else if (!_.isEqual(list[0], data.currentTrack) || !data.currentTrack) {
         data.currentTrack = list[0] || {}
       }
       if (changed && (!status.isPlaylistUpdate || !gotCurrent)) {
