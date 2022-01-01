@@ -10,7 +10,7 @@ import { loadPlayer } from './player'
 import * as players from './playerselect'
 import * as library from './library'
 import makeReducer from './store'
-import { operationError, timer } from './util'
+import { memoize, operationError, timer } from './util'
 
 export const defaultState = {
   messages: {error: null},
@@ -102,9 +102,14 @@ export class MainMenu extends React.Component {
     localStorage.setItem("menu.miniPlayer", value)
     this.setState({miniPlayer: value})
   }
+  makePlayctl = memoize((playerid, isPowerOn, isPlaying, currentTrack) => {
+    const state = {playerid, isPowerOn, isPlaying, currentTrack}
+    return playerControl(this.props.dispatch, state)
+  })
   playctl() {
-    const { player, playlist, dispatch } = this.props
-    return playerControl(player.playerid, dispatch, {player, playlist})
+    const { playerid, isPowerOn, isPlaying } = this.props.player
+    const { currentTrack } = this.props.playlist
+    return this.makePlayctl(playerid, isPowerOn, isPlaying, currentTrack)
   }
   onPlayerSelected = playerid => {
     localStorage.currentPlayer = playerid

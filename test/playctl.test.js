@@ -8,7 +8,7 @@ import {__RewireAPI__ as module} from '../src/playctl'
 describe('playctl', function () {
   describe("playerControl", function () {
     it('should play a single track', function () {
-      const playctl = mod.playerControl(PLAYERID, DISPATCH, STATE)
+      const playctl = mod.playerControl(DISPATCH, STATE)
       const items = ["item-1"]
       const actions = []
       return rewireLMS(actions, () =>
@@ -27,7 +27,7 @@ describe('playctl', function () {
       [0, 0, 0],
     ], bitmap => {
       it('should play and return only played and/or added tracks: ' + bitmap, function () {
-        const playctl = mod.playerControl(PLAYERID, DISPATCH, STATE)
+        const playctl = mod.playerControl(DISPATCH, STATE)
         const items = ["item-2", "item-4", "item-6"]
         const actions = []
         const dropFailed = items => _.filter(items, (v, i) => bitmap[i])
@@ -46,7 +46,7 @@ describe('playctl', function () {
     })
 
     it('should play and add tracks with tagged parameters', function () {
-      const playctl = mod.playerControl(PLAYERID, DISPATCH, STATE)
+      const playctl = mod.playerControl(DISPATCH, STATE)
       const items = ["item-2", "item-4", "item-6"]
       const params = ["artist_id:41", "album_id:15"]
       const actions = []
@@ -63,7 +63,7 @@ describe('playctl', function () {
     })
 
     it('should add multiple tracks to playlist', function () {
-      const playctl = mod.playerControl(PLAYERID, DISPATCH, STATE)
+      const playctl = mod.playerControl(DISPATCH, STATE)
       const items = ["item-2", "item-5"]
       const actions = []
       return rewireLMS(actions, () =>
@@ -78,7 +78,7 @@ describe('playctl', function () {
     })
 
     it('should add tracks with tagged parameters to playlist', function () {
-      const playctl = mod.playerControl(PLAYERID, DISPATCH, STATE)
+      const playctl = mod.playerControl(DISPATCH, STATE)
       const items = ["item-2", "item-5"]
       const params = ["artist_id:20"]
       const actions = []
@@ -98,8 +98,8 @@ describe('playctl', function () {
       {insert: true, isPlaying: false},
       {insert: false, isPlaying: false},
     ], bits => it('should play next: ' + JSON.stringify(bits), function () {
-      const state = {...STATE, player: bits}
-      const playctl = mod.playerControl(PLAYERID, DISPATCH, state)
+      const state = {...STATE, isPlaying: bits.isPlaying}
+      const playctl = mod.playerControl(DISPATCH, state)
       const actions = []
       const expect = ["insert item-0"]
       bits.insert && !bits.isPlaying && expect.push("playlist index +1")
@@ -136,6 +136,8 @@ function rewireLMS(actions, callback, results) {
 const PLAYERID = "1:1:1:1"
 const DISPATCH = () => null
 const STATE = {
-  player: {isPlaying: true},
-  playlist: null,
+  playerid: PLAYERID,
+  isPowerOn: true,
+  isPlaying: true,
+  currentTrack: {},
 }

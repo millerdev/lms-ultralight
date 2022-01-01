@@ -10,18 +10,21 @@ const resolved = value => Promise.resolve(value)
  *
  * Used to dispatch actions that manipulate the player.
  */
-export const playerControl = (playerid, dispatch, state) => {
+export const playerControl = (dispatch, {
+  playerid,
+  isPowerOn,
+  isPlaying,
+  currentTrack,
+}) => {
   const self = {
     playerid,
+    isPlaying,
     get metadata() {
-      const { artist, title, album } = state.currentTrack
+      const { artist, title, album } = currentTrack
       return {artist, title, album}
     },
     get imageUrl() {
-      return lms.getImageUrl(state.currentTrack, playerid)
-    },
-    get isPlaying() {
-      return state.player.isPlaying
+      return lms.getImageUrl(currentTrack, playerid)
     },
   }
 
@@ -31,7 +34,7 @@ export const playerControl = (playerid, dispatch, state) => {
   }
 
   self.togglePower = () => {
-    self.command("power", state.player.isPowerOn ? 0 : 1)
+    self.command("power", isPowerOn ? 0 : 1)
   }
 
   self.command = (...args) => {
@@ -42,7 +45,7 @@ export const playerControl = (playerid, dispatch, state) => {
   }
 
   self.playPause = () => {
-    return self.command(state.player.isPlaying ? "pause" : "play")
+    return self.command(isPlaying ? "pause" : "play")
   }
 
   self.prevTrack = () => {
@@ -67,7 +70,7 @@ export const playerControl = (playerid, dispatch, state) => {
   self.playNext = (item, params=[]) => {
     return lms.playlistControl(playerid, "insert", item, params, dispatch)
       .then(success => {
-        if (success && !state.player.isPlaying) {
+        if (success && !isPlaying) {
           return lms.command(playerid, "playlist", "index", "+1")
             .then(() => loadPlayer(playerid))
             .catch(err => operationError("Play next error", err))

@@ -24,13 +24,7 @@ export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ..
         showPlayer={!smallScreen && props.miniPlayer}
         {...props}
       />
-      <MediaSession
-        dispatch={props.dispatch}
-        playerid={props.player.playerid}
-        isPowerOn={props.player.isPowerOn}
-        isPlaying={props.player.isPlaying}
-        currentTrack={props.playlist.currentTrack}
-      />
+      <MediaSession playctl={props.playctl} />
       <Toaster messages={messages} onHideError={onHideError} />
       { smallScreen ?
         <Switch>

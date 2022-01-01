@@ -1,25 +1,9 @@
 import React from 'react'
 
-import playerControl from './playctl'
-
-const MediaSession = ({
-  dispatch,
-  playerid,
-  isPowerOn,
-  isPlaying,
-  currentTrack,
-}) => {
+const MediaSession = ({ playctl }) => {
   const ref = React.useRef()
   const [controls] = React.useState(mediaControls(ref))
-
-  React.useEffect(() => {
-    const playctl = playerControl(playerid, dispatch, {
-      player: {isPowerOn, isPlaying},
-      currentTrack,
-    })
-    controls.update(playctl)
-  }, [dispatch, playerid, isPowerOn, isPlaying, currentTrack, controls])
-
+  React.useEffect(() => controls.update(playctl), [controls, playctl])
   return controls.audio
 }
 
