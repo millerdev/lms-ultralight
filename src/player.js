@@ -134,24 +134,14 @@ export function seek(playerid, value) {
 }
 
 export class Player extends React.Component {
-  command(playerid, ...args) {
-    lms.command(playerid, ...args)
-      .then(() => loadPlayer(playerid))
-      .catch(err => operationError("Command error", {err, args}))
-      .then(this.props.dispatch)
-  }
   onSeek = value => {
     const playerid = this.props.playerid
     this.props.dispatch(actions.seek({playerid, value}))
   }
   render() {
     const props = this.props
-    const command = this.command.bind(this, props.playerid)
     return (
-      <PlayerUI
-        {...props}
-        command={command}
-      >
+      <PlayerUI {...props}>
         <LiveSeekBar
           component={SeekBar}
           isPlaying={props.isPlaying}

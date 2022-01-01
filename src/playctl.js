@@ -44,8 +44,10 @@ export const playerControl = (dispatch, {
   self.playPause = () => self.command(isPlaying ? "pause" : "play")
   self.prevTrack = () => self.command("playlist", "index", "-1")
   self.nextTrack = () => self.command("playlist", "index", "+1")
-  self.volumeDown = () => self.command("mixer", "volume", "-5")
-  self.volumeUp = () => self.command("mixer", "volume", "+5")
+
+  self.setVolume = value => self.command("mixer", "volume", value)
+  self.volumeDown = () => self.setVolume("-5")
+  self.volumeUp = () => self.setVolume("+5")
 
   self.playItems = (items, params=[]) => {
     const played = []

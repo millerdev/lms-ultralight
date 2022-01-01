@@ -66,25 +66,24 @@ export class VolumeSlider extends React.Component {
   constructor() {
     super()
     this.state = {sliding: false, level: 0}
-    this.setVolume = _.throttle((command, value) => {
-      command("mixer", "volume", value)
-    }, 500)
     this.marks = _.fromPairs(_.range(10, 100, 10).map(n => [n, ""]))
   }
+  setVolume = _.throttle(level => this.props.playctl.setVolume(level), 500)
   render() {
-    const props = this.props
+    const { playerid, volumeLevel } = this.props
     return <ToolTipSlider
       marks={this.marks}
-      value={this.state.sliding ? this.state.level : props.volumeLevel}
+      value={this.state.sliding ? this.state.level : volumeLevel}
       onBeforeChange={level => this.setState({sliding: true, level})}
       onChange={level => {
         // TODO make volume adjustment UI smoother: decouple slider adjustment (and
         // state update) speed from sending events to the server
-        this.setVolume(props.command, level)
+        this.setVolume(level)
         this.setState({level})
       }}
       onAfterChange={() => this.setState({sliding: false})}
-      disabled={!props.playerid} />
+      disabled={!playerid}
+    />
   }
 }
 
