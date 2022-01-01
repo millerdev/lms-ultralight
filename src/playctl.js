@@ -19,10 +19,7 @@ export const playerControl = (dispatch, {
   const self = {
     playerid,
     isPlaying,
-    get metadata() {
-      const { artist, title, album } = currentTrack
-      return {artist, title, album}
-    },
+    tags: currentTrack,
     get imageUrl() {
       return lms.getImageUrl(currentTrack, playerid)
     },
@@ -44,17 +41,11 @@ export const playerControl = (dispatch, {
       .then(dispatch)
   }
 
-  self.playPause = () => {
-    return self.command(isPlaying ? "pause" : "play")
-  }
-
-  self.prevTrack = () => {
-    return self.command("playlist", "index", "-1")
-  }
-
-  self.nextTrack = () => {
-    return self.command("playlist", "index", "+1")
-  }
+  self.playPause = () => self.command(isPlaying ? "pause" : "play")
+  self.prevTrack = () => self.command("playlist", "index", "-1")
+  self.nextTrack = () => self.command("playlist", "index", "+1")
+  self.volumeDown = () => self.command("mixer", "volume", "-5")
+  self.volumeUp = () => self.command("mixer", "volume", "+5")
 
   self.playItems = (items, params=[]) => {
     const played = []

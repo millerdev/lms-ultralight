@@ -28,7 +28,7 @@ function mediaControls(ref) {
   function updateSession(playctl) {
     const session = window.navigator.mediaSession
     session.metadata = new window.MediaMetadata({
-      ...playctl.metadata,
+      ...playctl.tags,
       artwork: [{src: playctl.imageUrl}],
     })
     session.playbackState = playctl.isPlaying ? "playing" : "paused"

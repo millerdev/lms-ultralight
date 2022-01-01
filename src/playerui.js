@@ -6,21 +6,20 @@ import { Button, Item } from 'semantic-ui-react'
 import 'rc-slider/assets/index.css'
 
 import { drillable, RepeatShuffleGroup } from './components'
-import * as lms from './lmsclient'
 import { formatTime } from './util'
 import './player.styl'
 
 const ToolTipSlider = Slider.createSliderWithTooltip(Slider)
 
-const CurrentTrackInfo = (props, {mediaNav}) => (
+const CurrentTrackInfo = ({mediaNav, playctl: { imageUrl, tags }, children}) => (
   <Item.Group>
     <Item>
-      <Item.Image size="tiny" src={lms.getImageUrl(props.tags, props.playerid)} />
+      <Item.Image size="tiny" src={imageUrl} />
       <Item.Content>
-        {props.children}
-        <Item.Header>{props.tags.title}</Item.Header>
-        <Item.Meta>{drillable(props.tags, "artist", mediaNav)}</Item.Meta>
-        <Item.Meta>{drillable(props.tags, "album", mediaNav)}</Item.Meta>
+        {children}
+        <Item.Header>{tags.title}</Item.Header>
+        <Item.Meta>{drillable(tags, "artist", mediaNav)}</Item.Meta>
+        <Item.Meta>{drillable(tags, "album", mediaNav)}</Item.Meta>
       </Item.Content>
     </Item>
   </Item.Group>
@@ -89,24 +88,25 @@ export class VolumeSlider extends React.Component {
   }
 }
 
-export const PlayerUI = props => (
-  <div className="player">
+export const PlayerUI = props => {
+  const { playctl } = props
+  return <div className="player">
     <div className="ui grid">
       <div className="middle aligned row">
         <div className="left floated eight wide mobile four wide tablet two wide computer column">
           <Button.Group basic size="small">
             <Button
               icon="backward"
-              onClick={() => props.command("playlist", "index", "-1")}
-              disabled={!props.playerid} />
+              onClick={playctl.prevTrack}
+              disabled={!playctl.playerid} />
             <Button
-              icon={props.isPlaying ? "pause" : "play"}
-              onClick={() => props.command(props.isPlaying ? "pause" : "play")}
-              disabled={!props.playerid} />
+              icon={playctl.isPlaying ? "pause" : "play"}
+              onClick={playctl.playPause}
+              disabled={!playctl.playerid} />
             <Button
               icon="forward"
-              onClick={() => props.command("playlist", "index", "+1")}
-              disabled={!props.playerid} />
+              onClick={playctl.nextTrack}
+              disabled={!playctl.playerid} />
           </Button.Group>
         </div>
         <div className="computer tablet only eight wide tablet twelve wide computer column">
@@ -115,10 +115,10 @@ export const PlayerUI = props => (
         <div className="right floated eight wide mobile four wide tablet two wide computer column right aligned">
           <RepeatShuffleGroup
             repeatMode={props.repeatMode}
-            setRepeatMode={value => props.command("playlist", "repeat", value)}
+            setRepeatMode={value => playctl.command("playlist", "repeat", value)}
             shuffleMode={props.shuffleMode}
-            setShuffleMode={value => props.command("playlist", "shuffle", value)}
-            disabled={!props.playerid}
+            setShuffleMode={value => playctl.command("playlist", "shuffle", value)}
+            disabled={!playctl.playerid}
           />
         </div>
       </div>
@@ -128,11 +128,7 @@ export const PlayerUI = props => (
         </div>
       </div>
     </div>
-    <CurrentTrackInfo
-      playerid={props.playerid}
-      tags={props.currentTrack}
-      disabled={!props.playerid}
-    >
+    <CurrentTrackInfo playctl={playctl}>
       <Button.Group basic size="small" style={{float: "right"}}>
         <Button
           icon="window minimize"
@@ -141,4 +137,4 @@ export const PlayerUI = props => (
     </CurrentTrackInfo>
     {props.children}
   </div>
-)
+}

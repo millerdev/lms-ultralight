@@ -140,7 +140,8 @@ export class Player extends React.Component {
       .catch(err => operationError("Command error", {err, args}))
       .then(this.props.dispatch)
   }
-  onSeek(playerid, value) {
+  onSeek = value => {
+    const playerid = this.props.playerid
     this.props.dispatch(actions.seek({playerid, value}))
   }
   render() {
@@ -157,7 +158,7 @@ export class Player extends React.Component {
           localTime={props.localTime}
           elapsed={props.elapsedTime}
           total={props.totalTime}
-          onSeek={this.onSeek.bind(this, props.playerid)}
+          onSeek={this.onSeek}
           disabled={!props.playerid} />
       </PlayerUI>
     )

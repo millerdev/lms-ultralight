@@ -6,7 +6,6 @@ import { Link, Route, Switch } from 'react-router-dom'
 import { Icon, Image, Menu, Message, Sidebar, Transition } from 'semantic-ui-react'
 
 import { LiveSeekBar, ProgressIndicator } from './components'
-import * as lms from './lmsclient'
 import MediaSession from './mediasession'
 import pkg from '../package.json'
 import * as player from './player'
@@ -73,9 +72,7 @@ const MenuItems = ({player, playlist, ...props}) => (
   </Menu>
 )
 
-const Player = connect(state => {
-  return {...state.player, currentTrack: state.playlist.currentTrack}
-})(player.Player)
+const Player = connect(state => ({...state.player}))(player.Player)
 
 const MainView = props => {
   function onPlayerResize(width, height) {
@@ -89,7 +86,10 @@ const MainView = props => {
       { !props.miniPlayer &&
         <ReactResizeDetector onResize={onPlayerResize}>
           <div className="fixed-top">
-            <Player toggleMiniPlayer={props.toggleMiniPlayer} />
+            <Player
+              playctl={props.playctl}
+              toggleMiniPlayer={props.toggleMiniPlayer}
+            />
           </div>
         </ReactResizeDetector>
       }
@@ -107,7 +107,7 @@ const MainView = props => {
 }
 
 const PowerBar = props => {
-  const player = props.player
+  const { playctl, player } = props
   return <Route path="/menu" children={({match: menuOpen}) => (
     <Menu className="power-bar" fixed="top" borderless>
       <Link to={ menuOpen ? "/" : "/menu" }>
@@ -126,8 +126,8 @@ const PowerBar = props => {
       <Menu.Menu position="right">
         <Menu.Item
             active={player.isPowerOn}
-            onClick={props.playctl.togglePower}
-            disabled={!player.playerid}>
+            onClick={playctl.togglePower}
+            disabled={!playctl.playerid}>
           <Icon name="power" size="large" />
         </Menu.Item>
       </Menu.Menu>
@@ -138,10 +138,7 @@ const PowerBar = props => {
 }
 
 const PlayerBar = props => {
-  const player = props.player
   const playctl = props.playctl
-  const tags = props.playlist.currentTrack
-  const playerid = props.player.playerid
   return <Media query="(min-width: 700px)">{ wider =>
     <Menu
       className="player-bar"
@@ -149,21 +146,21 @@ const PlayerBar = props => {
       borderless
     >
       { wider && <Menu.Item
-        onClick={() => playctl.command("playlist", "index", "-1")}
+        onClick={playctl.prevTrack}
         disabled={!playctl.playerid}
         fitted="vertically"
       >
         <Icon size="large" name="backward" />
       </Menu.Item> }
       <Menu.Item
-        onClick={() => playctl.command(player.isPlaying ? "pause" : "play")}
+        onClick={playctl.playPause}
         disabled={!playctl.playerid}
         fitted="vertically"
       >
-        <Icon size="large" name={player.isPlaying ? "pause" : "play"} />
+        <Icon size="large" name={playctl.isPlaying ? "pause" : "play"} />
       </Menu.Item>
       { wider && <Menu.Item
-        onClick={() => playctl.command("playlist", "index", "+1")}
+        onClick={playctl.nextTrack}
         disabled={!playctl.playerid}
         fitted="vertically"
       >
@@ -171,18 +168,18 @@ const PlayerBar = props => {
       </Menu.Item> }
       <Menu borderless fluid className="track-info">
         <Menu.Item onClick={props.toggleMiniPlayer} fitted>
-          <Image size="mini" src={lms.getImageUrl(tags, playerid)} />
+          <Image size="mini" src={playctl.imageUrl} />
           <div className="tags">
-            <div>{tags.title}</div>
-            <div>{tags.artist} - {tags.album}</div>
+            <div>{playctl.tags.title}</div>
+            <div>{playctl.tags.artist} - {playctl.tags.album}</div>
           </div>
         </Menu.Item>
       </Menu>
       <Media query="(min-width: 600px)">
         { wide => (wide || props.bottom) && <VolumeGroup playctl={playctl} /> || null }
       </Media>
-      { props.bottom && <SongProgress {...player} /> }
-      { props.bottom && <VolumeLevel value={player.volumeLevel} /> }
+      { props.bottom && <SongProgress {...props.player} /> }
+      { props.bottom && <VolumeLevel value={props.player.volumeLevel} /> }
     </Menu>
   }</Media>
 }
@@ -243,13 +240,13 @@ const Toaster = ({messages, onHideError}) => (
 const VolumeGroup = ({playctl}) => {
   return <Menu.Menu position="right">
     <Menu.Item
-        onClick={() => playctl.command("mixer", "volume", "-5")}
+        onClick={playctl.volumeDown}
         disabled={!playctl.playerid}
         fitted="vertically">
       <Icon size="large" name="volume down" />
     </Menu.Item>
     <Menu.Item
-        onClick={() => playctl.command("mixer", "volume", "+5")}
+        onClick={playctl.volumeUp}
         disabled={!playctl.playerid}
         fitted="vertically">
       <Icon size="large" name="volume up" />
