@@ -1,5 +1,6 @@
 # TODO
 
+- refactor: use playctl everywhere for play/pause/next/prev
 - add routes for (default theme) settings when Ultralight is the default
 - invalidate browser cache on install new version on server
 - distribute as proper LMS plugin (show in "Inactive plugins" in settings)

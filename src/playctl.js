@@ -11,7 +11,19 @@ const resolved = value => Promise.resolve(value)
  * Used to dispatch actions that manipulate the player.
  */
 export const playerControl = (playerid, dispatch, state) => {
-  const self = {playerid}
+  const self = {
+    playerid,
+    get metadata() {
+      const { artist, title, album } = state.currentTrack
+      return {artist, title, album}
+    },
+    get imageUrl() {
+      return lms.getImageUrl(state.currentTrack, playerid)
+    },
+    get isPlaying() {
+      return state.player.isPlaying
+    },
+  }
 
   self.loadPlayer = (...args) => {
     loadPlayer(playerid, ...args)
@@ -23,10 +35,22 @@ export const playerControl = (playerid, dispatch, state) => {
   }
 
   self.command = (...args) => {
-    lms.command(playerid, ...args)
+    return lms.command(playerid, ...args)
       .then(() => loadPlayer(playerid))
-      .catch(err => dispatch(operationError("Command error", {args, err})))
+      .catch(err => operationError("Command error", {args, err}))
       .then(dispatch)
+  }
+
+  self.playPause = () => {
+    return self.command(state.player.isPlaying ? "pause" : "play")
+  }
+
+  self.prevTrack = () => {
+    return self.command("playlist", "index", "-1")
+  }
+
+  self.nextTrack = () => {
+    return self.command("playlist", "index", "+1")
   }
 
   self.playItems = (items, params=[]) => {
@@ -66,3 +90,5 @@ export const playerControl = (playerid, dispatch, state) => {
 
   return self
 }
+
+export default playerControl

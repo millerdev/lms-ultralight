@@ -7,6 +7,7 @@ import { Icon, Image, Menu, Message, Sidebar, Transition } from 'semantic-ui-rea
 
 import { LiveSeekBar, ProgressIndicator } from './components'
 import * as lms from './lmsclient'
+import MediaSession from './mediasession'
 import pkg from '../package.json'
 import * as player from './player'
 import * as players from './playerselect'
@@ -22,6 +23,13 @@ export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ..
         onPlayerSelected={onPlayerSelected}
         showPlayer={!smallScreen && props.miniPlayer}
         {...props}
+      />
+      <MediaSession
+        dispatch={props.dispatch}
+        playerid={props.player.playerid}
+        isPowerOn={props.player.isPowerOn}
+        isPlaying={props.player.isPlaying}
+        currentTrack={props.playlist.currentTrack}
       />
       <Toaster messages={messages} onHideError={onHideError} />
       { smallScreen ?
