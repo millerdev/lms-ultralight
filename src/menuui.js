@@ -10,6 +10,7 @@ import MediaSession from './mediasession'
 import pkg from '../package.json'
 import * as player from './player'
 import * as players from './playerselect'
+import * as playlist from './playlist'
 import { MediaBrowser } from './library'
 import { timer } from './util'
 import './menu.styl'
@@ -72,7 +73,8 @@ const MenuItems = ({player, playlist, ...props}) => (
   </Menu>
 )
 
-const Player = connect(state => ({...state.player}))(player.Player)
+const Player = connect(state => state.player)(player.Player)
+const Playlist = connect(state => state.playlist)(playlist.Playlist)
 
 const MainView = props => {
   function onPlayerResize(width, height) {
@@ -100,6 +102,7 @@ const MainView = props => {
           marginBottom: props.smallScreen && props.miniPlayer ? "3em" : 0,
         }}
       >
+        <Playlist playctl={props.playctl} />
         {props.children}
       </div>
     </div>

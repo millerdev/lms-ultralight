@@ -37,7 +37,7 @@ export const playerControl = (dispatch, {
   self.command = (...args) => {
     return lms.command(playerid, ...args)
       .then(() => loadPlayer(playerid))
-      .catch(err => operationError("Command error", {args, err}))
+      .catch(err => operationError("Cannot play", {args, err}))
       .then(dispatch)
   }
 

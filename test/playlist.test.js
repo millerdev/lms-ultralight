@@ -723,27 +723,19 @@ describe('playlist', function () {
 
     it(`should not fetch playlist on play track at index`, () => {
       const state = makeState("abcdef", 100, 200)
-      state.dispatch = {}
-      const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
-      const promise = promiseChecker()
-      rewire(module, {
-        lms: {command: (playerid, ...args) => {
-          assert.equal(playerid, PLAYERID)
+      const playctl = {
+        command: (...args) => {
           assert.deepEqual(args, ["playlist", "index", 103])
           return promise
-            .then(loadPlayer => loadPlayer())
-            .catch(() => {/* ignore error */})
-            .then(callback => { assert.equal(callback, state.dispatch) })
-            .then(() => {/* ignore clear selection */})
+            .then(() => {/* clear selection */})
             .done()
-        }},
-        loadPlayer: (playerid, fetchRange) => {
-          assert.equal(playerid, PLAYERID)
-          assert.equal(fetchRange, undefined)
         },
-      }, () => {
-        playlist.playTrackAtIndex(103)
-      })
+      }
+      state.dispatch = {}
+      const component = <mod.Playlist playctl={playctl} {...state} />
+      const playlist = shallow(component, opts).instance()
+      const promise = promiseChecker()
+      playlist.playTrackAtIndex(103)
       promise.check()
     })
 

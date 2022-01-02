@@ -459,17 +459,9 @@ export class Playlist extends React.Component {
       .then(() => this.props.dispatch(actions.clearSelection()))
     this.hideTrackInfo()
   }
-  playNext = () => this.command("playlist", "index", "+1")
-  playPrev = () => this.command("playlist", "index", "-1")
   setRepeatMode = mode => this.command("playlist", "repeat", mode)
   setShuffleMode = mode => this.command("playlist", "shuffle", mode)
-  command = (...args) => {
-    const { playerid, dispatch } = this.props
-    return lms.command(playerid, ...args)
-      .then(() => loadPlayer(playerid))
-      .catch(err => operationError("Cannot play", err))
-      .then(dispatch)
-  }
+  command = (...args) => this.props.playctl.command(...args)
   onEnterKey = () => {
     if (this.state.prompt.action) {
       this.state.prompt.action()
@@ -571,6 +563,7 @@ export class Playlist extends React.Component {
   DROP_TYPES = [MEDIA_ITEMS]
   render() {
     const props = this.props
+    const playctl = props.playctl
     return <div className="playlist">
       <TouchList
           items={props.items}
@@ -627,8 +620,8 @@ export class Playlist extends React.Component {
               />
               <Media query="(max-width: 700px)">{ narrow => narrow ?
                 <Button.Group basic widths={2}>
-                  <Button icon="backward" active onClick={this.playPrev} />
-                  <Button icon="forward" active onClick={this.playNext} />
+                  <Button icon="backward" active onClick={playctl.playPrev} />
+                  <Button icon="forward" active onClick={playctl.playNext} />
                 </Button.Group>
               : null }</Media>
             </Dropdown.Menu>

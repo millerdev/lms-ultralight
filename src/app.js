@@ -33,9 +33,6 @@ function reducer(state=defaultState, action) {
 
 const store = makeStore(reducer, defaultState)
 const MainMenu = withRouter(connect(state => state)(menu.MainMenu))
-const Playlist = connect(
-  state => state.playlist
-)(playlist.Playlist)
 
 const ultralight = /\/ultralight(\/?|$)/.test(window.location.pathname)
 const basename = ultralight ? "/ultralight" : "/"
@@ -44,7 +41,6 @@ const App = () => (
   <Provider store={store}>
     <Router basename={basename}>
       <MainMenu>
-        <Playlist />
         {/* <DevTools /> */}
       </MainMenu>
     </Router>
