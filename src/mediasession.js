@@ -1,4 +1,6 @@
 import React from 'react'
+import { createLocation } from 'history'
+import { __RouterContext as RouterContext } from "react-router"
 
 const MediaSession = ({ playctl }) => {
   const controls = useMediaControls()
@@ -11,7 +13,7 @@ function useMediaControls() {
   // AudibilityMonitor: a single low amplitude 19Hz sine wave
   // followed by 10s of silence.
   // https://hg.mozilla.org/mozilla-central/file/d0a94b1f309b1399c97628ff8aa804ad8b243215/dom/media/AudibilityMonitor.h
-  const AUDIO_FILE = "/19hz-silence.mp3"
+  const AUDIO_FILE = useHref("/19hz-silence.mp3")
   const hasSession = window.navigator && "mediaSession" in window.navigator
   const ref = React.useRef()
   let shouldShow = true
@@ -52,6 +54,12 @@ function useMediaControls() {
   }
 
   return React.useState(createApi)[0]
+}
+
+function useHref(path) {
+  // TODO replace with react-router useHref() after upgrade to v6+
+  const { history, location } = React.useContext(RouterContext)
+  return history.createHref(createLocation(path, null, null, location))
 }
 
 export default MediaSession
