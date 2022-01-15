@@ -1,10 +1,15 @@
 # TODO
 
-- fix cover art displayed in the Now Playing part of the display often belongs to the previous track
-- add routes for (default theme) settings when Ultralight is the default
+- fix play/pause via browser media session on Chrome
 - invalidate browser cache on install new version on server
+- add routes for (default theme) settings when Ultralight is the default
+- fix cover art displayed in the Now Playing part of the display often belongs to the previous track
+  this may be a bug in LMS, not the skin
 - distribute as proper LMS plugin (show in "Inactive plugins" in settings)
+- fix auto-load playlist does not always load, showing blank loading section
+  TODO reproduction steps
 - make path elements in song path (parent folders) clickable
+- allow drag/drop breadcrumbs into playlist
 - fix memory leak error on switch to/from responsive mode
 - playlist menu should not close on click repeat/shuffle buttons (and maybe prev/next too)
 - change repeat/shuffle buttons in large player view to volume up/down now that

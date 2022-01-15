@@ -1,5 +1,11 @@
 # Ultralight change log
 
+## 2021-12-29 - v0.5.1
+- Add browser media session for media key control of player. Note: play/pause
+  does not always work on Chrome-based browsers.
+- Fix add items to playlist from library. Sometimes more items were added than
+  were selected.
+
 ## 2021-12-29 - v0.5.0
 - Add support for playlists with >100 tracks.
 - Auto-scroll playlist on load and track advance.
