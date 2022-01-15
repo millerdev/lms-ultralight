@@ -33,15 +33,16 @@ export const TO_LAST = "to last"
  * - dataType: Data type of items dragged from this list.
  * - dropTypes: Array of data types that can be dropped in this list.
  *   Dropping is not supported if this prop is not provided.
- * - dragData: JSON-serializable object containing extra data to
- *   be included in drag/drop operations.
+ * - getDragData: function returning JSON-serializable object containing
+ *   extra data to be included in a drag/drop operation.
+ *   Signature: `getDragData(selectedItems)`
  * - onTap: Callback function handling tap on list item element
  *   with the class "tap-zone". Return `true` to also toggle item
  *   selection.
  *   Signature: `onTap(item, index, event)`
  * - onDrop: Callback function for handling dropped content. The first
- *   argument will be an object with an `items` member, and `dragData`
- *   will be merged in if available.
+ *   argument will be an object with an `items` member and the result
+ *   of `getDragData` merged in (if available).
  *   Signature: `onDrop(data, dataType, index, event)`
  * - onLongTouch: Callback function for handling long-touch event.
  *   Return `true` to also toggle item selection (the default action).
@@ -119,7 +120,9 @@ export class TouchList extends React.Component {
     } else {
       selected = []
     }
-    return {...this.props.dragData, items: selected}
+    const getDragData = this.props.getDragData
+    const extra = getDragData ? getDragData(selected) : {}
+    return {items: selected, ...extra}
   }
   getAllowedDropType(possibleTypes) {
     const dropTypes = _.zipObject(this.props.dropTypes)
@@ -301,7 +304,7 @@ const TOUCHLIST_PROPS = {
   selection: true,
   dataType: true,
   dropTypes: true,
-  dragData: true,
+  getDragData: true,
   onDrop: true,
   onLongTouch: true,
   onMoveItems: true,

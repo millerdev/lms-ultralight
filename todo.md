@@ -1,7 +1,5 @@
 # TODO
 
-- fix add media folder to playlist (adds parent folder)
-  - drag/drop item from folder adds entire folder
 - fix cover art displayed in the Now Playing part of the display often belongs to the previous track
 - add routes for (default theme) settings when Ultralight is the default
 - invalidate browser cache on install new version on server

@@ -222,8 +222,7 @@ const QUERY_PARAMS = {
  *    to be used as an onClick handler.
  */
 export const mediaNav = (item, history, basePath, previous) => {
-  const merge = shouldMergeNav(item, previous)
-  const { params } = merge && previous || {}
+  const params = getParams(item, _.get(previous, "params"))
   const pathname = basePath + "/" + item.type + "/" + (item.id || "")
   const search = params ? "?" + qs.stringify(params, {sort: false}) : ""
   const nav = {
@@ -239,11 +238,17 @@ export const mediaNav = (item, history, basePath, previous) => {
   }
 }
 
-function shouldMergeNav(item, previous) {
-  const params = _.get(previous, "params")
-  return _.get(params, "track") === undefined
-    && !_.has(params, item.type)
+export function getParams(item, params) {
+  return shouldMergeNav(item, params) ? params : undefined
 }
+
+function shouldMergeNav(item, params) {
+  return _.get(params, "track") === undefined && !(
+    item && (_.has(params, item.type) || DO_NOT_MERGE.has(item.type))
+  )
+}
+
+const DO_NOT_MERGE = new Set(["track"])
 
 function getPath(location) {
   return (
@@ -613,7 +618,7 @@ export class BrowserItems extends React.Component {
         {...props}
         items={result}
         mediaNav={this.mediaNav}
-        mediaParams={taggedParams(_.get(this.state.nav, "params", {}))}
+        mediaParams={_.get(this.state.nav, "params")}
         onLoadItems={this.onLoadItems}
       />
     }
@@ -667,17 +672,20 @@ export class MediaItems extends React.PureComponent {
     )
     this.forceUpdate()
   }
+  getDragData = (items) => {
+    return {params: taggedParams(getParams(items[0], this.props.mediaParams))}
+  }
   playItem = (item) => {
-    const params = this.props.mediaParams
+    const params = taggedParams(getParams(item, this.props.mediaParams))
     this.props.playctl.playItems(this.getSelected(item), params)
       .then(this.deselect)
   }
   playNext = (item) => {
-    const params = this.props.mediaParams
+    const params = taggedParams(getParams(item, this.props.mediaParams))
     this.props.playctl.playNext(item, params).then(this.deselect)
   }
   addToPlaylist = (item) => {
-    const params = this.props.mediaParams
+    const params = taggedParams(getParams(item, this.props.mediaParams))
     this.props.playctl.addToPlaylist(this.getSelected(item), params)
       .then(this.deselect)
   }
@@ -703,7 +711,7 @@ export class MediaItems extends React.PureComponent {
     return <Media query="(max-width: 500px)">{ smallScreen =>
       <TouchList
           dataType={MEDIA_ITEMS}
-          dragData={{params: this.props.mediaParams}}
+          getDragData={this.getDragData}
           items={items}
           itemsTotal={total}
           selection={selection}

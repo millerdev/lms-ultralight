@@ -128,6 +128,19 @@ describe('library', function () {
       })
     })
 
+    it("should not merge folder with track", () => {
+      const previous = {params: {'folder': 230}}
+      const item = {type: "track", id: 5283, title: "Toad Winsome"}
+      const [ path, nav ] = getPathNav(item, previous)
+      assert.equal(path, "/menu/track/5283")
+      assert.deepEqual(nav, {
+        name: "Toad Winsome",
+        pathspec: {pathname: "/menu/track/5283", search: ""},
+        params: {'track': 5283},
+        previous,
+      })
+    })
+
     function getPathNav(item, previous) {
       const location = {}
       const history = {push: (to, state) => _.assign(location, {to, state})}
@@ -169,6 +182,19 @@ describe('library', function () {
 
     it("should ignore unknown keys", () => {
       assert.deepEqual(mod.taggedParams({"foo": "bar"}), [])
+    })
+  })
+
+  describe("getParams", function () {
+    it("should pass through params with undefined item", () => {
+      assert.deepEqual(
+        mod.getParams(undefined, {"genre": "Ambient"}),
+        {"genre": "Ambient"},
+      )
+    })
+
+    it("should return undefined for undefined params", () => {
+      assert.equal(mod.getParams({}, undefined), undefined)
     })
   })
 
