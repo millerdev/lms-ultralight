@@ -620,8 +620,8 @@ export class Playlist extends React.Component {
               />
               <Media query="(max-width: 700px)">{ narrow => narrow ?
                 <Button.Group basic widths={2}>
-                  <Button icon="backward" active onClick={playctl.playPrev} />
-                  <Button icon="forward" active onClick={playctl.playNext} />
+                  <Button icon="backward" active onClick={playctl.prevTrack} />
+                  <Button icon="forward" active onClick={playctl.nextTrack} />
                 </Button.Group>
               : null }</Media>
             </Dropdown.Menu>
