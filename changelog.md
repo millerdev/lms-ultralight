@@ -1,5 +1,8 @@
 # Ultralight change log
 
+## 2023-01-31 - v0.5.2
+- Fix next/previous buttons in playlist menu.
+
 ## 2021-12-29 - v0.5.1
 - Add browser media session for media key control of player. Note: play/pause
   does not always work on Chrome-based browsers.
