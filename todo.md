@@ -1,8 +1,16 @@
 # TODO
 
+- add to desktop as stand-alone app on Android
+- add link to settings: /Default/settings/index.html
+- add file to repo for first-class plugin status
+  - get it added to the default set of plugins
+- fix drag/drop in Chrome on Android
+- alarm clock mode
+  - snooze feature
+  - access to alarms
+
 - fix play/pause via browser media session on Chrome
 - invalidate browser cache on install new version on server
-- add routes for (default theme) settings when Ultralight is the default
 - fix cover art displayed in the Now Playing part of the display often belongs to the previous track
   this may be a bug in LMS, not the skin
 - distribute as proper LMS plugin (show in "Inactive plugins" in settings)
