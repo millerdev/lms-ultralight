@@ -636,6 +636,9 @@ const BrowseMenu = ({ basePath, loading }) => (
         <Link to={loc} href={pathname}>{sector.title}</Link>
       </Menu.Item>
     })}
+    <Menu.Item key="settings">
+      <a href="/Default/settings/index.html" target="_blank">Settings</a>
+    </Menu.Item>
     <Loader active={loading} inline="centered" />
   </Menu>
 )

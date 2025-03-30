@@ -1,7 +1,7 @@
 # TODO
 
 - add to desktop as stand-alone app on Android
-- add link to settings: /Default/settings/index.html
+- [x] add link to settings: /Default/settings/index.html
 - add file to repo for first-class plugin status
   - get it added to the default set of plugins
 - fix drag/drop in Chrome on Android
