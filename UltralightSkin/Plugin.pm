@@ -23,7 +23,7 @@ sub initPlugin {
 
 	for my $file (@entries) {
 		# extend the list of file extensions if needed
-		if ($file =~ /\.(?:eot|svg|woff2?|ttf|json|mp3)$/) {
+		if ($file =~ /\.(?:eot|svg|woff2?|ttf|json|mp3|png)$/) {
 			$file = catfile($skinDir, $file);
 			Slim::Web::Pages->addRawDownload(basename($file), $file, Slim::Music::Info::typeFromSuffix($file));
 		}
