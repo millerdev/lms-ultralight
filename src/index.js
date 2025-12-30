@@ -5,7 +5,7 @@
 import './polyfills'
 import axios from 'axios'
 import React from 'react'
-import { render } from 'react-dom'
+import { createRoot } from 'react-dom/client'
 import App from './app'
 
 if (process.env.NODE_ENV === "development") {
@@ -15,7 +15,7 @@ if (process.env.NODE_ENV === "development") {
   axios.defaults.baseURL = ""
 }
 
-const root = document.getElementById('app')
-const renderer = App => render(<App />, root)
+const root = createRoot(document.getElementById('app'))
+const renderer = App => root.render(<App />)
 
 renderer(App)
