@@ -71,7 +71,7 @@
     "start": "npm run build && http-server dist",
     "build": "node tools/rm dist && NODE_ENV=production webpack --bail --progress",
     "dev": "webpack serve --mode development --env development",
-    "test": "mocha -w --require test/helpers/css-null-compilers test/helpers/main.js test/*.test.js",
+    "test": "mocha --require test/helpers/css-null-compilers test/helpers/main.js test/*.test.js",
     "package": "node tools/pkg",
     "profile": "NODE_ENV=production webpack --profile --json > stats.json"
   }
