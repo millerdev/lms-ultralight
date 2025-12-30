@@ -8,7 +8,7 @@ import { effect, getEffects, getState, split } from '../src/effects'
 import * as mod from '../src/playlist'
 import {__RewireAPI__ as module} from '../src/playlist'
 import { MEDIA_ITEMS } from '../src/library'
-import { operationError } from '../src/util'
+import { operationError, timer } from '../src/util'
 
 describe('playlist', function () {
   describe('reducer', function () {
@@ -707,6 +707,25 @@ describe('playlist', function () {
 
   describe("Playlist component", function () {
     const opts = {context: {addKeydownHandler: () => {}}}
+    let timers = null
+
+    before(() => {
+      timers = []
+      module.__Rewire__("timer", () => {
+        const tix = timer()
+        timers.push(tix)
+        return tix
+      })
+    })
+
+    after(() => {
+      assert(
+        !_.reduce(timers, (acc, tix) => acc || tix.isActive(), false),
+        "should not have active timers",
+      )
+      timers = null
+      module.__ResetDependency__('timer')
+    })
 
     it('should setup empty selection state', function () {
       const state = makeState("abcdef")
@@ -737,6 +756,7 @@ describe('playlist', function () {
       const promise = promiseChecker()
       playlist.playTrackAtIndex(103)
       promise.check()
+      playlist.scrollTimer.clear()
     })
 
     it('should convert selection indexes on delete', function () {
@@ -805,6 +825,7 @@ describe('playlist', function () {
       assert.equal(playlist.props.selection.size, 1)
       playlist.onSelectionChanged(new Set([12, 14, 15]), false)
       assert(dispatched, "dispatch not called")
+      playlist.scrollTimer.clear()
     })
 
     it('should move item after last item in playlist', function () {
@@ -832,6 +853,7 @@ describe('playlist', function () {
         playlist.onMoveItems(new Set([11]), 16)
       })
       promise.check()
+      playlist.scrollTimer.clear()
     })
 
     it('should drop items after last item in playlist', function () {
@@ -854,6 +876,7 @@ describe('playlist', function () {
         playlist.onDrop(data, MEDIA_ITEMS, 16)
       })
       assert(asserted, 'rewire assertions not run')
+      playlist.scrollTimer.clear()
     })
 
     describe("load items", function () {
