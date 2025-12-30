@@ -80,7 +80,7 @@ export function getImageUrl(tags, playerid) {
 function exec(playerid, command) {
   return axios({
     method: "post",
-    url: "/jsonrpc.js",
+    url: "jsonrpc.js",
     headers: {'Content-Type': 'text/plain'},
     data: {
       id: 1,

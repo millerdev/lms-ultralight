@@ -98,14 +98,14 @@ module.exports = {
         {from: /^\/menu/, to: '/'},
       ],
     },
-    proxy: {
-      '/lms': {
+    proxy: [
+      {
+        context: ['/favicon.ico', '/lms'],
         target: REMOTE_LMS_URL,
         pathRewrite: {'^/lms' : ''},
         changeOrigin: true,
       },
-      '/favicon.ico': REMOTE_LMS_URL,
-    },
+    ],
     client: {overlay: {errors: true, warnings: false}},
   },
   target: 'web',
