@@ -63,7 +63,7 @@
     "stylus-loader": "^8.1.2",
     "webpack": "^5.104.1",
     "webpack-cli": "^4.10.0",
-    "webpack-dev-server": "^4.15.2"
+    "webpack-dev-server": "^5.2.2"
   },
   "scripts": {
     "start": "npm run build && http-server dist",
