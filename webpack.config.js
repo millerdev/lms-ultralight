@@ -102,6 +102,7 @@ module.exports = {
       '/lms': {
         target: REMOTE_LMS_URL,
         pathRewrite: {'^/lms' : ''},
+        changeOrigin: true,
       },
       '/favicon.ico': REMOTE_LMS_URL,
     },
