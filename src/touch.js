@@ -1,7 +1,6 @@
 import _ from 'lodash'
 import PropTypes from 'prop-types'
 import React from 'react'
-import ReactDOM from 'react-dom'
 import { useInView } from 'react-intersection-observer'
 import { useResizeDetector } from 'react-resize-detector'
 import { List, Loader, Ref } from 'semantic-ui-react'
@@ -67,6 +66,7 @@ export class TouchList extends React.Component {
     }
     super(props)
     this.id = _.uniqueId("touch-list-")
+    this.listRef = React.createRef()
     // use internal selection if selection not provided
     this.internalSelection = props.selection ? null : new Set()
     this.lastSelected = []
@@ -76,7 +76,7 @@ export class TouchList extends React.Component {
     return this.props.itemsOffset || 0
   }
   componentDidMount() {
-    this.slide.setTouchHandlers(ReactDOM.findDOMNode(this))
+    this.slide.setTouchHandlers(this.listRef.current)
   }
   componentWillUnmount() {
     this.slide.setTouchHandlers(null)
@@ -212,14 +212,20 @@ export class TouchList extends React.Component {
     if (props.className) {
       others.className += " " + props.className
     }
-    return <LoadingList {...others} />
+    return <LoadingList {...others} listRef={this.listRef} />
   }
 }
 
 export const LoadingList = ({
-  items, itemsOffset, itemsTotal, onLoadItems, maxLoad, ...props
+  items, itemsOffset, itemsTotal, onLoadItems, maxLoad, listRef, ...props
 }) => {
   const { height, ref } = useResizeDetector({handleWidth: false})
+  const combinedRef = React.useCallback(node => {
+    ref(node)
+    if (listRef) {
+      listRef.current = node
+    }
+  }, [ref, listRef])
   // debounce wait (200) should be enough time to render and resize
   const [cx] = React.useState({})
   const [updateContext] = React.useState(() => memoize(updateLoadingContext))
@@ -231,7 +237,7 @@ export const LoadingList = ({
   updateContext(cx, itemsOffset, count, itemsTotal, onLoadItems, maxLoad)
   return <LoadingContext.Provider value={cx}>
     <LoadingSpacer height={cx.before * itemHeight} range={cx.above} />
-    <Ref innerRef={ref}><List {...props} /></Ref>
+    <Ref innerRef={combinedRef}><List {...props} /></Ref>
     <LoadingSpacer height={cx.after * itemHeight} range={cx.below} />
   </LoadingContext.Provider>
 }

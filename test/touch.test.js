@@ -7,6 +7,19 @@ import * as mod from '../src/touch'
 import {__RewireAPI__ as module} from '../src/touch'
 
 describe('TouchList', function () {
+  it("should setup touch handlers on mount", function () {
+    let touchHandlersElement = null
+    const wrapper = shallow(<mod.TouchList items={[1, 2, 3]} />)
+    const instance = wrapper.instance()
+    const listElement = { addEventListener: () => {} }
+    instance.slide = {setTouchHandlers: (el) => { touchHandlersElement = el }}
+    instance.listRef.current = listElement
+    instance.componentDidMount()
+
+    assert.equal(touchHandlersElement, listElement,
+      "setTouchHandlers should be called with listRef.current")
+  })
+
   function stateTest(name, act, startConfig, endConfig) {
     it(startConfig + " [" + name + "] -> " + endConfig, function () {
       const [state, selection, lastSelected] = makeState(startConfig)
