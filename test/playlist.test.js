@@ -706,7 +706,7 @@ describe('playlist', function () {
   })
 
   describe("Playlist component", function () {
-    const opts = {context: {addKeydownHandler: () => {}}}
+    const opts = {disableLifecycleMethods: true}
     let timers = null
 
     before(() => {

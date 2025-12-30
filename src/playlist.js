@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import PropTypes from 'prop-types'
 import React from 'react'
 import Media from 'react-media'
 import { Button, Confirm, Dropdown, Input, List, Segment } from 'semantic-ui-react'
@@ -8,6 +7,7 @@ import { DragHandle, MediaInfo, RepeatShuffleGroup, TrackInfoIcon } from './comp
 import { effect, combine } from './effects'
 import * as lms from './lmsclient'
 import { MEDIA_ITEMS } from './library'
+import { MenuContext } from './menucontext'
 import makeReducer from './store'
 import { TouchList } from './touch'
 import { formatTime, objectId, operationError, timer } from './util'
@@ -412,16 +412,14 @@ export function moveItem(list, fromIndex, toIndex, item) {
 }
 
 export class Playlist extends React.Component {
-  constructor(props, context) {
+  static contextType = MenuContext
+  constructor(props) {
     super(props)
     this.state = {
       infoIndex: -1,
       prompt: {},
       touching: false,
     }
-    context.addKeydownHandler(8 /* backspace */, this.onDeleteItems)
-    context.addKeydownHandler(46 /* delete */, this.onDeleteItems)
-    context.addKeydownHandler(13 /* enter */, this.onEnterKey)
     this.hideTrackInfo = () => {}
     this.saver = playlistSaver(this.afterSavePlaylist)
     this.loading = new Set()
@@ -429,6 +427,11 @@ export class Playlist extends React.Component {
     this.shouldAutoScroll = true
     this.scrollBehavior = "instant"
     this.scrollTimer = timer()
+  }
+  componentDidMount() {
+    this.context.addKeydownHandler(8 /* backspace */, this.onDeleteItems)
+    this.context.addKeydownHandler(46 /* delete */, this.onDeleteItems)
+    this.context.addKeydownHandler(13 /* enter */, this.onEnterKey)
   }
   componentDidCatch(error, errorInfo) {
     window.console.error(error, errorInfo)
@@ -636,10 +639,6 @@ export class Playlist extends React.Component {
         onConfirm={this.state.prompt.action} />
     </div>
   }
-}
-
-Playlist.contextTypes = {
-  addKeydownHandler: PropTypes.func.isRequired,
 }
 
 export class PlaylistItem extends React.Component {

@@ -1,9 +1,9 @@
 import _ from 'lodash'
-import PropTypes from 'prop-types'
 import React from 'react'
 import DocumentTitle from 'react-document-title'
 
 import { combine, effect, split, IGNORE_ACTION } from './effects'
+import { MenuContext } from './menucontext'
 import { MainMenuUI } from './menuui'
 import { playerControl } from './playctl'
 import { loadPlayer } from './player'
@@ -77,12 +77,6 @@ export class MainMenu extends React.Component {
       this.props.dispatch(operationError("Cannot load players", err))
     )
   }
-  getChildContext() {
-    return {
-      addKeydownHandler: this.addKeydownHandler,
-      mediaNav: this.mediaNav,
-    }
-  }
   addKeydownHandler = (code, handler) => {
     this.keydownHandlers[code] = handler
   }
@@ -122,31 +116,32 @@ export class MainMenu extends React.Component {
     const {menu, children, ...props} = this.props
     const tags = props.playlist.currentTrack || {}
     const title = _.filter([tags.title, tags.artist, "Ultralight"]).join(" - ")
+    const context = {
+      addKeydownHandler: this.addKeydownHandler,
+      mediaNav: this.mediaNav,
+    }
     return (
-      <MainMenuUI
-        {...props}
-        playctl={this.playctl()}
-        players={menu.players}
-        library={menu.library}
-        messages={menu.messages}
-        onHideError={this.onHideError}
-        onPlayerSelected={this.onPlayerSelected}
-        mediaNav={this.mediaNav}
-        miniPlayer={this.state.miniPlayer}
-        toggleMiniPlayer={this.toggleMiniPlayer}
-        menuDidShow={this.didShow}
-      >
-        <DocumentTitle title={title}>
-          {children}
-        </DocumentTitle>
-      </MainMenuUI>
+      <MenuContext.Provider value={context}>
+        <MainMenuUI
+          {...props}
+          playctl={this.playctl()}
+          players={menu.players}
+          library={menu.library}
+          messages={menu.messages}
+          onHideError={this.onHideError}
+          onPlayerSelected={this.onPlayerSelected}
+          mediaNav={this.mediaNav}
+          miniPlayer={this.state.miniPlayer}
+          toggleMiniPlayer={this.toggleMiniPlayer}
+          menuDidShow={this.didShow}
+        >
+          <DocumentTitle title={title}>
+            {children}
+          </DocumentTitle>
+        </MainMenuUI>
+      </MenuContext.Provider>
     )
   }
-}
-
-MainMenu.childContextTypes = {
-  addKeydownHandler: PropTypes.func.isRequired,
-  mediaNav: PropTypes.func.isRequired,
 }
 
 
