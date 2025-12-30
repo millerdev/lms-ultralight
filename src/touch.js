@@ -11,6 +11,12 @@ import './touch.styl'
 export const SINGLE = "single"
 export const TO_LAST = "to last"
 
+const TouchListContext = React.createContext({
+  TouchList_isSelected: PropTypes.func.isRequired,
+  TouchList_onItemSelected: PropTypes.func.isRequired,
+  TouchList_slide: PropTypes.object.isRequired,
+})
+
 /**
  * Touch-interactive list supporting selection and drag/drop
  *
@@ -91,13 +97,6 @@ export class TouchList extends React.Component {
       this._updateItemSelections(newSelection, lastSelected, oldSelection)
     }
     return null
-  }
-  getChildContext() {
-    return {
-      TouchList_isSelected: this.isSelected,
-      TouchList_onItemSelected: this.onItemSelected,
-      TouchList_slide: this.slide,
-    }
   }
   get selection() {
     return this.internalSelection || this.props.selection
@@ -212,7 +211,14 @@ export class TouchList extends React.Component {
     if (props.className) {
       others.className += " " + props.className
     }
-    return <LoadingList {...others} listRef={this.listRef} />
+    const context = {
+      TouchList_isSelected: this.isSelected,
+      TouchList_onItemSelected: this.onItemSelected,
+      TouchList_slide: this.slide,
+    }
+    return <TouchListContext.Provider value={context}>
+      <LoadingList {...others} listRef={this.listRef} />
+    </TouchListContext.Provider>
   }
 }
 
@@ -294,12 +300,6 @@ const LoadingSpacer = ({ height, range }) => {
   }, [height, ref])
 }
 
-TouchList.childContextTypes = {
-  TouchList_isSelected: PropTypes.func.isRequired,
-  TouchList_onItemSelected: PropTypes.func.isRequired,
-  TouchList_slide: PropTypes.object.isRequired,
-}
-
 const TOUCHLIST_PROPS = {
   // "items" props are used by LoadingList
   // items: true,
@@ -325,6 +325,8 @@ const TOUCHLIST_PROPS = {
  * - index: required unique/consecutive index for this item.
  */
 export class TouchListItem extends React.Component {
+  static contextType = TouchListContext
+
   constructor() {
     super()
     this.state = {dropClass: null}
@@ -415,12 +417,6 @@ const TOUCHLISTITEM_PROPS = {
 }
 
 TouchList.Item = TouchListItem
-
-TouchListItem.contextTypes = {
-  TouchList_isSelected: PropTypes.func.isRequired,
-  TouchList_onItemSelected: PropTypes.func.isRequired,
-  TouchList_slide: PropTypes.object.isRequired,
-}
 
 /**
  * Create a new object excluding keys from the source object
