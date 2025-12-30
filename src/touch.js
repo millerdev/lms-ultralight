@@ -376,7 +376,6 @@ export class TouchListItem extends React.Component {
       onDrop={this.onDrop}
       onDragLeave={this.clearDropIndicator}
       onDragEnd={this.clearDropIndicator}
-      onDragEnd={this.clearDropIndicator}
       onContextMenu={this.onContextMenu}
       data-touchlist-item-index={props.index /* touchlistItemIndex */}
       className={_.filter([
