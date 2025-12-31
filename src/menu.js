@@ -81,7 +81,7 @@ export class MainMenu extends React.Component {
     this.keydownHandlers[code] = handler
   }
   mediaNav = (item, nav) => (
-    library.mediaNav(item, this.props.history, "/menu", nav)
+    library.mediaNav(item, this.props.navigate, "/menu", nav)
   )
   onKeyDown(event) {
     if (

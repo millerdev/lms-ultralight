@@ -1,5 +1,5 @@
 import React from 'react'
-import { BrowserRouter as Router, withRouter } from 'react-router-dom'
+import { BrowserRouter as Router, useNavigate } from 'react-router-dom'
 import { connect, Provider } from 'react-redux'
 import 'semantic-ui-css/semantic.min.css'
 
@@ -31,8 +31,14 @@ function reducer(state=defaultState, action) {
   }, menuEffects.concat(playerEffects).concat(playlistEffects))
 }
 
+function withNavigate(Component) {
+  return function WithNavigate(props) {
+    return <Component {...props} navigate={useNavigate()} />
+  }
+}
+
 const store = makeStore(reducer, defaultState)
-const MainMenu = withRouter(connect(state => state)(menu.MainMenu))
+const MainMenu = withNavigate(connect(state => state)(menu.MainMenu))
 
 const ultralight = /\/ultralight(\/?|$)/.test(window.location.pathname)
 const basename = ultralight ? "/ultralight" : "/"

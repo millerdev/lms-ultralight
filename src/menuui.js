@@ -2,7 +2,7 @@ import React from 'react'
 import Media from 'react-media'
 import { connect } from 'react-redux'
 import { useResizeDetector } from 'react-resize-detector'
-import { Link, Route, Switch } from 'react-router-dom'
+import { Link, Routes, Route, useMatch } from 'react-router-dom'
 import { Icon, Image, Menu, Message, Sidebar, Transition } from 'semantic-ui-react'
 
 import { LiveSeekBar, ProgressIndicator } from './components'
@@ -27,36 +27,41 @@ export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ..
       <MediaSession playctl={props.playctl} />
       <Toaster messages={messages} onHideError={onHideError} />
       { smallScreen ?
-        <Switch>
-          <Route path="/menu" render={() => <MenuItems {...props} />} />
-          <Route render={() => (
+        <Routes>
+          <Route path="/menu/*" element={<MenuItems {...props} />} />
+          <Route path="*" element={
             <div>
               <MainView {...props} smallScreen />
               { props.miniPlayer && <PlayerBar {...props} bottom /> }
             </div>
-          )} />
-        </Switch> :
-        <Route path="/menu" children={({match: menuOpen}) => (
-          <div>
-            <Sidebar
-                as="div"
-                animation="push"
-                width="wide"
-                onVisible={props.menuDidShow.fire}
-                visible={!!menuOpen}>
-              <MenuItems {...props} />
-            </Sidebar>
-            <Media query="(min-width: 850px)">{ wideScreen =>
-              <Sidebar.Pusher className={wideScreen && menuOpen ? "wide-fit" : null}>
-                <MainView {...props} />
-              </Sidebar.Pusher>
-            }</Media>
-          </div>
-        )} />
+          } />
+        </Routes> :
+        <SidebarMenu {...props} />
       }
     </div>
   }</Media>
 )
+
+const SidebarMenu = (props) => {
+  const menuOpen = useMatch("/menu/*")
+  return (
+    <div>
+      <Sidebar
+          as="div"
+          animation="push"
+          width="wide"
+          onVisible={props.menuDidShow.fire}
+          visible={!!menuOpen}>
+        <MenuItems {...props} />
+      </Sidebar>
+      <Media query="(min-width: 850px)">{ wideScreen =>
+        <Sidebar.Pusher className={wideScreen && menuOpen ? "wide-fit" : null}>
+          <MainView {...props} />
+        </Sidebar.Pusher>
+      }</Media>
+    </div>
+  )
+}
 
 const MenuItems = ({player, playlist, ...props}) => (
   <Menu borderless fluid vertical className="menu-items">
@@ -109,7 +114,8 @@ const MainView = props => {
 
 const PowerBar = props => {
   const { playctl, player } = props
-  return <Route path="/menu" children={({match: menuOpen}) => (
+  const menuOpen = useMatch("/menu/*")
+  return (
     <Menu className="power-bar" fixed="top" borderless>
       <Link to={ menuOpen ? "/" : "/menu" }>
         <Menu.Item>
@@ -135,7 +141,7 @@ const PowerBar = props => {
       { props.showPlayer && <VolumeLevel value={player.volumeLevel} /> }
       { props.showPlayer && <SongProgress {...player} /> }
     </Menu>
-  )} />
+  )
 }
 
 const PlayerBar = props => {

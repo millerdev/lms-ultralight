@@ -143,8 +143,8 @@ describe('library', function () {
 
     function getPathNav(item, previous) {
       const location = {}
-      const history = {push: (to, state) => _.assign(location, {to, state})}
-      mod.mediaNav(item, history, basePath, previous).show()
+      const navigate = (to, options) => _.assign(location, {to}, options)
+      mod.mediaNav(item, navigate, basePath, previous).show()
       return [location.to, location.state.nav]
     }
   })

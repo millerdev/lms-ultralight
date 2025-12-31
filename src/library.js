@@ -2,7 +2,7 @@ import _ from 'lodash'
 import qs from 'query-string'
 import React from 'react'
 import Media from 'react-media'
-import { Link, Route, matchPath } from 'react-router-dom'
+import { Link, matchPath, useLocation, useNavigate } from 'react-router-dom'
 import { Breadcrumb, Input, List, Loader, Menu, Segment } from 'semantic-ui-react'
 
 import { MediaInfo, PlaylistButtons, TrackInfoIcon } from './components'
@@ -221,7 +221,7 @@ const QUERY_PARAMS = {
  * - show: load the media item immediately and update history. Suitable
  *    to be used as an onClick handler.
  */
-export const mediaNav = (item, history, basePath, previous) => {
+export const mediaNav = (item, navigate, basePath, previous) => {
   const params = getParams(item, _.get(previous, "params"))
   const pathname = basePath + "/" + item.type + "/" + (item.id || "")
   const search = params ? "?" + qs.stringify(params, {sort: false}) : ""
@@ -231,10 +231,10 @@ export const mediaNav = (item, history, basePath, previous) => {
     params: {...params, [item.type]: item.id},
     previous,
   }
-  const to = {...nav.pathspec, state: {nav}}
+  const to = getPath(nav.pathspec)
   return {
-    link: () => <Link to={to}>{nav.name}</Link>,
-    show: () => history.push(getPath(nav.pathspec), {nav}),
+    link: () => <Link to={to} state={{nav}}>{nav.name}</Link>,
+    show: () => navigate(to, {state: {nav}}),
   }
 }
 
@@ -386,23 +386,24 @@ const SECONDARY_INFO = {
 const actions = reducer.actions
 
 export const MediaBrowser = props => {
+  const location = useLocation()
+  const navigate = useNavigate()
   return (
-    <Route children={route => (
-      <div>
-        <SearchInput
-          {...route}
-          basePath={props.basePath}
-          dispatch={props.dispatch}
-          isLoading={props.isLoading}
-          menuDidShow={props.menuDidShow}
-        />
-        <BrowserHistory
-          state={route.location.state}
-          result={props.result}
-          basePath={props.basePath} />
-        <BrowserItems {...props} {...route} />
-      </div>
-    )} />
+    <div>
+      <SearchInput
+        location={location}
+        navigate={navigate}
+        basePath={props.basePath}
+        dispatch={props.dispatch}
+        isLoading={props.isLoading}
+        menuDidShow={props.menuDidShow}
+      />
+      <BrowserHistory
+        state={location.state}
+        result={props.result}
+        basePath={props.basePath} />
+      <BrowserItems {...props} location={location} />
+    </div>
   )
 }
 
@@ -426,19 +427,19 @@ export class SearchInput extends React.Component {
     this.doSearch()
   }
   doSearch(term) {
-    const {history, location, basePath} = this.props
+    const {navigate, location, basePath} = this.props
     const query = term && {term}
     const pathspec = getSearchPath(query, basePath)
     const nav = term ? {name: term, term, pathspec} : null
     const isRefine = term && location.search && matchPath(
+      {path: pathspec.pathname, end: true},
       location.pathname,
-      {path: pathspec.pathname, exact: true},
     )
     const path = getPath(pathspec)
     if (isRefine) {
-      history.replace(path, {nav})
+      navigate(path, {replace: true, state: {nav}})
     } else {
-      history.push(path, {nav})
+      navigate(path, {state: {nav}})
     }
   }
   focusInput() {
@@ -473,10 +474,10 @@ export class BrowserHistory extends React.PureComponent {
       return [{key: "0", content: <Link to={this.props.basePath}>Menu</Link>}]
     }
     const items = this.navItems(nav.previous, false)
-    const to = {...nav.pathspec, state: {nav}}
+    const to = getPath(nav.pathspec)
     items.push({
       key: String(items.length),
-      content: active ? nav.name : <Link to={to}>{nav.name}</Link>,
+      content: active ? nav.name : <Link to={to} state={{nav}}>{nav.name}</Link>,
       active,
     })
     return items
@@ -556,36 +557,23 @@ export class BrowserItems extends React.Component {
     }
 
     // path: /:type/:id
-    const types = _.keys(NEXT_SECTION).join("|")
-    const itemMatch = matchPath(pathname, {
-      path: basePath + "/:type(" + types + ")/:id",
-      exact: true,
-    })
-    if (itemMatch) {
+    const itemMatch = matchPath(basePath + "/:type/:id", pathname)
+    if (itemMatch && _.has(NEXT_SECTION, itemMatch.params.type)) {
       return actions.mediaLoad(itemMatch.params, query, range)
     }
 
     // path: /:section? + ?q=term
-    const sections = _.keys(SECTIONS).join("|")
-    const sectionPattern = "/:section(" + sections + ")"
+    const queryMatch = matchPath(basePath + "/:section", pathname)
     if (query.term) {
-      const queryMatch = matchPath(pathname, {
-        path: basePath + sectionPattern,
-        exact: true,
-      })
-      if (queryMatch) {
+      if (queryMatch && _.has(SECTIONS, queryMatch.params.section)) {
         query.section = queryMatch.params.section
       }
       return actions.mediaSearch(query, range)
     }
 
     // path: /:section
-    const sectionMatch = matchPath(pathname, {
-      path: basePath + sectionPattern,
-      exact: true,
-    })
-    if (sectionMatch) {
-      return actions.mediaBrowse(sectionMatch.params.section, range)
+    if (queryMatch && _.has(SECTIONS, queryMatch.params.section)) {
+      return actions.mediaBrowse(queryMatch.params.section, range)
     }
 
     return actions.clearMedia()

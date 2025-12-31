@@ -1,6 +1,5 @@
 import React from 'react'
-import { createLocation } from 'history'
-import { __RouterContext as RouterContext } from "react-router"
+import { useHref } from 'react-router-dom'
 
 const MediaSession = ({ playctl }) => {
   const controls = useMediaControls()
@@ -54,12 +53,6 @@ function useMediaControls() {
   }
 
   return React.useState(createApi)[0]
-}
-
-function useHref(path) {
-  // TODO replace with react-router useHref() after upgrade to v6+
-  const { history, location } = React.useContext(RouterContext)
-  return history.createHref(createLocation(path, null, null, location))
 }
 
 export default MediaSession
