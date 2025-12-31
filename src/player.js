@@ -38,6 +38,8 @@ export const reducer = makeReducer({
       elapsedTime: isNumeric(status.time) ? parseFloat(status.time) : 0,
       totalTime: isNumeric(status.duration) ? parseFloat(status.duration) : null,
       localTime: status.localTime,
+      sleep: status.sleep,
+      will_sleep_in: status.will_sleep_in,
     }
     return combine({...state, ...data}, [
       effect(advanceToNextTrackAfter, secondsToEndOfTrack(data), data.playerid),

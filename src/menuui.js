@@ -1,9 +1,10 @@
+import _ from 'lodash'
 import React from 'react'
 import Media from 'react-media'
 import { connect } from 'react-redux'
 import { useResizeDetector } from 'react-resize-detector'
 import { Link, Routes, Route, useMatch } from 'react-router-dom'
-import { Icon, Image, Menu, Message, Sidebar, Transition } from 'semantic-ui-react'
+import { Dropdown, Icon, Image, Menu, Message, Sidebar, Transition } from 'semantic-ui-react'
 
 import { LiveSeekBar, ProgressIndicator } from './components'
 import MediaSession from './mediasession'
@@ -130,6 +131,7 @@ const PowerBar = props => {
           {...props.players} />
       </Menu.Item>
       { props.showPlayer && <PlayerBar {...props} /> }
+      <SleepDropdown player={player} playctl={playctl} />
       <Menu.Menu position="right">
         <Menu.Item
             active={player.isPowerOn}
@@ -259,4 +261,40 @@ const VolumeGroup = ({playctl}) => {
       <Icon size="large" name="volume up" />
     </Menu.Item>
   </Menu.Menu>
+}
+
+const SleepDropdown = ({player, playctl}) => {
+  const [showItem, setShowItem] = React.useState(false)
+  const [menuOpen, setMenuOpen] = React.useState(false)
+  const visible = player.sleep || menuOpen
+  const duration = visible ? 100 : 10000
+  React.useEffect(() => player.sleep && setShowItem(true), [player.sleep])
+  const onHide = () => setShowItem(false)
+  return !(showItem || player.sleep) ? null : (
+    <Dropdown
+      item
+      onOpen={() => setMenuOpen(true)}
+      onClose={() => setMenuOpen(false)}
+      trigger={
+        <Transition visible={visible} duration={duration} onHide={onHide}>
+          <Icon name="bed" size="large"/>
+        </Transition>
+      }
+    >
+      <Dropdown.Menu>
+        <Dropdown.Header content={ player.sleep
+          ? "Sleeping in " + _.round(player.will_sleep_in / 60) + " minutes"
+          : "Sleep cancelled"
+        } />
+        <Dropdown.Divider />
+        <Dropdown.Item text="Until end of track" onClick={() => playctl.command("jiveendoftracksleep")} />
+        <Dropdown.Item text="15 minutes" onClick={() => playctl.command("sleep", "900")} />
+        <Dropdown.Item text="30 minutes" onClick={() => playctl.command("sleep", "1800")} />
+        <Dropdown.Item text="45 minutes" onClick={() => playctl.command("sleep", "2700")} />
+        <Dropdown.Item text="60 minutes" onClick={() => playctl.command("sleep", "3600")} />
+        <Dropdown.Item text="90 minutes" onClick={() => playctl.command("sleep", "5400")} />
+        <Dropdown.Item text="Cancel" onClick={() => playctl.command("sleep", "0")} />
+      </Dropdown.Menu>
+    </Dropdown>
+  )
 }

@@ -131,6 +131,17 @@ describe('player', function () {
           ),
         ])
       })
+
+      it('should add sleep information to player state', function () {
+        const data = {
+          ...STATUS,
+          "sleep": 900,
+          "will_sleep_in": 350,
+        }
+        const state = split(reduce(defaultState, gotPlayer(data)))[0]
+        assert.equal(state.sleep, 900)
+        assert.equal(state.will_sleep_in, 350)
+      })
     })
 
     describe('seek', function () {
@@ -404,4 +415,6 @@ const STATE = {
   elapsedTime: 232.467967245102,
   totalTime: 371.373,
   localTime: STATUS.localTime,
+  sleep: undefined,
+  will_sleep_in: undefined,
 }
