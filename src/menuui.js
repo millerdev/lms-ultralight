@@ -1,7 +1,7 @@
 import React from 'react'
 import Media from 'react-media'
 import { connect } from 'react-redux'
-import ReactResizeDetector from 'react-resize-detector'
+import { useResizeDetector } from 'react-resize-detector'
 import { Link, Route, Switch } from 'react-router-dom'
 import { Icon, Image, Menu, Message, Sidebar, Transition } from 'semantic-ui-react'
 
@@ -77,28 +77,26 @@ const Player = connect(state => state.player)(player.Player)
 const Playlist = connect(state => state.playlist)(playlist.Playlist)
 
 const MainView = props => {
-  function onPlayerResize(width, height) {
-    if (playerHeight !== height) {
-      setPlayerHeight(height)
-    }
-  }
-  const [playerHeight, setPlayerHeight] = React.useState(0)
+  const { height, ref } = useResizeDetector({
+    handleWidth: false,
+    refreshMode: 'debounce',
+    refreshRate: 50,
+    observerOptions: { box: 'border-box' },
+  })
   return (
     <div className="mainview ui grid">
       { !props.miniPlayer &&
-        <ReactResizeDetector onResize={onPlayerResize}>
-          <div className="fixed-top">
-            <Player
-              playctl={props.playctl}
-              toggleMiniPlayer={props.toggleMiniPlayer}
-            />
-          </div>
-        </ReactResizeDetector>
+        <div className="fixed-top" ref={ref}>
+          <Player
+            playctl={props.playctl}
+            toggleMiniPlayer={props.toggleMiniPlayer}
+          />
+        </div>
       }
       <div
         className="sixteen wide column"
         style={{
-          marginTop: props.miniPlayer ? 0 : playerHeight,
+          marginTop: props.miniPlayer ? 0 : height,
           marginBottom: props.smallScreen && props.miniPlayer ? "3em" : 0,
         }}
       >
