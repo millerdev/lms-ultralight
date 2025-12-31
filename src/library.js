@@ -444,7 +444,7 @@ export class SearchInput extends React.Component {
   }
   focusInput() {
     const input = this.input.current
-    if (input !== document.activeElement) {
+    if (input && input !== document.activeElement) {
       // https://stackoverflow.com/a/40235334/10840
       input.focus()
       input.select()
