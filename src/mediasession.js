@@ -28,15 +28,25 @@ function useMediaControls() {
 
   function updateSession(playctl) {
     const session = window.navigator.mediaSession
-    session.metadata = new window.MediaMetadata({
-      ...playctl.tags,
-      artwork: [{src: playctl.imageUrl}],
-    })
-    session.playbackState = playctl.isPlaying ? "playing" : "paused"
-    session.setActionHandler("pause", playctl.playPause)
-    session.setActionHandler("play", playctl.playPause)
-    session.setActionHandler("nexttrack", playctl.nextTrack)
-    session.setActionHandler("previoustrack", playctl.prevTrack)
+    if (playctl.isPowerOn) {
+      session.metadata = new window.MediaMetadata({
+        ...playctl.tags, artwork: [{src: playctl.imageUrl}],
+      })
+      session.playbackState = playctl.isPlaying ? "playing" : "paused"
+      session.setActionHandler("pause", playctl.playPause)
+      session.setActionHandler("play", playctl.playPause)
+      session.setActionHandler("nexttrack", playctl.nextTrack)
+      session.setActionHandler("previoustrack", playctl.prevTrack)
+    } else {
+      session.metadata = new window.MediaMetadata({
+        artist: " ", album: " ", title: " ", artwork: [],
+      })
+      session.playbackState = "none"
+      session.setActionHandler("pause", null)
+      session.setActionHandler("play", null)
+      session.setActionHandler("nexttrack", null)
+      session.setActionHandler("previoustrack", null)
+    }
   }
 
   function createApi() {

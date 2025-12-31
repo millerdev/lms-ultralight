@@ -19,6 +19,11 @@ describe('playctl', function () {
       )
     })
 
+    it('should have a valid isPowerOn property', function () {
+      const playctl = mod.playerControl(DISPATCH, STATE)
+      assert(playctl.isPowerOn, `unexpected: playctl.isPowerOn = ${playctl.isPowerOn}`)
+    })
+
     _.each([
       [1, 1, 1],
       [0, 1, 1],

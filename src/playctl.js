@@ -18,6 +18,7 @@ export const playerControl = (dispatch, {
 }) => {
   const self = {
     playerid,
+    isPowerOn,
     isPlaying,
     tags: currentTrack,
     get imageUrl() {
