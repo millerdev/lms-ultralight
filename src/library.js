@@ -610,11 +610,11 @@ export class BrowserItems extends React.Component {
         onLoadItems={this.onLoadItems}
       />
     }
-    return <BrowseMenu basePath={props.basePath} loading={loading} />
+    return <BrowseMenu basePath={props.basePath} loading={loading} playctl={props.playctl} />
   }
 }
 
-const BrowseMenu = ({ basePath, loading }) => (
+const BrowseMenu = ({ basePath, loading, playctl }) => (
   <Menu className="browse-sections" borderless fluid vertical>
     {_.map(SECTIONS, (sector, name) => {
       const pathname = basePath + "/" + name
@@ -624,6 +624,9 @@ const BrowseMenu = ({ basePath, loading }) => (
         <Link to={loc} href={pathname}>{sector.title}</Link>
       </Menu.Item>
     })}
+    <Menu.Item key="sleep" onClick={() => playctl.command("sleep", "900")}>
+      Sleep{/* temporary until long-press power button is implemented */}
+    </Menu.Item>
     <Menu.Item key="settings">
       <a href="/Default/settings/index.html" target="_blank">Settings</a>
     </Menu.Item>
