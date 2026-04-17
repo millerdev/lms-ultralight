@@ -54,14 +54,6 @@ const rules = [
     ],
   },
   {
-    test: /\.styl$/,
-    use: [
-      "style-loader",
-      "css-loader",
-      "stylus-loader",
-    ],
-  },
-  {
     test: /\.font\.js$/,
     use: [
       "style-loader",
