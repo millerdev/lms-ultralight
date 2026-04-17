@@ -3,7 +3,9 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import { useInView } from 'react-intersection-observer'
 import { useResizeDetector } from 'react-resize-detector'
-import { List, Loader, Ref } from 'semantic-ui-react'
+import { List } from 'semantic-ui-react'
+import CircularProgress from '@mui/material/CircularProgress'
+import { styled } from '@mui/material/styles'
 
 import { memoize } from './util'
 import './touch.styl'
@@ -243,7 +245,7 @@ export const LoadingList = ({
   updateContext(cx, itemsOffset, count, itemsTotal, onLoadItems, maxLoad)
   return <LoadingContext.Provider value={cx}>
     <LoadingSpacer height={cx.before * itemHeight} range={cx.above} />
-    <Ref innerRef={combinedRef}><List {...props} /></Ref>
+    <List ref={combinedRef} {...props} />
     <LoadingSpacer height={cx.after * itemHeight} range={cx.below} />
   </LoadingContext.Provider>
 }
@@ -291,11 +293,9 @@ const LoadingSpacer = ({ height, range }) => {
   height && inView && loadItems(range)
   return React.useMemo(() => {
     return height
-      ? <Ref innerRef={ref}>
-          <div className="touchlist loading" style={{height}}>
-            <Loader active />
-          </div>
-        </Ref>
+      ? <LoadingSpacerEl ref={ref} style={{height}}>
+          <CircularProgress size={24} />
+        </LoadingSpacerEl>
       : null
   }, [height, ref])
 }
@@ -401,7 +401,7 @@ export const LoadingListItem = ({index, setItemRef, ...props}) => {
     inViewRef(node)
   }, [inViewRef, setItemRef])
   inView && !skip && loadItems(ranges[index], index)
-  return <Ref innerRef={ref}><List.Item {...props} /></Ref>
+  return <List.Item ref={ref} {...props} />
 }
 
 const TOUCHLISTITEM_PROPS = {
@@ -766,3 +766,11 @@ function makeSlider(touchlist) {
     drop,
   }
 }
+
+const LoadingSpacerEl = styled('div')({
+  position: 'sticky',
+  zIndex: 100,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+})

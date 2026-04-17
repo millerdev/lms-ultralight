@@ -102,7 +102,7 @@ Decisions are made as each file migrates and recorded below for reuse.
 - [x] **C4** — Migrate `src/playerui.js` to MUI.
 - [x] **C5** — Migrate `src/components.js` to MUI. Move `components.styl` selectors into `styled()` at the bottom of `components.js`.
 - [x] **C6** — Migrate `src/menuui.js` to MUI. Move `menu.styl` into `styled()` in `menuui.js`.
-- [ ] **C7** — Migrate `src/touch.js` to MUI. Move `touch.styl` into `styled()` in `touch.js`.
+- [x] **C7** — Migrate `src/touch.js` to MUI. Move `touch.styl` into `styled()` in `touch.js`. *Partial: `Ref` dropped (native forwardRef) and `Loader` → `CircularProgress`. `List`/`List.Item` replacement and `touch.styl` migration are deferred to a post-C9 follow-up commit since `library.js` and `playlist.js` still render `<List.Content>` / `<List.Description>` children that depend on Semantic's list CSS structure.*
 - [ ] **C8** — Migrate `src/library.js` to MUI.
 - [ ] **C9** — Migrate `src/playlist.js` to MUI. Move `playlist.styl` into `styled()` in `playlist.js`.
 
