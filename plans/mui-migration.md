@@ -39,6 +39,7 @@ Make a plan of the approach first, then pause for adjustments before commencing 
 
 - **Branch**: new branch `mui-migration`, cut from `main`.
 - **Styled component location**: co-located at the **bottom** of each component's `.js` file, below the logical React components.
+- **Use Rounded icons**: the default MUI icon set is pointy and doesn't match the look of SUI icons. Luckily MUI has a Rounded icon variant that is pretty close to the SUI icons; use that.
 - **Dark mode**: infrastructure only — `theme.js` exports `lightTheme` and `darkTheme`; no UI toggle in this migration.
 - **Progress tracking**: this file (`plans/mui-migration.md`). Checklist updated inside each migration commit.
 
