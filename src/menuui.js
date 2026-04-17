@@ -434,6 +434,9 @@ const MainMenuRoot = styled('div')({
   // Playlist-controls hover behavior: hidden by default, shown on hover
   // or when a touchlist item is selected. These rules conceptually belong
   // to playlist.js and will move there during its migration (C9).
+  '& .touchlist-item': {
+    position: 'relative',
+  },
   '& .touchlist-item .playlist-controls': {
     position: 'absolute',
     zIndex: 5,
