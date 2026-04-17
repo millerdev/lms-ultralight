@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import { useInView } from 'react-intersection-observer'
 import { useResizeDetector } from 'react-resize-detector'
-import { List } from 'semantic-ui-react'
+import { List, Ref } from 'semantic-ui-react'
 import CircularProgress from '@mui/material/CircularProgress'
 import { styled } from '@mui/material/styles'
 
@@ -245,7 +245,7 @@ export const LoadingList = ({
   updateContext(cx, itemsOffset, count, itemsTotal, onLoadItems, maxLoad)
   return <LoadingContext.Provider value={cx}>
     <LoadingSpacer height={cx.before * itemHeight} range={cx.above} />
-    <List ref={combinedRef} {...props} />
+    <Ref innerRef={combinedRef}><List {...props} /></Ref>
     <LoadingSpacer height={cx.after * itemHeight} range={cx.below} />
   </LoadingContext.Provider>
 }
@@ -401,7 +401,7 @@ export const LoadingListItem = ({index, setItemRef, ...props}) => {
     inViewRef(node)
   }, [inViewRef, setItemRef])
   inView && !skip && loadItems(ranges[index], index)
-  return <List.Item ref={ref} {...props} />
+  return <Ref innerRef={ref}><List.Item {...props} /></Ref>
 }
 
 const TOUCHLISTITEM_PROPS = {
