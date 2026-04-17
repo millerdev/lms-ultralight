@@ -87,7 +87,9 @@ export const MediaInfo = (props, context) => {
           sx={{
             position: 'absolute',
             color: 'text.primary',
-            backgroundColor: 'rgba(255, 255, 255, 0.7)',
+            backgroundColor: theme => theme.palette.mode === 'dark'
+              ? 'rgba(0, 0, 0, 0.7)'
+              : 'rgba(255, 255, 255, 0.7)',
             zIndex: theme => theme.zIndex.drawer + 1,
           }}
         >

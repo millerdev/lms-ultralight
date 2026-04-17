@@ -86,7 +86,7 @@ const SidebarMenu = (props) => {
           '& .MuiDrawer-paper': {
             width: DRAWER_WIDTH,
             boxSizing: 'border-box',
-            borderRight: '1px solid #D6D6D6',
+            borderRight: theme => `1px solid ${theme.palette.divider}`,
             top: '3.4em',
             height: 'calc(100% - 3.4em)',
           },
@@ -214,7 +214,7 @@ const PowerBar = props => {
 const PlayerBar = props => {
   const playctl = props.playctl
   const bottomSx = props.bottom
-    ? { position: 'fixed', bottom: 0, left: 0, right: 0, borderTop: '1px solid #D6D6D6' }
+    ? { position: 'fixed', bottom: 0, left: 0, right: 0, borderTop: theme => `1px solid ${theme.palette.divider}` }
     : {}
   return <Media query="(min-width: 700px)">{ wider =>
     <Box
