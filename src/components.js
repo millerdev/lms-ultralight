@@ -1,9 +1,26 @@
 import _ from 'lodash'
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Button, Dimmer, Icon, Image, Item, Loader } from 'semantic-ui-react'
+import Backdrop from '@mui/material/Backdrop'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import ButtonGroup from '@mui/material/ButtonGroup'
+import CircularProgress from '@mui/material/CircularProgress'
+import IconButton from '@mui/material/IconButton'
+import { styled } from '@mui/material/styles'
+import AddRounded from '@mui/icons-material/AddRounded'
+import ArrowRightAltRounded from '@mui/icons-material/ArrowRightAltRounded'
+import CloseRounded from '@mui/icons-material/CloseRounded'
+import InfoRounded from '@mui/icons-material/InfoRounded'
+import MenuRounded from '@mui/icons-material/MenuRounded'
+import PlayArrowRounded from '@mui/icons-material/PlayArrowRounded'
+import RepeatOneRounded from '@mui/icons-material/RepeatOneRounded'
+import RepeatRounded from '@mui/icons-material/RepeatRounded'
+import ShuffleOnRounded from '@mui/icons-material/ShuffleOnRounded'
+import ShuffleRounded from '@mui/icons-material/ShuffleRounded'
+import SkipNextRounded from '@mui/icons-material/SkipNextRounded'
+import SortRounded from '@mui/icons-material/SortRounded'
 
-import './components.styl'
 import * as lms from './lmsclient'
 import { formatTime, timer } from './util'
 
@@ -11,50 +28,60 @@ export const MediaInfo = (props, context) => {
   const mediaNav = props.mediaNav || context.mediaNav
   const item = props.item
   return (
-    <Item.Group className="media-info">
-      <Item>
-        <Item.Content>
-          <Image
-            size={props.imageSize || "small"}
-            src={lms.getImageUrl(item)}
-            floated="left" />
-          { props.onClose ?
-            <Button
-              className="close-button"
-              onClick={props.onClose}
-              floated="right"
-              content="&#10005;"
-              size="tiny"
-              basic
-            /> : null
-          }
-          { props.button ||
-            <PlaylistButtons
-              play={() => props.playctl.playItems([item])}
-              playNext={() => props.playctl.playNext(item)}
-              addToPlaylist={() => props.playctl.addToPlaylist([item])}
-              className="tr-corner"
-              floated="right" /> }
-          <Item.Header>{item.title}</Item.Header>
+    <MediaInfoRoot>
+      <Box className="media-info-header">
+        <Box
+          component="img"
+          src={lms.getImageUrl(item)}
+          className="media-info-image"
+          sx={{ width: props.imageSize === "tiny" ? 80 : 150 }}
+        />
+        <Box className="media-info-body">
+          <Box className="media-info-actions">
+            { props.onClose ?
+              <IconButton
+                onClick={props.onClose}
+                size="small"
+                aria-label="close"
+              >
+                <CloseRounded fontSize="small" />
+              </IconButton> : null
+            }
+            { props.button ||
+              <PlaylistButtons
+                play={() => props.playctl.playItems([item])}
+                playNext={() => props.playctl.playNext(item)}
+                addToPlaylist={() => props.playctl.addToPlaylist([item])}
+              /> }
+          </Box>
+          <Box className="media-info-title">{item.title}</Box>
           {_.map(["artist", "album"], key => _.has(item, key) ?
-            <Item.Description key={key}>
+            <Box className="media-info-description" key={key}>
               {drillable(item, key, mediaNav)}
-            </Item.Description> : ""
+            </Box> : ""
           )}
-        </Item.Content>
-      </Item>
-      <Item>
-        <Item.Content>
-          <Dimmer inverted active={props.isLoading || false}><Loader /></Dimmer>
-          {_.map(MEDIA_INFO, info =>
-            !info.display(item[info.key], item, info.key) ? null :
-              <Item.Description key={info.key}>
-                {info.name}: {info.transform(item[info.key], item, info, mediaNav)}
-              </Item.Description>
-          )}
-        </Item.Content>
-      </Item>
-    </Item.Group>
+        </Box>
+      </Box>
+      <Box className="media-info-details">
+        <Backdrop
+          open={props.isLoading || false}
+          sx={{
+            position: 'absolute',
+            color: 'text.primary',
+            backgroundColor: 'rgba(255, 255, 255, 0.7)',
+            zIndex: theme => theme.zIndex.drawer + 1,
+          }}
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
+        {_.map(MEDIA_INFO, info =>
+          !info.display(item[info.key], item, info.key) ? null :
+            <Box className="media-info-description" key={info.key}>
+              {info.name}: {info.transform(item[info.key], item, info, mediaNav)}
+            </Box>
+        )}
+      </Box>
+    </MediaInfoRoot>
   )
 }
 
@@ -168,18 +195,28 @@ _.each(MEDIA_INFO, item => {
 })
 
 export const PlaylistButtons = props => {
+  const className = _.filter(["playlist-buttons", props.className]).join(" ")
   return (
-    <Button.Group size="mini"
-        onClick={event => event.stopPropagation()}
-        className={_.filter(["playlist-buttons", props.className]).join(" ")}
-        floated={props.floated}
-        compact>
-      <Button icon="play" onClick={props.play} />
-      <Button icon="step forward"
+    <ButtonGroup
+      size="small"
+      variant="outlined"
+      onClick={event => event.stopPropagation()}
+      className={className}
+    >
+      <Button onClick={props.play} aria-label="play">
+        <PlayArrowRounded fontSize="small" />
+      </Button>
+      <Button
         disabled={!props.playNext}
-        onClick={props.playNext} />
-      <Button icon="plus" onClick={props.addToPlaylist} />
-    </Button.Group>
+        onClick={props.playNext}
+        aria-label="play next"
+      >
+        <SkipNextRounded fontSize="small" />
+      </Button>
+      <Button onClick={props.addToPlaylist} aria-label="add to playlist">
+        <AddRounded fontSize="small" />
+      </Button>
+    </ButtonGroup>
   )
 }
 
@@ -188,37 +225,30 @@ export const RepeatShuffleGroup = ({
   setRepeatMode,
   shuffleMode,
   setShuffleMode,
-  active=false,
   disabled=false,
 }) => (
-  <Button.Group basic size="small" widths={2}>
+  <ButtonGroup size="small" variant="outlined">
     <NWayButton
-      active={active}
       markup={[
-        <Icon name="long arrow alternate right" className="no-repeat" />,
-        <Icon.Group className="repeat-one">
-          <Icon name="repeat" />
-          <Icon size="tiny">1</Icon>
-        </Icon.Group>,
-        <Icon name="repeat" />,
+        <ArrowRightAltRounded fontSize="small" key="no-repeat" />,
+        <RepeatOneRounded fontSize="small" key="repeat-one" />,
+        <RepeatRounded fontSize="small" key="repeat-all" />,
       ]}
       value={repeatMode}
       setValue={setRepeatMode}
-      disabled={disabled} />
+      disabled={disabled}
+      aria-label="repeat mode" />
     <NWayButton
-      active={active}
       markup={[
-        <Icon name="sort content ascending" />,
-        <Icon name="random" />,
-        <Icon.Group className="shuffle-album">
-          <Icon name="square outline" />
-          <Icon name="random" size="tiny" />
-        </Icon.Group>,
+        <SortRounded fontSize="small" key="no-shuffle" />,
+        <ShuffleRounded fontSize="small" key="shuffle-songs" />,
+        <ShuffleOnRounded fontSize="small" key="shuffle-albums" />,
       ]}
       value={shuffleMode}
       setValue={setShuffleMode}
-      disabled={disabled} />
-  </Button.Group>
+      disabled={disabled}
+      aria-label="shuffle mode" />
+  </ButtonGroup>
 )
 
 const NWayButton = ({
@@ -234,44 +264,39 @@ const NWayButton = ({
 )
 
 export const TrackInfoIcon = React.memo(function TrackInfoIcon(props) {
-  const icon = props.icon || "info circle"
-  const floated = props.smallScreen ? " left floated" : ""
-  const size = props.smallScreen ? "big" : "large"
-  const dims = ICON_STYLES[size]
-  return <div
+  const icon = props.icon ? <props.icon /> : <InfoRounded />
+  const activeIcon = props.activeIcon ? <props.activeIcon /> : null
+  const dims = props.smallScreen ? ICON_STYLES.big : ICON_STYLES.large
+  return <HoverIconContainer
     onClick={props.onClick}
-    className={"hover-icon-container tap-zone" + floated}
+    className={"tap-zone" + (props.smallScreen ? " left-floated" : "")}
   >
-    { props.showInfoIcon || props.activeIcon ?
-      <Icon
-        className="hover-icon"
-        name={props.showInfoIcon ? icon : props.activeIcon}
-        size={size}
-        style={dims}
-        fitted
-      /> :
-      <Image
+    { props.showInfoIcon || activeIcon ?
+      <Box className="hover-icon" sx={dims}>
+        {props.showInfoIcon ? icon : activeIcon}
+      </Box> :
+      <Box
+        component="img"
         src={lms.getImageUrl(props.item)}
-        className="tap-zone hover-icon"
-        style={dims}
-        ui inline
+        className="hover-icon tap-zone"
+        sx={dims}
       />
     }
-    <div className="middle">
-      <Icon name={icon} size={size} style={dims} fitted />
-    </div>
-  </div>
+    <Box className="hover-icon-middle" sx={dims}>
+      {icon}
+    </Box>
+  </HoverIconContainer>
 })
 
 const ICON_STYLES = {
-  big: {height: "32px", width: "32px"},
-  large: {height: "20px", width: "20px"},
+  big: { height: "32px", width: "32px" },
+  large: { height: "20px", width: "20px" },
 }
 
 export const DragHandle = () => (
-  <span className="gap-left">
-    <Icon name="content" fitted />
-  </span>
+  <Box component="span" sx={{ ml: 1 }}>
+    <MenuRounded fontSize="small" />
+  </Box>
 )
 
 export class LiveSeekBar extends React.Component {
@@ -308,3 +333,73 @@ export const ProgressIndicator = props => {
   const percent = (props.elapsed / props.total) * 100
   return <div className={cls} style={{width: percent + "%"}} />
 }
+
+const HoverIconContainer = styled('div')({
+  position: 'relative',
+  display: 'inline-block',
+  zIndex: 5,
+  '&.left-floated': {
+    float: 'left',
+  },
+  '& .hover-icon': {
+    transition: '.1s ease',
+    backfaceVisibility: 'hidden',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  '&:hover .hover-icon': {
+    opacity: 0,
+  },
+  '& .hover-icon-middle': {
+    transition: '.1s ease',
+    opacity: 0,
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  '&:hover .hover-icon-middle': {
+    opacity: 1,
+  },
+})
+
+const MediaInfoRoot = styled('div')(({ theme }) => ({
+  position: 'relative',
+  marginTop: theme.spacing(2),
+  '& .media-info-header': {
+    display: 'flex',
+    gap: theme.spacing(2),
+  },
+  '& .media-info-image': {
+    flex: '0 0 auto',
+    objectFit: 'cover',
+  },
+  '& .media-info-body': {
+    flex: '1 1 auto',
+    minWidth: 0,
+    position: 'relative',
+  },
+  '& .media-info-actions': {
+    float: 'right',
+    display: 'flex',
+    gap: theme.spacing(0.5),
+    alignItems: 'center',
+    marginLeft: theme.spacing(1),
+  },
+  '& .media-info-title': {
+    fontWeight: 600,
+    fontSize: '1.2em',
+  },
+  '& .media-info-description': {
+    userSelect: 'text',
+    marginTop: theme.spacing(0.25),
+  },
+  '& .media-info-details': {
+    position: 'relative',
+    marginTop: theme.spacing(2),
+  },
+}))

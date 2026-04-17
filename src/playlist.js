@@ -2,6 +2,7 @@ import _ from 'lodash'
 import React from 'react'
 import Media from 'react-media'
 import { Button, Confirm, Dropdown, Input, List, Segment } from 'semantic-ui-react'
+import PlayArrowRounded from '@mui/icons-material/PlayArrowRounded'
 
 import { DragHandle, MediaInfo, RepeatShuffleGroup, TrackInfoIcon } from './components'
 import { effect, combine } from './effects'
@@ -585,7 +586,7 @@ export class Playlist extends React.Component {
             item={item}
             playTrackAtIndex={this.playTrackAtIndex}
             index={item[IX]}
-            activeIcon={props.currentIndex === item[IX] ? "video play" : ""}
+            activeIcon={props.currentIndex === item[IX] ? PlayArrowRounded : null}
             setItemRef={props.currentIndex === item[IX] && this.setPlayingItem}
             touching={!!(this.state.touching && props.selection.has(item[IX]))}
             setHideTrackInfoCallback={this.setHideTrackInfoCallback}

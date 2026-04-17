@@ -100,7 +100,7 @@ Decisions are made as each file migrates and recorded below for reuse.
 
 - [x] **C3** — Migrate `src/playerselect.js` to MUI.
 - [x] **C4** — Migrate `src/playerui.js` to MUI.
-- [ ] **C5** — Migrate `src/components.js` to MUI. Move `components.styl` selectors into `styled()` at the bottom of `components.js`.
+- [x] **C5** — Migrate `src/components.js` to MUI. Move `components.styl` selectors into `styled()` at the bottom of `components.js`.
 - [ ] **C6** — Migrate `src/menuui.js` to MUI. Move `menu.styl` into `styled()` in `menuui.js`.
 - [ ] **C7** — Migrate `src/touch.js` to MUI. Move `touch.styl` into `styled()` in `touch.js`.
 - [ ] **C8** — Migrate `src/library.js` to MUI.
@@ -129,6 +129,19 @@ _Recorded here for reuse across later files._
 | `pause` | `PauseRounded` | `playerui.js` |
 | `play` | `PlayArrowRounded` | `playerui.js` |
 | `window minimize` | `RemoveRounded` | `playerui.js` |
+| `plus` | `AddRounded` | `components.js` |
+| `plus square outline` | `AddBoxRounded` | `components.js` |
+| `long arrow alternate right` | `ArrowRightAltRounded` | `components.js` |
+| `x` / close (✕) | `CloseRounded` | `components.js` |
+| `info circle` | `InfoRounded` | `components.js` |
+| `content` (hamburger) | `MenuRounded` | `components.js` |
+| `repeat` (with "1" overlay) | `RepeatOneRounded` | `components.js` |
+| `repeat` | `RepeatRounded` | `components.js` |
+| `random` (in outlined box) | `ShuffleOnRounded` | `components.js` |
+| `random` | `ShuffleRounded` | `components.js` |
+| `step forward` | `SkipNextRounded` | `components.js` |
+| `sort content ascending` | `SortRounded` | `components.js` |
+| `video play` | `PlayArrowRounded` | `components.js` |
 
 ### Global-style residue
 

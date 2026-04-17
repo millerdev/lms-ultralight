@@ -4,6 +4,7 @@ import React from 'react'
 import Media from 'react-media'
 import { Link, matchPath, useLocation, useNavigate } from 'react-router-dom'
 import { Breadcrumb, Input, List, Loader, Menu, Segment } from 'semantic-ui-react'
+import AddBoxRounded from '@mui/icons-material/AddBoxRounded'
 
 import { MediaInfo, PlaylistButtons, TrackInfoIcon } from './components'
 import { effect, combine } from './effects'
@@ -777,7 +778,7 @@ export class MediaItem extends React.Component {
         <List.Description className="title">
           <TrackInfoIcon
             {...props}
-            icon={item.type === "track" ? null : "plus square outline"}
+            icon={item.type === "track" ? null : AddBoxRounded}
             onClick={props.mediaNav(item).show}
             smallScreen={smallScreen}
           />

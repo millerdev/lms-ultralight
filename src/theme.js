@@ -9,6 +9,13 @@ const shared = {
   shape: {
     borderRadius: 4,
   },
+  components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        '.rc-slider-tooltip': { zIndex: 200 },
+      },
+    },
+  },
 }
 
 export const lightTheme = createTheme({
