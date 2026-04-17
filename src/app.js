@@ -5,7 +5,6 @@ import CssBaseline from '@mui/material/CssBaseline'
 import { ThemeProvider } from '@mui/material/styles'
 
 //import DevTools from './devtools'
-import './app.styl'
 import { combine, split } from './effects'
 import * as menu from './menu'
 import * as player from './player'

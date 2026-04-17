@@ -811,11 +811,11 @@ export class PlaylistItem extends React.Component {
 
 const SongTitle = ({item, smallScreen}) => {
   const {artist, title, tracknum} = item
-  const track = tracknum ? <span className="deemphasize">{tracknum + " "}</span> : ""
+  const track = tracknum ? <Box component="span" sx={{ opacity: 0.44 }}>{tracknum + " "}</Box> : ""
   if (smallScreen) {
     return <div>
       <div>{track}{title}</div>
-      <div className="deemphasize">{artist}</div>
+      <Box sx={{ opacity: 0.44 }}>{artist}</Box>
     </div>
   }
   const spacer = artist && (tracknum || title) ? " - " : ""
