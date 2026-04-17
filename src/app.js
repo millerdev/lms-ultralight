@@ -3,7 +3,6 @@ import { BrowserRouter as Router, useNavigate } from 'react-router-dom'
 import { connect, Provider } from 'react-redux'
 import CssBaseline from '@mui/material/CssBaseline'
 import { ThemeProvider } from '@mui/material/styles'
-import 'semantic-ui-css/semantic.min.css'
 
 //import DevTools from './devtools'
 import './app.styl'
