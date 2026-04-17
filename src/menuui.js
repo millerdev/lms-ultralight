@@ -87,6 +87,8 @@ const SidebarMenu = (props) => {
             width: DRAWER_WIDTH,
             boxSizing: 'border-box',
             borderRight: '1px solid #D6D6D6',
+            top: '3.4em',
+            height: 'calc(100% - 3.4em)',
           },
         }}
       >
