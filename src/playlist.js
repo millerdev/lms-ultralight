@@ -1,8 +1,23 @@
 import _ from 'lodash'
 import React from 'react'
 import Media from 'react-media'
-import { Button, Confirm, Dropdown, Input, List, Segment } from 'semantic-ui-react'
+import { List } from 'semantic-ui-react'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import IconButton from '@mui/material/IconButton'
+import Menu from '@mui/material/Menu'
+import MenuItem from '@mui/material/MenuItem'
+import Paper from '@mui/material/Paper'
+import TextField from '@mui/material/TextField'
+import DeleteRounded from '@mui/icons-material/DeleteRounded'
+import FastForwardRounded from '@mui/icons-material/FastForwardRounded'
+import FastRewindRounded from '@mui/icons-material/FastRewindRounded'
+import MenuRounded from '@mui/icons-material/MenuRounded'
 import PlayArrowRounded from '@mui/icons-material/PlayArrowRounded'
+import SaveRounded from '@mui/icons-material/SaveRounded'
 
 import { DragHandle, MediaInfo, RepeatShuffleGroup, TrackInfoIcon } from './components'
 import { effect, combine } from './effects'
@@ -599,47 +614,88 @@ export class Playlist extends React.Component {
           />
         })}
       </TouchList>
-      <Media query="(max-width: 500px)">{ smallScreen => {
-        const classes = smallScreen ? "icon above-player-bar" : "icon"
-        return (
-          <Dropdown icon="bars" floating button className={classes}>
-            <Dropdown.Menu direction="right">
-              <Dropdown.Item
-                icon="save"
-                text="Save Playlist"
-                onClick={() => this.onSavePlaylist()}
-              />
-              <Dropdown.Item
-                icon="remove"
-                text={props.selection.size ? "Delete" : "Clear Playlist"}
-                onClick={() => this.onDeleteItems()}
-              />
-              <RepeatShuffleGroup
-                active
-                repeatMode={props.repeatMode}
-                setRepeatMode={this.setRepeatMode}
-                shuffleMode={props.shuffleMode}
-                setShuffleMode={this.setShuffleMode}
-                disabled={!props.playerid}
-              />
-              <Media query="(max-width: 700px)">{ narrow => narrow ?
-                <Button.Group basic widths={2}>
-                  <Button icon="backward" active onClick={playctl.prevTrack} />
-                  <Button icon="forward" active onClick={playctl.nextTrack} />
-                </Button.Group>
-              : null }</Media>
-            </Dropdown.Menu>
-          </Dropdown>
-        )
-      }}</Media>
-      <Confirm
+      <Media query="(max-width: 500px)">{ smallScreen =>
+        <ActionMenu
+          playctl={playctl}
+          smallScreen={smallScreen}
+          repeatMode={props.repeatMode}
+          shuffleMode={props.shuffleMode}
+          setRepeatMode={this.setRepeatMode}
+          setShuffleMode={this.setShuffleMode}
+          onSavePlaylist={() => this.onSavePlaylist()}
+          onDeleteItems={() => this.onDeleteItems()}
+          hasSelection={props.selection.size > 0}
+          playerid={props.playerid}
+        />
+      }</Media>
+      <Dialog
         open={Boolean(this.state.prompt.action)}
-        content={this.state.prompt.content}
-        confirmButton={this.state.prompt.yesText}
-        onCancel={() => this.setState({prompt: {}})}
-        onConfirm={this.state.prompt.action} />
+        onClose={() => this.setState({prompt: {}})}
+      >
+        <DialogContent>{this.state.prompt.content}</DialogContent>
+        <DialogActions>
+          <Button onClick={() => this.setState({prompt: {}})}>Cancel</Button>
+          <Button onClick={this.state.prompt.action} variant="contained">
+            {this.state.prompt.yesText}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   }
+}
+
+const ActionMenu = ({
+  playctl, smallScreen, repeatMode, shuffleMode, setRepeatMode, setShuffleMode,
+  onSavePlaylist, onDeleteItems, hasSelection, playerid,
+}) => {
+  const [anchorEl, setAnchorEl] = React.useState(null)
+  const close = () => setAnchorEl(null)
+  return (
+    <>
+      <IconButton
+        onClick={event => setAnchorEl(event.currentTarget)}
+        sx={{
+          position: 'fixed',
+          right: '0.7em',
+          bottom: smallScreen ? '4em' : '0.7em',
+          zIndex: 100,
+          backgroundColor: 'background.paper',
+          boxShadow: 2,
+        }}
+      >
+        <MenuRounded />
+      </IconButton>
+      <Menu anchorEl={anchorEl} open={!!anchorEl} onClose={close}>
+        <MenuItem onClick={() => { onSavePlaylist(); close() }}>
+          <SaveRounded fontSize="small" sx={{ marginRight: 1 }} />
+          Save Playlist
+        </MenuItem>
+        <MenuItem onClick={() => { onDeleteItems(); close() }}>
+          <DeleteRounded fontSize="small" sx={{ marginRight: 1 }} />
+          {hasSelection ? "Delete" : "Clear Playlist"}
+        </MenuItem>
+        <Box sx={{ paddingX: 2, paddingY: 1 }}>
+          <RepeatShuffleGroup
+            repeatMode={repeatMode}
+            setRepeatMode={setRepeatMode}
+            shuffleMode={shuffleMode}
+            setShuffleMode={setShuffleMode}
+            disabled={!playerid}
+          />
+        </Box>
+        <Media query="(max-width: 700px)">{ narrow => narrow ?
+          <Box sx={{ paddingX: 2, paddingY: 1 }}>
+            <IconButton onClick={playctl.prevTrack}>
+              <FastRewindRounded />
+            </IconButton>
+            <IconButton onClick={playctl.nextTrack}>
+              <FastForwardRounded />
+            </IconButton>
+          </Box>
+        : null }</Media>
+      </Menu>
+    </>
+  )
 }
 
 export class PlaylistItem extends React.Component {
@@ -722,23 +778,24 @@ export class PlaylistItem extends React.Component {
           </List.Description>
         </List.Content>
         { this.state.expanded ?
-          <Segment
+          <Paper
+            variant="outlined"
             className="tap-zone no-drag"
             onClick={event => event.stopPropagation()}
             onDoubleClick={event => event.stopPropagation() && false}
+            sx={{ padding: 1, marginTop: 1 }}
           >
             <MediaInfo
               item={info || item}
               isLoading={!info}
               button={
-                <Button icon="play"
-                  onClick={this.playTrack}
-                  className="tr-corner"
-                />
+                <IconButton onClick={this.playTrack} size="small">
+                  <PlayArrowRounded />
+                </IconButton>
               }
               onClose={this.onCollapseInfo}
             />
-          </Segment> : null
+          </Paper> : null
         }
       </TouchList.Item>
     }}</Media>
@@ -764,18 +821,18 @@ const SongTitle = ({item, smallScreen}) => {
 
 
 function playlistSaver(afterSave) {
-  function handleRef(ref) {
-    state.ref = ref
+  function handleInputRef(ref) {
+    state.inputRef = ref
     focus()
   }
   function focus() {
-    if (state.ref) {
+    if (state.inputRef) {
       if (state.savedName) {
-        state.ref.inputRef.value = state.name = state.savedName
-        state.ref.inputRef.select()
+        state.inputRef.value = state.name = state.savedName
+        state.inputRef.select()
         state.savedName = ""
       }
-      state.ref.focus()
+      state.inputRef.focus()
     }
   }
   function load(playerid, callback) {
@@ -794,12 +851,14 @@ function playlistSaver(afterSave) {
     lms.command(state.playerid, "playlist", "save", state.name)
     afterSave()
   }
-  const state = {ref: null, name: "", savedName: ""}
-  const input = <Input
+  const state = {inputRef: null, name: "", savedName: ""}
+  const input = <TextField
     label="Save as"
-    onChange={(e, {value}) => { state.name = value }}
-    ref={handleRef}
-    fluid
+    onChange={event => { state.name = event.target.value }}
+    inputRef={handleInputRef}
+    fullWidth
+    autoFocus
+    variant="standard"
   />
   return {load}
 }

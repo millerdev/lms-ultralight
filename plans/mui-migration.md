@@ -104,7 +104,7 @@ Decisions are made as each file migrates and recorded below for reuse.
 - [x] **C6** — Migrate `src/menuui.js` to MUI. Move `menu.styl` into `styled()` in `menuui.js`.
 - [x] **C7** — Migrate `src/touch.js` to MUI. Move `touch.styl` into `styled()` in `touch.js`. *Partial: `Ref` dropped (native forwardRef) and `Loader` → `CircularProgress`. `List`/`List.Item` replacement and `touch.styl` migration are deferred to a post-C9 follow-up commit since `library.js` and `playlist.js` still render `<List.Content>` / `<List.Description>` children that depend on Semantic's list CSS structure.*
 - [x] **C8** — Migrate `src/library.js` to MUI. *Partial: `Input`, `Breadcrumb`, `Segment`, `Menu`, and `Loader` replaced. `List.Item` / `List.Content` / `List.Description` / `List.Header` usages inside `TouchList` stay until the post-C9 atomic swap that replaces Semantic's `List` in `touch.js`.*
-- [ ] **C9** — Migrate `src/playlist.js` to MUI. Move `playlist.styl` into `styled()` in `playlist.js`.
+- [x] **C9** — Migrate `src/playlist.js` to MUI. Move `playlist.styl` into `styled()` in `playlist.js`. *Partial: `Button`, `Confirm`, `Dropdown`, `Input`, and `Segment` replaced (floating action menu is now IconButton + MUI Menu; Confirm is now Dialog; expanded track info is now Paper). `List.Content` / `List.Description` usages inside TouchList.Item stay. `playlist.styl` rules tied to Semantic List structure stay. Both migrate in the post-C9 atomic swap commit.*
 
 Each commit also:
 - Updates `@mui/icons-material` icon mapping decisions in the "Icon decisions" section below.
@@ -149,6 +149,9 @@ _Recorded here for reuse across later files._
 | `warning` | `WarningRounded` | `menuui.js` |
 | `right angle` (breadcrumb separator) | `NavigateNextRounded` | `library.js` |
 | `search` | `SearchRounded` | `library.js` |
+| `bars` (hamburger menu trigger) | `MenuRounded` | `playlist.js` |
+| `save` | `SaveRounded` | `playlist.js` |
+| `remove` (trash) | `DeleteRounded` | `playlist.js` |
 
 ### Polish backlog (batch after T1)
 
