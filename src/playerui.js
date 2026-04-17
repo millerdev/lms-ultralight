@@ -155,7 +155,7 @@ const PlayerRoot = styled('div')(({ theme }) => ({
   },
   '& .repeat-shuffle': {
     flex: '0 0 auto',
-    marginLeft: 'auto',
+    width: { xs: 'auto', sm: '25%', md: '14%' },
     textAlign: 'right',
   },
   '& .volume-mobile': {

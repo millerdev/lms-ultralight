@@ -159,17 +159,15 @@ Visual-regression items the user has flagged during the migration. All
 deferred until `semantic-ui-css` is removed so that the baseline is
 pure MUI.
 
-- Library row hover action buttons (`PlaylistButtons` in `MediaInfo`):
-  blue icons and blue outlines. Originally dark-gray icons on a
-  lighter-gray solid button with no outline. Likely: change
-  `ButtonGroup` `variant="outlined"` → different look, and use
-  `color="inherit"` or a custom sx. (Reported 2026-04-17.)
-- Repeat & shuffle buttons (`RepeatShuffleGroup` in the player,
-  rendered at the top-right of the main view inside the sidebar):
-  do not expand to fill the allocated column width, and have the
-  same blue-icon/blue-outline look as above. Add `fullWidth` to the
-  `ButtonGroup` and give the parent Box in `playerui.js` a real
-  flex basis. (Reported 2026-04-17.)
+- ~~Library row hover action buttons (`PlaylistButtons` in `MediaInfo`):
+  blue icons and blue outlines.~~ Addressed in "Tune grouped button
+  style" — `variant="contained"` + `color="inherit"` + a shared
+  `GROUPED_ICON_BUTTONS` sx uses `action.hover` for the background
+  and `text.secondary` for the icon color.
+- ~~Repeat & shuffle buttons (`RepeatShuffleGroup`) do not expand
+  to fill the allocated column width.~~ Addressed: `fullWidth` on the
+  ButtonGroup plus an explicit breakpoint-based width on
+  `.repeat-shuffle` in `playerui.js`.
 
 ### Global-style residue
 
