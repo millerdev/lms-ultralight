@@ -3,12 +3,10 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import { useInView } from 'react-intersection-observer'
 import { useResizeDetector } from 'react-resize-detector'
-import { List, Ref } from 'semantic-ui-react'
 import CircularProgress from '@mui/material/CircularProgress'
 import { styled } from '@mui/material/styles'
 
 import { memoize } from './util'
-import './touch.styl'
 
 export const SINGLE = "single"
 export const TO_LAST = "to last"
@@ -245,7 +243,7 @@ export const LoadingList = ({
   updateContext(cx, itemsOffset, count, itemsTotal, onLoadItems, maxLoad)
   return <LoadingContext.Provider value={cx}>
     <LoadingSpacer height={cx.before * itemHeight} range={cx.above} />
-    <Ref innerRef={combinedRef}><List {...props} /></Ref>
+    <TouchListRoot ref={combinedRef} {...props} />
     <LoadingSpacer height={cx.after * itemHeight} range={cx.below} />
   </LoadingContext.Provider>
 }
@@ -401,7 +399,7 @@ export const LoadingListItem = ({index, setItemRef, ...props}) => {
     inViewRef(node)
   }, [inViewRef, setItemRef])
   inView && !skip && loadItems(ranges[index], index)
-  return <Ref innerRef={ref}><List.Item {...props} /></Ref>
+  return <TouchListItemEl ref={ref} {...props} />
 }
 
 const TOUCHLISTITEM_PROPS = {
@@ -766,6 +764,56 @@ function makeSlider(touchlist) {
     drop,
   }
 }
+
+const TouchListRoot = styled('div')({
+  listStyle: 'none',
+  margin: 0,
+  padding: 0,
+})
+
+const TouchListItemEl = styled('div')(({ theme }) => ({
+  position: 'relative',
+  padding: theme.spacing(0.5, 0),
+  borderRadius: 3,
+  marginLeft: -3,
+  marginRight: -3,
+  paddingLeft: 3,
+  paddingRight: 3,
+  cursor: 'default',
+  '&.selected': {
+    backgroundColor: theme.palette.action.selected,
+  },
+  '&.active:hover, &.selected.active': {
+    backgroundColor: theme.palette.action.selected,
+  },
+  '&.dropBefore': {
+    boxShadow: 'inset 0 4px 3px -5px black',
+  },
+  '&.dropAfter': {
+    boxShadow: 'inset 0 -4px 3px -5px black',
+  },
+  '& .drag-handle': {
+    touchAction: 'none',
+  },
+  // Hover-revealed playlist controls (used by library and playlist rows)
+  '& .playlist-controls': {
+    position: 'absolute',
+    zIndex: 5,
+    right: 0,
+    top: 0,
+    display: 'none',
+  },
+  '&:hover .playlist-controls': {
+    display: 'block',
+  },
+  '&.selected .playlist-controls': {
+    display: 'block',
+  },
+  // Show controls on first selected item only
+  '&.selected ~ .selected .playlist-controls': {
+    display: 'none',
+  },
+}))
 
 const LoadingSpacerEl = styled('div')({
   position: 'sticky',

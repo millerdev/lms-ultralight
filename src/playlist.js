@@ -1,7 +1,6 @@
 import _ from 'lodash'
 import React from 'react'
 import Media from 'react-media'
-import { List } from 'semantic-ui-react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
@@ -27,7 +26,7 @@ import { MenuContext } from './menucontext'
 import makeReducer from './store'
 import { TouchList } from './touch'
 import { formatTime, objectId, operationError, timer } from './util'
-import './playlist.styl'
+import { styled } from '@mui/material/styles'
 
 export const IX = "playlist index"
 export const SINGLE = "single"
@@ -583,7 +582,7 @@ export class Playlist extends React.Component {
   render() {
     const props = this.props
     const playctl = props.playctl
-    return <div className="playlist">
+    return <PlaylistRoot>
       <TouchList
           items={props.items}
           itemsOffset={props.numTracks ? props.items[0][IX] : 0}
@@ -640,9 +639,13 @@ export class Playlist extends React.Component {
           </Button>
         </DialogActions>
       </Dialog>
-    </div>
+    </PlaylistRoot>
   }
 }
+
+const PlaylistRoot = styled('div')({
+  marginBottom: '3em',  // make room for floating action menu below playlist
+})
 
 const ActionMenu = ({
   playctl, smallScreen, repeatMode, shuffleMode, setRepeatMode, setShuffleMode,
@@ -754,18 +757,15 @@ export class PlaylistItem extends React.Component {
         setItemRef={props.setItemRef}
         draggable
       >
-        <List.Content floated="right">
-          <List.Description
-            className={props.touching ? "drag-handle" : ""}
-            style={heightStyle}
-          >
-            {formatTime(item.duration || 0)}
-            {props.touching ? <DragHandle /> : ""}
-          </List.Description>
-        </List.Content>
-        <List.Content>
-          <List.Description className="title">
-            <span className={smallScreen ? "" : "gap-right"}>
+        <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 0, ...heightStyle }}>
+          <Box sx={{
+            flex: '1 1 auto',
+            minWidth: 0,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}>
+            <Box component="span" sx={{ marginRight: smallScreen ? 0 : 0.5 }}>
               <TrackInfoIcon
                 item={item}
                 activeIcon={props.activeIcon}
@@ -773,10 +773,17 @@ export class PlaylistItem extends React.Component {
                 onClick={this.onToggleInfo}
                 smallScreen={smallScreen}
               />
-            </span>
+            </Box>
             <SongTitle item={item} smallScreen={smallScreen} />
-          </List.Description>
-        </List.Content>
+          </Box>
+          <Box
+            className={props.touching ? "drag-handle" : ""}
+            sx={{ flex: '0 0 auto', marginLeft: 1 }}
+          >
+            {formatTime(item.duration || 0)}
+            {props.touching ? <DragHandle /> : ""}
+          </Box>
+        </Box>
         { this.state.expanded ?
           <Paper
             variant="outlined"

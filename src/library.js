@@ -3,7 +3,6 @@ import qs from 'query-string'
 import React from 'react'
 import Media from 'react-media'
 import { Link, matchPath, useLocation, useNavigate } from 'react-router-dom'
-import { List } from 'semantic-ui-react'
 import Box from '@mui/material/Box'
 import Breadcrumbs from '@mui/material/Breadcrumbs'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -770,11 +769,9 @@ export const MediaHeader = ({sector, location, basePath}) => {
     return <Link to={to} href={path}>{sector.title}</Link>
   }
   return (
-    <List.Item>
-      <List.Header>
-        {getContent()}
-      </List.Header>
-    </List.Item>
+    <Box sx={{ fontWeight: 600, padding: theme => theme.spacing(1, 0) }}>
+      {getContent()}
+    </Box>
   )
 }
 
@@ -789,7 +786,6 @@ export class MediaItem extends React.Component {
     const props = this.props
     const item = props.item
     const smallScreen = props.smallScreen
-    const gap = smallScreen ? null : "gap-left"
     let secondaryInfo = ""
     if (smallScreen && _.has(SECONDARY_INFO, item.type)) {
       secondaryInfo = SECONDARY_INFO[item.type](item)
@@ -798,28 +794,26 @@ export class MediaItem extends React.Component {
         onDoubleClick={() => props.playOrEnqueue(item)}
         index={item.index}
         draggable>
-      <List.Content>
-        <List.Description className="title">
+      <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
+        <Box sx={{ flex: '1 1 auto', minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           <TrackInfoIcon
             {...props}
             icon={item.type === "track" ? null : AddBoxRounded}
             onClick={props.mediaNav(item).show}
             smallScreen={smallScreen}
           />
-          <span className={gap}>{item.title}</span>
+          <Box component="span" sx={{ marginLeft: smallScreen ? 0 : 1 }}>{item.title}</Box>
           { smallScreen && secondaryInfo ?
-            <div className="deemphasize">{secondaryInfo}</div> : null
+            <Box sx={{ opacity: 0.44 }}>{secondaryInfo}</Box> : null
           }
-        </List.Description>
-      </List.Content>
-      <List.Content className="playlist-controls tap-zone">
-        <List.Description>
+        </Box>
+        <Box className="playlist-controls tap-zone">
           <PlaylistButtons
             play={() => props.playItem(item)}
             playNext={props.playNext ? () => props.playNext(item) : null}
             addToPlaylist={() => props.addToPlaylist(item)} />
-        </List.Description>
-      </List.Content>
+        </Box>
+      </Box>
     </TouchList.Item>
   }
 }
