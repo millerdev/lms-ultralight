@@ -3,8 +3,19 @@ import qs from 'query-string'
 import React from 'react'
 import Media from 'react-media'
 import { Link, matchPath, useLocation, useNavigate } from 'react-router-dom'
-import { Breadcrumb, Input, List, Loader, Menu, Segment } from 'semantic-ui-react'
+import { List } from 'semantic-ui-react'
+import Box from '@mui/material/Box'
+import Breadcrumbs from '@mui/material/Breadcrumbs'
+import CircularProgress from '@mui/material/CircularProgress'
+import InputAdornment from '@mui/material/InputAdornment'
+import MuiList from '@mui/material/List'
+import ListItemButton from '@mui/material/ListItemButton'
+import Paper from '@mui/material/Paper'
+import TextField from '@mui/material/TextField'
 import AddBoxRounded from '@mui/icons-material/AddBoxRounded'
+import CloseRounded from '@mui/icons-material/CloseRounded'
+import NavigateNextRounded from '@mui/icons-material/NavigateNextRounded'
+import SearchRounded from '@mui/icons-material/SearchRounded'
 
 import { MediaInfo, PlaylistButtons, TrackInfoIcon } from './components'
 import { effect, combine } from './effects'
@@ -453,18 +464,22 @@ export class SearchInput extends React.Component {
   }
   render() {
     const inputHasValue = !!(this.input.current && this.input.current.value)
-    return <Input
-      ref={this.input}
-      onChange={(e, {value}) => this.onSearch(value)}
-      className="icon"
-      icon={{
-        name: inputHasValue ? "x" : "search",
-        link: inputHasValue,
-        onClick: () => this.onClearSearch(),
-      }}
-      loading={this.props.isLoading}
+    const endIcon = this.props.isLoading
+      ? <CircularProgress size={16} />
+      : inputHasValue
+        ? <CloseRounded sx={{ cursor: 'pointer' }} onClick={() => this.onClearSearch()} />
+        : <SearchRounded />
+    return <TextField
+      inputRef={this.input}
+      onChange={event => this.onSearch(event.target.value)}
       placeholder="Search..."
-      fluid
+      size="small"
+      fullWidth
+      slotProps={{
+        input: {
+          endAdornment: <InputAdornment position="end">{endIcon}</InputAdornment>,
+        },
+      }}
     />
   }
 }
@@ -486,13 +501,16 @@ export class BrowserHistory extends React.PureComponent {
   render() {
     const {nav} = this.props.state || {}
     return !nav && !this.props.result ? null : (
-      <Segment className="nav" size="small">
-        <Breadcrumb
-          sections={this.navItems(nav)}
-          icon="right angle"
-          size="tiny"
-        />
-      </Segment>
+      <Paper elevation={0} sx={{ padding: 1, marginY: 1 }}>
+        <Breadcrumbs
+          separator={<NavigateNextRounded fontSize="small" />}
+          sx={{ fontSize: '0.85em' }}
+        >
+          {this.navItems(nav).map(section =>
+            <Box key={section.key}>{section.content}</Box>
+          )}
+        </Breadcrumbs>
+      </Paper>
     )
   }
 }
@@ -616,23 +634,29 @@ export class BrowserItems extends React.Component {
 }
 
 const BrowseMenu = ({ basePath, loading, playctl }) => (
-  <Menu className="browse-sections" borderless fluid vertical>
+  <MuiList disablePadding>
     {_.map(SECTIONS, (sector, name) => {
       const pathname = basePath + "/" + name
       const nav = {name: sector.title, pathspec: {pathname}}
       const loc = {pathname, state: {nav}}
-      return <Menu.Item key={name}>
-        <Link to={loc} href={pathname}>{sector.title}</Link>
-      </Menu.Item>
+      return (
+        <ListItemButton key={name} component={Link} to={loc} href={pathname}>
+          {sector.title}
+        </ListItemButton>
+      )
     })}
-    <Menu.Item key="sleep" onClick={() => playctl.command("sleep", "900")}>
+    <ListItemButton key="sleep" onClick={() => playctl.command("sleep", "900")}>
       Sleep{/* temporary until long-press power button is implemented */}
-    </Menu.Item>
-    <Menu.Item key="settings">
-      <a href="/Default/settings/index.html" target="_blank">Settings</a>
-    </Menu.Item>
-    <Loader active={loading} inline="centered" />
-  </Menu>
+    </ListItemButton>
+    <ListItemButton key="settings" component="a" href="/Default/settings/index.html" target="_blank">
+      Settings
+    </ListItemButton>
+    {loading && (
+      <Box sx={{ display: 'flex', justifyContent: 'center', padding: 2 }}>
+        <CircularProgress size={24} />
+      </Box>
+    )}
+  </MuiList>
 )
 
 export class MediaItems extends React.PureComponent {
