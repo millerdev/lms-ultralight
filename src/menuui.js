@@ -4,7 +4,32 @@ import Media from 'react-media'
 import { connect } from 'react-redux'
 import { useResizeDetector } from 'react-resize-detector'
 import { Link, Routes, Route, useMatch } from 'react-router-dom'
-import { Dropdown, Icon, Image, Menu, Message, Sidebar, Transition } from 'semantic-ui-react'
+import Alert from '@mui/material/Alert'
+import AppBar from '@mui/material/AppBar'
+import Box from '@mui/material/Box'
+import Divider from '@mui/material/Divider'
+import Drawer from '@mui/material/Drawer'
+import Fade from '@mui/material/Fade'
+import IconButton from '@mui/material/IconButton'
+import List from '@mui/material/List'
+import ListItem from '@mui/material/ListItem'
+import ListItemButton from '@mui/material/ListItemButton'
+import ListSubheader from '@mui/material/ListSubheader'
+import Menu from '@mui/material/Menu'
+import MenuItem from '@mui/material/MenuItem'
+import Toolbar from '@mui/material/Toolbar'
+import { styled } from '@mui/material/styles'
+import BedRounded from '@mui/icons-material/BedRounded'
+import CloseRounded from '@mui/icons-material/CloseRounded'
+import FastForwardRounded from '@mui/icons-material/FastForwardRounded'
+import FastRewindRounded from '@mui/icons-material/FastRewindRounded'
+import MenuRounded from '@mui/icons-material/MenuRounded'
+import PauseRounded from '@mui/icons-material/PauseRounded'
+import PlayArrowRounded from '@mui/icons-material/PlayArrowRounded'
+import PowerSettingsNewRounded from '@mui/icons-material/PowerSettingsNewRounded'
+import VolumeDownRounded from '@mui/icons-material/VolumeDownRounded'
+import VolumeUpRounded from '@mui/icons-material/VolumeUpRounded'
+import WarningRounded from '@mui/icons-material/WarningRounded'
 
 import { LiveSeekBar, ProgressIndicator } from './components'
 import MediaSession from './mediasession'
@@ -14,11 +39,12 @@ import * as players from './playerselect'
 import * as playlist from './playlist'
 import { MediaBrowser } from './library'
 import { timer } from './util'
-import './menu.styl'
+
+const DRAWER_WIDTH = 350
 
 export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ...props}) => (
   <Media query="(max-width: 500px)">{ smallScreen =>
-    <div className="mainmenu">
+    <MainMenuRoot>
       <PowerBar
         players={players}
         onPlayerSelected={onPlayerSelected}
@@ -39,34 +65,55 @@ export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ..
         </Routes> :
         <SidebarMenu {...props} />
       }
-    </div>
+    </MainMenuRoot>
   }</Media>
 )
 
 const SidebarMenu = (props) => {
-  const menuOpen = useMatch("/menu/*")
+  const menuOpen = !!useMatch("/menu/*")
+  React.useEffect(() => {
+    if (menuOpen) props.menuDidShow.fire()
+  }, [menuOpen, props.menuDidShow])
   return (
-    <div>
-      <Sidebar
-          as="div"
-          animation="push"
-          width="wide"
-          onVisible={props.menuDidShow.fire}
-          visible={!!menuOpen}>
+    <Box sx={{ display: 'flex' }}>
+      <Drawer
+        variant="persistent"
+        anchor="left"
+        open={menuOpen}
+        sx={{
+          width: DRAWER_WIDTH,
+          flexShrink: 0,
+          '& .MuiDrawer-paper': {
+            width: DRAWER_WIDTH,
+            boxSizing: 'border-box',
+            borderRight: '1px solid #D6D6D6',
+          },
+        }}
+      >
         <MenuItems {...props} />
-      </Sidebar>
-      <Media query="(min-width: 850px)">{ wideScreen =>
-        <Sidebar.Pusher className={wideScreen && menuOpen ? "wide-fit" : null}>
-          <MainView {...props} />
-        </Sidebar.Pusher>
-      }</Media>
-    </div>
+      </Drawer>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          minWidth: 0,
+          transition: theme => theme.transitions.create('margin-left'),
+        }}
+      >
+        <Media query="(min-width: 850px)">{ wideScreen =>
+          <MainView
+            {...props}
+            fixedTopWidth={wideScreen && menuOpen ? `calc(100% - ${DRAWER_WIDTH}px)` : '100%'}
+          />
+        }</Media>
+      </Box>
+    </Box>
   )
 }
 
 const MenuItems = ({player, playlist, ...props}) => (
-  <Menu borderless fluid vertical className="menu-items">
-    <Menu.Item name="library">
+  <List className="menu-items" disablePadding>
+    <ListItem disablePadding>
       <MediaBrowser
         {...props}
         {...props.library}
@@ -74,13 +121,13 @@ const MenuItems = ({player, playlist, ...props}) => (
         isPlaying={player.isPlaying}
         numTracks={playlist.numTracks}
       />
-    </Menu.Item>
-    <Menu.Item disabled>v{pkg.version}</Menu.Item>
-  </Menu>
+    </ListItem>
+    <ListItem disabled>v{pkg.version}</ListItem>
+  </List>
 )
 
-const Player = connect(state => state.player)(player.Player)
-const Playlist = connect(state => state.playlist)(playlist.Playlist)
+const PlayerRedux = connect(state => state.player)(player.Player)
+const PlaylistRedux = connect(state => state.playlist)(playlist.Playlist)
 
 const MainView = props => {
   const { height, ref } = useResizeDetector({
@@ -90,26 +137,36 @@ const MainView = props => {
     observerOptions: { box: 'border-box' },
   })
   return (
-    <div className="mainview ui grid">
+    <Box className="mainview" sx={{ paddingTop: '3.4em' }}>
       { !props.miniPlayer &&
-        <div className="fixed-top" ref={ref}>
-          <Player
+        <Box
+          className="fixed-top"
+          ref={ref}
+          sx={{
+            position: 'fixed',
+            top: 'calc(3.4em - 1px)',
+            width: props.fixedTopWidth || '100%',
+            paddingTop: 1,
+            backgroundColor: 'background.paper',
+            zIndex: 50,
+          }}
+        >
+          <PlayerRedux
             playctl={props.playctl}
             toggleMiniPlayer={props.toggleMiniPlayer}
           />
-        </div>
+        </Box>
       }
-      <div
-        className="sixteen wide column"
-        style={{
-          marginTop: props.miniPlayer ? 0 : height,
+      <Box
+        sx={{
+          marginTop: props.miniPlayer ? 0 : `${height || 0}px`,
           marginBottom: props.smallScreen && props.miniPlayer ? "3em" : 0,
         }}
       >
-        <Playlist playctl={props.playctl} />
+        <PlaylistRedux playctl={props.playctl} />
         {props.children}
-      </div>
-    </div>
+      </Box>
+    </Box>
   )
 }
 
@@ -117,79 +174,113 @@ const PowerBar = props => {
   const { playctl, player } = props
   const menuOpen = useMatch("/menu/*")
   return (
-    <Menu className="power-bar" fixed="top" borderless>
-      <Link to={ menuOpen ? "/" : "/menu" }>
-        <Menu.Item>
-          <Icon name="content" size="large" />
-        </Menu.Item>
-      </Link>
-      <Menu.Item fitted>
+    <AppBar
+      position="fixed"
+      color="default"
+      className="power-bar"
+      elevation={1}
+      sx={{ zIndex: 200 }}
+    >
+      <Toolbar variant="dense" disableGutters sx={{ gap: 1, paddingX: 1 }}>
+        <IconButton component={Link} to={menuOpen ? "/" : "/menu"} size="small">
+          <MenuRounded fontSize="large" />
+        </IconButton>
         <players.SelectPlayer
           playerid={player.playerid}
           onPlayerSelected={props.onPlayerSelected}
           dispatch={props.dispatch}
           {...props.players} />
-      </Menu.Item>
-      { props.showPlayer && <PlayerBar {...props} /> }
-      <SleepDropdown player={player} playctl={playctl} />
-      <Menu.Menu position="right">
-        <Menu.Item
-            active={player.isPowerOn}
+        { props.showPlayer && <PlayerBar {...props} /> }
+        <SleepDropdown player={player} playctl={playctl} />
+        <Box sx={{ marginLeft: 'auto' }}>
+          <IconButton
             onClick={playctl.togglePower}
-            disabled={!playctl.playerid}>
-          <Icon name="power" size="large" />
-        </Menu.Item>
-      </Menu.Menu>
+            disabled={!playctl.playerid}
+            color={player.isPowerOn ? 'primary' : 'default'}
+            size="small"
+          >
+            <PowerSettingsNewRounded fontSize="large" />
+          </IconButton>
+        </Box>
+      </Toolbar>
       { props.showPlayer && <VolumeLevel value={player.volumeLevel} /> }
       { props.showPlayer && <SongProgress {...player} /> }
-    </Menu>
+    </AppBar>
   )
 }
 
 const PlayerBar = props => {
   const playctl = props.playctl
+  const bottomSx = props.bottom
+    ? { position: 'fixed', bottom: 0, left: 0, right: 0, borderTop: '1px solid #D6D6D6' }
+    : {}
   return <Media query="(min-width: 700px)">{ wider =>
-    <Menu
+    <Box
       className="player-bar"
-      fixed={ props.bottom && "bottom" }
-      borderless
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1,
+        backgroundColor: 'background.paper',
+        ...bottomSx,
+      }}
     >
-      { wider && <Menu.Item
-        onClick={playctl.prevTrack}
-        disabled={!playctl.playerid}
-        fitted="vertically"
-      >
-        <Icon size="large" name="backward" />
-      </Menu.Item> }
-      <Menu.Item
+      { wider &&
+        <IconButton
+          onClick={playctl.prevTrack}
+          disabled={!playctl.playerid}
+          size="small"
+        >
+          <FastRewindRounded fontSize="large" />
+        </IconButton>
+      }
+      <IconButton
         onClick={playctl.playPause}
         disabled={!playctl.playerid}
-        fitted="vertically"
+        size="small"
       >
-        <Icon size="large" name={playctl.isPlaying ? "pause" : "play"} />
-      </Menu.Item>
-      { wider && <Menu.Item
-        onClick={playctl.nextTrack}
-        disabled={!playctl.playerid}
-        fitted="vertically"
+        {playctl.isPlaying
+          ? <PauseRounded fontSize="large" />
+          : <PlayArrowRounded fontSize="large" />}
+      </IconButton>
+      { wider &&
+        <IconButton
+          onClick={playctl.nextTrack}
+          disabled={!playctl.playerid}
+          size="small"
+        >
+          <FastForwardRounded fontSize="large" />
+        </IconButton>
+      }
+      <Box
+        className="track-info"
+        onClick={props.toggleMiniPlayer}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          flex: '1 1 auto',
+          minWidth: 0,
+          overflow: 'hidden',
+          cursor: 'pointer',
+        }}
       >
-        <Icon size="large" name="forward" />
-      </Menu.Item> }
-      <Menu borderless fluid className="track-info">
-        <Menu.Item onClick={props.toggleMiniPlayer} fitted>
-          <Image size="mini" src={playctl.imageUrl} />
-          <div className="tags">
-            <div>{playctl.tags.title}</div>
-            <div>{playctl.tags.artist} - {playctl.tags.album}</div>
-          </div>
-        </Menu.Item>
-      </Menu>
+        <Box
+          component="img"
+          src={playctl.imageUrl}
+          sx={{ width: 32, height: 32, flex: '0 0 auto' }}
+        />
+        <Box sx={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <Box>{playctl.tags.title}</Box>
+          <Box>{playctl.tags.artist} - {playctl.tags.album}</Box>
+        </Box>
+      </Box>
       <Media query="(min-width: 600px)">
         { wide => (wide || props.bottom) && <VolumeGroup playctl={playctl} /> || null }
       </Media>
       { props.bottom && <SongProgress {...props.player} /> }
       { props.bottom && <VolumeLevel value={props.player.volumeLevel} /> }
-    </Menu>
+    </Box>
   }</Media>
 }
 
@@ -227,74 +318,117 @@ class VolumeLevel extends React.PureComponent {
 }
 
 const Toaster = ({messages, onHideError}) => (
-  <Transition
-      visible={!!messages.error}
-      animation="slide down"
-      duration={500}
-      unmountOnHide>
-    <Message
-        className="messages"
-        onDismiss={onHideError}
-        onClick={onHideError}
-        size="small"
-        negative>
-      <Message.Content>
-        <Icon name="warning" size="large" />
-        {messages.error}
-      </Message.Content>
-    </Message>
-  </Transition>
+  <Fade in={!!messages.error} timeout={500} unmountOnExit>
+    <Alert
+      className="messages"
+      severity="error"
+      icon={<WarningRounded fontSize="large" />}
+      onClose={onHideError}
+      onClick={onHideError}
+      action={
+        <IconButton size="small" onClick={onHideError}>
+          <CloseRounded fontSize="small" />
+        </IconButton>
+      }
+      sx={{
+        position: 'fixed',
+        top: '3.7em',
+        margin: '0.5em',
+        width: 'calc(100% - 1em)',
+        zIndex: 210,
+      }}
+    >
+      {messages.error}
+    </Alert>
+  </Fade>
 )
 
-const VolumeGroup = ({playctl}) => {
-  return <Menu.Menu position="right">
-    <Menu.Item
-        onClick={playctl.volumeDown}
-        disabled={!playctl.playerid}
-        fitted="vertically">
-      <Icon size="large" name="volume down" />
-    </Menu.Item>
-    <Menu.Item
-        onClick={playctl.volumeUp}
-        disabled={!playctl.playerid}
-        fitted="vertically">
-      <Icon size="large" name="volume up" />
-    </Menu.Item>
-  </Menu.Menu>
-}
+const VolumeGroup = ({playctl}) => (
+  <Box sx={{ display: 'flex', marginLeft: 'auto' }}>
+    <IconButton
+      onClick={playctl.volumeDown}
+      disabled={!playctl.playerid}
+      size="small"
+    >
+      <VolumeDownRounded fontSize="large" />
+    </IconButton>
+    <IconButton
+      onClick={playctl.volumeUp}
+      disabled={!playctl.playerid}
+      size="small"
+    >
+      <VolumeUpRounded fontSize="large" />
+    </IconButton>
+  </Box>
+)
+
+const SLEEP_OPTIONS = [
+  { label: "Until end of track", cmd: ["jiveendoftracksleep"] },
+  { label: "15 minutes", cmd: ["sleep", "900"] },
+  { label: "30 minutes", cmd: ["sleep", "1800"] },
+  { label: "45 minutes", cmd: ["sleep", "2700"] },
+  { label: "60 minutes", cmd: ["sleep", "3600"] },
+  { label: "90 minutes", cmd: ["sleep", "5400"] },
+  { label: "Cancel", cmd: ["sleep", "0"] },
+]
 
 const SleepDropdown = ({player, playctl}) => {
   const [showItem, setShowItem] = React.useState(false)
-  const [menuOpen, setMenuOpen] = React.useState(false)
+  const [anchorEl, setAnchorEl] = React.useState(null)
+  const menuOpen = !!anchorEl
   const visible = player.sleep || menuOpen
   const duration = visible ? 100 : 10000
-  React.useEffect(() => player.sleep && setShowItem(true), [player.sleep])
-  const onHide = () => setShowItem(false)
-  return !(showItem || player.sleep) ? null : (
-    <Dropdown
-      item
-      onOpen={() => setMenuOpen(true)}
-      onClose={() => setMenuOpen(false)}
-      trigger={
-        <Transition visible={visible} duration={duration} onHide={onHide}>
-          <Icon name="bed" size="large"/>
-        </Transition>
-      }
-    >
-      <Dropdown.Menu>
-        <Dropdown.Header content={ player.sleep
-          ? "Sleeping in " + _.round(player.will_sleep_in / 60) + " minutes"
-          : "Sleep cancelled"
-        } />
-        <Dropdown.Divider />
-        <Dropdown.Item text="Until end of track" onClick={() => playctl.command("jiveendoftracksleep")} />
-        <Dropdown.Item text="15 minutes" onClick={() => playctl.command("sleep", "900")} />
-        <Dropdown.Item text="30 minutes" onClick={() => playctl.command("sleep", "1800")} />
-        <Dropdown.Item text="45 minutes" onClick={() => playctl.command("sleep", "2700")} />
-        <Dropdown.Item text="60 minutes" onClick={() => playctl.command("sleep", "3600")} />
-        <Dropdown.Item text="90 minutes" onClick={() => playctl.command("sleep", "5400")} />
-        <Dropdown.Item text="Cancel" onClick={() => playctl.command("sleep", "0")} />
-      </Dropdown.Menu>
-    </Dropdown>
+  React.useEffect(() => { if (player.sleep) setShowItem(true) }, [player.sleep])
+  const onExited = () => setShowItem(false)
+  if (!(showItem || player.sleep)) return null
+  const header = player.sleep
+    ? "Sleeping in " + _.round(player.will_sleep_in / 60) + " minutes"
+    : "Sleep cancelled"
+  return (
+    <>
+      <Fade in={visible} timeout={duration} onExited={onExited}>
+        <IconButton
+          onClick={event => setAnchorEl(event.currentTarget)}
+          size="small"
+        >
+          <BedRounded fontSize="large" />
+        </IconButton>
+      </Fade>
+      <Menu
+        anchorEl={anchorEl}
+        open={menuOpen}
+        onClose={() => setAnchorEl(null)}
+      >
+        <ListSubheader>{header}</ListSubheader>
+        <Divider />
+        {SLEEP_OPTIONS.map(opt => (
+          <MenuItem
+            key={opt.label}
+            onClick={() => {
+              playctl.command(...opt.cmd)
+              setAnchorEl(null)
+            }}
+          >
+            <ListItemButton sx={{ padding: 0 }}>{opt.label}</ListItemButton>
+          </MenuItem>
+        ))}
+      </Menu>
+    </>
   )
 }
+
+const MainMenuRoot = styled('div')({
+  '& .progress-indicator': {
+    position: 'fixed',
+    height: 2,
+    backgroundColor: '#96dbfa',
+  },
+  '& .song-time.progress-indicator': {
+    background: 'linear-gradient(to left, #74e3ec, #c7ffe2)',
+    top: 'calc(3.4em - 3px)',
+  },
+  '& .volume-level.progress-indicator': {
+    background: 'linear-gradient(to left, #ff6e56, #fffd86)',
+    top: 0,
+  },
+})

@@ -101,7 +101,7 @@ Decisions are made as each file migrates and recorded below for reuse.
 - [x] **C3** — Migrate `src/playerselect.js` to MUI.
 - [x] **C4** — Migrate `src/playerui.js` to MUI.
 - [x] **C5** — Migrate `src/components.js` to MUI. Move `components.styl` selectors into `styled()` at the bottom of `components.js`.
-- [ ] **C6** — Migrate `src/menuui.js` to MUI. Move `menu.styl` into `styled()` in `menuui.js`.
+- [x] **C6** — Migrate `src/menuui.js` to MUI. Move `menu.styl` into `styled()` in `menuui.js`.
 - [ ] **C7** — Migrate `src/touch.js` to MUI. Move `touch.styl` into `styled()` in `touch.js`.
 - [ ] **C8** — Migrate `src/library.js` to MUI.
 - [ ] **C9** — Migrate `src/playlist.js` to MUI. Move `playlist.styl` into `styled()` in `playlist.js`.
@@ -142,6 +142,29 @@ _Recorded here for reuse across later files._
 | `step forward` | `SkipNextRounded` | `components.js` |
 | `sort content ascending` | `SortRounded` | `components.js` |
 | `video play` | `PlayArrowRounded` | `components.js` |
+| `bed` | `BedRounded` | `menuui.js` |
+| `power` | `PowerSettingsNewRounded` | `menuui.js` |
+| `volume down` | `VolumeDownRounded` | `menuui.js` |
+| `volume up` | `VolumeUpRounded` | `menuui.js` |
+| `warning` | `WarningRounded` | `menuui.js` |
+
+### Polish backlog (batch after T1)
+
+Visual-regression items the user has flagged during the migration. All
+deferred until `semantic-ui-css` is removed so that the baseline is
+pure MUI.
+
+- Library row hover action buttons (`PlaylistButtons` in `MediaInfo`):
+  blue icons and blue outlines. Originally dark-gray icons on a
+  lighter-gray solid button with no outline. Likely: change
+  `ButtonGroup` `variant="outlined"` → different look, and use
+  `color="inherit"` or a custom sx. (Reported 2026-04-17.)
+- Repeat & shuffle buttons (`RepeatShuffleGroup` in the player,
+  rendered at the top-right of the main view inside the sidebar):
+  do not expand to fill the allocated column width, and have the
+  same blue-icon/blue-outline look as above. Add `fullWidth` to the
+  `ButtonGroup` and give the parent Box in `playerui.js` a real
+  flex basis. (Reported 2026-04-17.)
 
 ### Global-style residue
 
