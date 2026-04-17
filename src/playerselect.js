@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import React from 'react'
-import { Dropdown } from 'semantic-ui-react'
+import MenuItem from '@mui/material/MenuItem'
+import Select from '@mui/material/Select'
 
 import * as lms from './lmsclient'
 
@@ -42,17 +43,21 @@ export function loadPlayers(dispatch) {
 const maybeLoadPlayers = _.throttle(loadPlayers, 30000, {trailing: false})
 
 export const SelectPlayer = props => (
-  <Dropdown
-    placeholder="Select Player"
-    onClick={() => maybeLoadPlayers(props.dispatch)}
-    onChange={(e, { value }) => props.onPlayerSelected(value)}
-    options={_.map(props.players, item => ({
-      text: item.name,
-      value: item.playerid,
-    }))}
+  <Select
     value={props.playerid || ""}
-    loading={props.loading}
-    error={props.error}
-    selectOnNavigation={false}
-    compact selection />
+    onChange={(event) => props.onPlayerSelected(event.target.value)}
+    onOpen={() => maybeLoadPlayers(props.dispatch)}
+    error={!!props.error}
+    displayEmpty
+    size="small"
+    renderValue={value => {
+      if (!value) return "Select Player"
+      const player = _.find(props.players, { playerid: value })
+      return player ? player.name : value
+    }}
+  >
+    {_.map(props.players, item => (
+      <MenuItem key={item.playerid} value={item.playerid}>{item.name}</MenuItem>
+    ))}
+  </Select>
 )

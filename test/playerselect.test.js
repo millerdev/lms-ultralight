@@ -1,5 +1,7 @@
 import React from 'react'
 import { shallow } from 'enzyme'
+import MenuItem from '@mui/material/MenuItem'
+import Select from '@mui/material/Select'
 
 import * as mod from '../src/playerselect'
 
@@ -37,14 +39,14 @@ describe('playerselect', function () {
   })
 
   describe('<SelectPlayer />', function () {
-    it('should transform players to options', function () {
+    it('should render a MenuItem for each player', function () {
       const dom = shallow(<mod.SelectPlayer players={PLAYERS} />)
-      const dropdown = dom.find("Dropdown")
-      assert.deepEqual(dropdown.props().options, [
-        {value: "1:1:1:1", text: "One"},
-        {value: "2:2:2:2", text: "Two"},
-      ])
-      assert.equal(dropdown.props().error, undefined)
+      const items = dom.find(MenuItem)
+      assert.equal(items.length, 2)
+      assert.equal(items.at(0).prop('value'), "1:1:1:1")
+      assert.equal(items.at(0).children().text(), "One")
+      assert.equal(items.at(1).prop('value'), "2:2:2:2")
+      assert.equal(items.at(1).children().text(), "Two")
     })
 
     it('should set error flag on players error', function () {
@@ -53,9 +55,7 @@ describe('playerselect', function () {
           players={PLAYERS}
           error={true}
           />)
-      const dropdown = dom.find("Dropdown")
-      assert.equal(dropdown.props().options.length, 2)
-      assert.equal(dropdown.props().error, true)
+      assert.equal(dom.find(Select).prop('error'), true)
     })
   })
 })

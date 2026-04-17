@@ -94,11 +94,11 @@ Decisions are made as each file migrates and recorded below for reuse.
 **Foundation**
 
 - [x] **C1** — Add MUI dependencies (`@mui/material`, `@mui/icons-material`, `@emotion/react`, `@emotion/styled`). `package.json` + lockfile only. Keep `semantic-ui-react` and `semantic-ui-css` installed.
-- [ ] **C2** — Add `src/theme.js` with `lightTheme` and `darkTheme` (palette + typography + `CssBaseline`). Wrap `<App>` in `<ThemeProvider theme={lightTheme}><CssBaseline/>...</ThemeProvider>` in `src/app.js`. Keep existing `semantic-ui-css/semantic.min.css` and `./app.styl` imports.
+- [x] **C2** — Add `src/theme.js` with `lightTheme` and `darkTheme` (palette + typography + `CssBaseline`). Wrap `<App>` in `<ThemeProvider theme={lightTheme}><CssBaseline/>...</ThemeProvider>` in `src/app.js`. Keep existing `semantic-ui-css/semantic.min.css` and `./app.styl` imports.
 
 **Per-file migration** — for each, a single commit unless noted:
 
-- [ ] **C3** — Migrate `src/playerselect.js` to MUI.
+- [x] **C3** — Migrate `src/playerselect.js` to MUI.
 - [ ] **C4** — Migrate `src/playerui.js` to MUI.
 - [ ] **C5** — Migrate `src/components.js` to MUI. Move `components.styl` selectors into `styled()` at the bottom of `components.js`.
 - [ ] **C6** — Migrate `src/menuui.js` to MUI. Move `menu.styl` into `styled()` in `menuui.js`.
