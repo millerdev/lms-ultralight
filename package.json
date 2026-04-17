@@ -29,9 +29,7 @@
     "react-redux": "^9.2.0",
     "react-resize-detector": "^12.3.0",
     "react-router-dom": "^6.30.2",
-    "redux": "^5.0.1",
-    "semantic-ui-css": "^2.4.1",
-    "semantic-ui-react": "^2.1.5"
+    "redux": "^5.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.28.5",

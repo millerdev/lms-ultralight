@@ -114,7 +114,7 @@ Each commit also:
 **Termination**
 
 - [x] **T1** — Remove `import 'semantic-ui-css/semantic.min.css'` from `src/app.js`. Visual cliff; keep isolated so a regression is trivially revertable. QA pass before proceeding.
-- [ ] **T2** — `npm uninstall semantic-ui-react semantic-ui-css`.
+- [x] **T2** — `npm uninstall semantic-ui-react semantic-ui-css`.
 - [ ] **T3** — Delete any remaining `.styl` files and their imports; remove `src/app.styl` if empty.
 - [ ] **T4** — `npm uninstall stylus stylus-loader`; remove `.styl` handling from `webpack.config.js`; delete this plan file.
 
