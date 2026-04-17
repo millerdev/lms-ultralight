@@ -431,4 +431,24 @@ const MainMenuRoot = styled('div')({
     background: 'linear-gradient(to left, #ff6e56, #fffd86)',
     top: 0,
   },
+  // Playlist-controls hover behavior: hidden by default, shown on hover
+  // or when a touchlist item is selected. These rules conceptually belong
+  // to playlist.js and will move there during its migration (C9).
+  '& .touchlist-item .playlist-controls': {
+    position: 'absolute',
+    zIndex: 5,
+    right: 0,
+    top: 0,
+    display: 'none',
+  },
+  '& .touchlist-item:hover .playlist-controls': {
+    display: 'block',
+  },
+  '& .touchlist-item.selected .playlist-controls': {
+    display: 'block',
+  },
+  // Show controls on the first selected item only
+  '& .touchlist-item.selected ~ .selected .playlist-controls': {
+    display: 'none',
+  },
 })
