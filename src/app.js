@@ -1,6 +1,8 @@
 import React from 'react'
 import { BrowserRouter as Router, useNavigate } from 'react-router-dom'
 import { connect, Provider } from 'react-redux'
+import CssBaseline from '@mui/material/CssBaseline'
+import { ThemeProvider } from '@mui/material/styles'
 import 'semantic-ui-css/semantic.min.css'
 
 //import DevTools from './devtools'
@@ -10,6 +12,7 @@ import * as menu from './menu'
 import * as player from './player'
 import * as playlist from './playlist'
 import { makeStore } from './store'
+import { lightTheme } from './theme'
 
 const defaultState = {
   menu: menu.defaultState,
@@ -45,11 +48,14 @@ const basename = ultralight ? "/ultralight" : "/"
 
 const App = () => (
   <Provider store={store}>
-    <Router basename={basename}>
-      <MainMenu>
-        {/* <DevTools /> */}
-      </MainMenu>
-    </Router>
+    <ThemeProvider theme={lightTheme}>
+      <CssBaseline />
+      <Router basename={basename}>
+        <MainMenu>
+          {/* <DevTools /> */}
+        </MainMenu>
+      </Router>
+    </ThemeProvider>
   </Provider>
 )
 

@@ -93,7 +93,7 @@ Decisions are made as each file migrates and recorded below for reuse.
 
 **Foundation**
 
-- [ ] **C1** — Add MUI dependencies (`@mui/material`, `@mui/icons-material`, `@emotion/react`, `@emotion/styled`). `package.json` + lockfile only. Keep `semantic-ui-react` and `semantic-ui-css` installed.
+- [x] **C1** — Add MUI dependencies (`@mui/material`, `@mui/icons-material`, `@emotion/react`, `@emotion/styled`). `package.json` + lockfile only. Keep `semantic-ui-react` and `semantic-ui-css` installed.
 - [ ] **C2** — Add `src/theme.js` with `lightTheme` and `darkTheme` (palette + typography + `CssBaseline`). Wrap `<App>` in `<ThemeProvider theme={lightTheme}><CssBaseline/>...</ThemeProvider>` in `src/app.js`. Keep existing `semantic-ui-css/semantic.min.css` and `./app.styl` imports.
 
 **Per-file migration** — for each, a single commit unless noted:
