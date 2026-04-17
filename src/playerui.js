@@ -2,27 +2,32 @@ import _ from 'lodash'
 import Slider from 'rc-slider'
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Button, Item } from 'semantic-ui-react'
+import Box from '@mui/material/Box'
+import IconButton from '@mui/material/IconButton'
+import Stack from '@mui/material/Stack'
+import { styled } from '@mui/material/styles'
+import FastForwardRounded from '@mui/icons-material/FastForwardRounded'
+import FastRewindRounded from '@mui/icons-material/FastRewindRounded'
+import PauseRounded from '@mui/icons-material/PauseRounded'
+import PlayArrowRounded from '@mui/icons-material/PlayArrowRounded'
+import RemoveRounded from '@mui/icons-material/RemoveRounded'
 import 'rc-slider/assets/index.css'
 
 import { drillable, RepeatShuffleGroup } from './components'
 import { formatTime } from './util'
-import './player.styl'
 
 const ToolTipSlider = Slider.createSliderWithTooltip(Slider)
 
 const CurrentTrackInfo = ({mediaNav, playctl: { imageUrl, tags }, children}) => (
-  <Item.Group>
-    <Item>
-      <Item.Image size="tiny" src={imageUrl} />
-      <Item.Content>
-        {children}
-        <Item.Header>{tags.title}</Item.Header>
-        <Item.Meta>{drillable(tags, "artist", mediaNav)}</Item.Meta>
-        <Item.Meta>{drillable(tags, "album", mediaNav)}</Item.Meta>
-      </Item.Content>
-    </Item>
-  </Item.Group>
+  <TrackInfoRow>
+    <Box component="img" src={imageUrl} className="track-image" />
+    <Box className="track-content">
+      {children}
+      <Box className="track-header">{tags.title}</Box>
+      <Box className="track-meta">{drillable(tags, "artist", mediaNav)}</Box>
+      <Box className="track-meta">{drillable(tags, "album", mediaNav)}</Box>
+    </Box>
+  </TrackInfoRow>
 )
 
 CurrentTrackInfo.contextTypes = {
@@ -38,11 +43,11 @@ export class SeekBar extends React.Component {
   render() {
     const elapsed = this.props.elapsed
     const total = this.props.total || elapsed
-    return <div className="ui grid seekbar">
-      <div className="three wide mobile two wide tablet one wide computer column left aligned">
+    return <SeekBarRow>
+      <Box className="seek-time seek-time-left">
         {formatTime(elapsed)}
-      </div>
-      <div className="ten wide mobile twelve wide tablet fourteen wide computer column">
+      </Box>
+      <Box className="seek-slider">
         <ToolTipSlider
           max={_.max([total, elapsed, 1])}
           value={this.state.seeking ? this.state.seek : elapsed}
@@ -54,11 +59,11 @@ export class SeekBar extends React.Component {
           }}
           tipFormatter={formatTime}
           disabled={this.props.disabled} />
-      </div>
-      <div className="three wide mobile two wide tablet one wide computer column right aligned">
+      </Box>
+      <Box className="seek-time seek-time-right">
         {formatTime(total ? elapsed - total : 0)}
-      </div>
-    </div>
+      </Box>
+    </SeekBarRow>
   }
 }
 
@@ -89,51 +94,117 @@ export class VolumeSlider extends React.Component {
 
 export const PlayerUI = props => {
   const { playctl } = props
-  return <div className="player">
-    <div className="ui grid">
-      <div className="middle aligned row">
-        <div className="left floated eight wide mobile four wide tablet two wide computer column">
-          <Button.Group basic size="small">
-            <Button
-              icon="backward"
-              onClick={playctl.prevTrack}
-              disabled={!playctl.playerid} />
-            <Button
-              icon={playctl.isPlaying ? "pause" : "play"}
-              onClick={playctl.playPause}
-              disabled={!playctl.playerid} />
-            <Button
-              icon="forward"
-              onClick={playctl.nextTrack}
-              disabled={!playctl.playerid} />
-          </Button.Group>
-        </div>
-        <div className="computer tablet only eight wide tablet twelve wide computer column">
-          <VolumeSlider {...props} />
-        </div>
-        <div className="right floated eight wide mobile four wide tablet two wide computer column right aligned">
-          <RepeatShuffleGroup
-            repeatMode={props.repeatMode}
-            setRepeatMode={value => playctl.command("playlist", "repeat", value)}
-            shuffleMode={props.shuffleMode}
-            setShuffleMode={value => playctl.command("playlist", "shuffle", value)}
-            disabled={!playctl.playerid}
-          />
-        </div>
-      </div>
-      <div className="mobile only row">
-        <div className="sixteen wide column">
-          <VolumeSlider {...props} />
-        </div>
-      </div>
-    </div>
+  const disabled = !playctl.playerid
+  return <PlayerRoot>
+    <Box className="controls-row">
+      <Stack direction="row" className="transport-controls">
+        <IconButton onClick={playctl.prevTrack} disabled={disabled} size="small">
+          <FastRewindRounded />
+        </IconButton>
+        <IconButton onClick={playctl.playPause} disabled={disabled} size="small">
+          {playctl.isPlaying ? <PauseRounded /> : <PlayArrowRounded />}
+        </IconButton>
+        <IconButton onClick={playctl.nextTrack} disabled={disabled} size="small">
+          <FastForwardRounded />
+        </IconButton>
+      </Stack>
+      <Box className="volume-desktop">
+        <VolumeSlider {...props} />
+      </Box>
+      <Box className="repeat-shuffle">
+        <RepeatShuffleGroup
+          repeatMode={props.repeatMode}
+          setRepeatMode={value => playctl.command("playlist", "repeat", value)}
+          shuffleMode={props.shuffleMode}
+          setShuffleMode={value => playctl.command("playlist", "shuffle", value)}
+          disabled={disabled}
+        />
+      </Box>
+    </Box>
+    <Box className="volume-mobile">
+      <VolumeSlider {...props} />
+    </Box>
     <CurrentTrackInfo playctl={playctl}>
-      <Button.Group basic size="small" style={{float: "right"}}>
-        <Button
-          icon="window minimize"
-          onClick={props.toggleMiniPlayer} />
-      </Button.Group>
+      <IconButton
+        onClick={props.toggleMiniPlayer}
+        size="small"
+        sx={{ float: "right" }}
+      >
+        <RemoveRounded />
+      </IconButton>
     </CurrentTrackInfo>
     {props.children}
-  </div>
+  </PlayerRoot>
 }
+
+const PlayerRoot = styled('div')(({ theme }) => ({
+  '& .controls-row': {
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing(1),
+  },
+  '& .transport-controls': {
+    flex: '0 0 auto',
+  },
+  '& .volume-desktop': {
+    flex: '1 1 auto',
+    display: 'none',
+    [theme.breakpoints.up('sm')]: {
+      display: 'block',
+    },
+  },
+  '& .repeat-shuffle': {
+    flex: '0 0 auto',
+    marginLeft: 'auto',
+    textAlign: 'right',
+  },
+  '& .volume-mobile': {
+    marginTop: theme.spacing(1),
+    [theme.breakpoints.up('sm')]: {
+      display: 'none',
+    },
+  },
+}))
+
+const SeekBarRow = styled('div')(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(1),
+  '& .seek-time': {
+    flex: '0 0 auto',
+    minWidth: '3em',
+  },
+  '& .seek-time-right': {
+    textAlign: 'right',
+  },
+  '& .seek-slider': {
+    flex: '1 1 auto',
+  },
+}))
+
+const TrackInfoRow = styled('div')(({ theme }) => ({
+  display: 'flex',
+  gap: theme.spacing(2),
+  marginTop: theme.spacing(2),
+  '& .track-image': {
+    width: 80,
+    height: 80,
+    flex: '0 0 auto',
+    objectFit: 'cover',
+  },
+  '& .track-content': {
+    flex: '1 1 auto',
+    minWidth: 0,
+  },
+  '& .track-header': {
+    fontWeight: 600,
+    fontSize: '1.1em',
+  },
+  '& .track-meta a': {
+    color: theme.palette.primary.main,
+    textDecoration: 'none',
+    '&:hover': {
+      textDecoration: 'underline',
+    },
+  },
+}))

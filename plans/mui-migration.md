@@ -99,7 +99,7 @@ Decisions are made as each file migrates and recorded below for reuse.
 **Per-file migration** — for each, a single commit unless noted:
 
 - [x] **C3** — Migrate `src/playerselect.js` to MUI.
-- [ ] **C4** — Migrate `src/playerui.js` to MUI.
+- [x] **C4** — Migrate `src/playerui.js` to MUI.
 - [ ] **C5** — Migrate `src/components.js` to MUI. Move `components.styl` selectors into `styled()` at the bottom of `components.js`.
 - [ ] **C6** — Migrate `src/menuui.js` to MUI. Move `menu.styl` into `styled()` in `menuui.js`.
 - [ ] **C7** — Migrate `src/touch.js` to MUI. Move `touch.styl` into `styled()` in `touch.js`.
@@ -124,7 +124,11 @@ _Recorded here for reuse across later files._
 
 | Semantic icon name | MUI replacement | First used in |
 |---|---|---|
-| _(to be filled)_ | | |
+| `backward` | `FastRewindRounded` | `playerui.js` |
+| `forward` | `FastForwardRounded` | `playerui.js` |
+| `pause` | `PauseRounded` | `playerui.js` |
+| `play` | `PlayArrowRounded` | `playerui.js` |
+| `window minimize` | `RemoveRounded` | `playerui.js` |
 
 ### Global-style residue
 
