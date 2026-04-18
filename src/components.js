@@ -368,6 +368,7 @@ export const ProgressIndicator = props => {
 const HoverIconContainer = styled('div')({
   position: 'relative',
   display: 'inline-block',
+  verticalAlign: 'middle',
   zIndex: 5,
   '&.left-floated': {
     float: 'left',
