@@ -5,6 +5,7 @@ const shared = {
     fontFamily: '"Helvetica Neue", Arial, Helvetica, sans-serif',
     fontSize: 14,
     button: { textTransform: 'none' },
+    body1: { lineHeight: 'normal' },
   },
   shape: {
     borderRadius: 4,
