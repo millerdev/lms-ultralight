@@ -198,3 +198,53 @@ After **T4**:
 
 - Final full-app smoke test.
 - Verify dark mode by temporarily swapping `lightTheme` → `darkTheme` in `src/app.js`.
+
+## Post T4 Verification Notes
+
+- change responsive break point from 500px to 600px (use MUI standard break points)
+  - should eliminate a bunch of manual screen sizing code
+  - maybe remove `<Media query=...>` component/library if those features come with MUI?
+
+- adjust styling to work with MUI default line-height of 1.5
+
+- add button styles to theme?
+  - gray, not white
+  - no outline
+  - square with rounded corners, not round
+
+- large screen
+  - top bar
+    - has light gray color, should be white
+    - buttons have round hover highlight, should be square, full height
+    - player selector
+      - should not have have a border/outline
+      - should have constant width, elide player name if too long
+    - sleep button
+      - has wrong icon?
+      - does not cancel fade on hover
+      - menu styling weirdness
+    - power button is blue when turned on - should be black? or have gray bg?
+    - play progress is below the bar, should be just above bottom border
+  - sidebar
+    - does not shift main content when closed
+    - main menu items and search box do not use full menu width
+    - search box
+      - should have margins around border
+      - should have 1px border/outline?
+    - version number in main menu should be light gray (deemphasized compared to clickable buttons)
+    - hover buttons
+      - are transparent, underlying text bleeds through (should not)
+      - content width can push them out beyond edge of sidebar, but they should always be aligned with the right edge
+  - lower-right control menu
+    - fix button position on small screen
+    - fix menu position on small screen
+    - fix button layout in menu
+
+- tablet screen
+  - TODO
+
+- phone screen
+  - TODO
+
+
+**Goal**: refactor and simplify the code to use MUI conventions and defaults throughout.
