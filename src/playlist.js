@@ -16,6 +16,7 @@ import FastForwardRounded from '@mui/icons-material/FastForwardRounded'
 import FastRewindRounded from '@mui/icons-material/FastRewindRounded'
 import MenuRounded from '@mui/icons-material/MenuRounded'
 import PlayArrowRounded from '@mui/icons-material/PlayArrowRounded'
+import PlayCircleRounded from '@mui/icons-material/PlayCircleRounded'
 import SaveRounded from '@mui/icons-material/SaveRounded'
 
 import { DragHandle, MediaInfo, RepeatShuffleGroup, TrackInfoIcon } from './components'
@@ -600,7 +601,7 @@ export class Playlist extends React.Component {
             item={item}
             playTrackAtIndex={this.playTrackAtIndex}
             index={item[IX]}
-            activeIcon={props.currentIndex === item[IX] ? PlayArrowRounded : null}
+            activeIcon={props.currentIndex === item[IX] ? PlayCircleRounded : null}
             setItemRef={props.currentIndex === item[IX] && this.setPlayingItem}
             touching={!!(this.state.touching && props.selection.has(item[IX]))}
             setHideTrackInfoCallback={this.setHideTrackInfoCallback}

@@ -141,7 +141,7 @@ _Recorded here for reuse across later files._
 | `random` | `ShuffleRounded` | `components.js` |
 | `step forward` | `SkipNextRounded` | `components.js` |
 | `sort content ascending` | `SortRounded` | `components.js` |
-| `video play` | `PlayArrowRounded` | `components.js` |
+| `video play` (active playlist row) | `PlayCircleRounded` | `playlist.js` |
 | `bed` | `BedRounded` | `menuui.js` |
 | `power` | `PowerSettingsNewRounded` | `menuui.js` |
 | `volume down` | `VolumeDownRounded` | `menuui.js` |
