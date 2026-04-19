@@ -50,6 +50,8 @@ export const SelectPlayer = props => (
     error={!!props.error}
     displayEmpty
     size="small"
+    variant="standard"
+    disableUnderline
     renderValue={value => {
       if (!value) return "Select Player"
       const player = _.find(props.players, { playerid: value })
