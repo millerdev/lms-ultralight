@@ -798,7 +798,7 @@ export class PlaylistItem extends React.Component {
               isLoading={!info}
               button={
                 <IconButton onClick={this.playTrack} size="small">
-                  <PlayArrowRounded />
+                  <PlayArrowRounded fontSize="small" />
                 </IconButton>
               }
               onClose={this.onCollapseInfo}
