@@ -1,7 +1,6 @@
 import _ from 'lodash'
 import qs from 'query-string'
 import React from 'react'
-import Media from 'react-media'
 import { Link, matchPath, useLocation, useNavigate } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import Breadcrumbs from '@mui/material/Breadcrumbs'
@@ -19,6 +18,7 @@ import SearchRounded from '@mui/icons-material/SearchRounded'
 import { MediaInfo, PlaylistButtons, TrackInfoIcon } from './components'
 import { effect, combine } from './effects'
 import * as lms from './lmsclient'
+import MediaQuery from './mediaquery'
 import makeReducer from './store'
 import { TouchList } from './touch'
 import { memoize, operationError, timer } from './util'
@@ -726,7 +726,7 @@ export class MediaItems extends React.PureComponent {
   }
   render() {
     const {results, items, total, selection} = this.getItems()
-    return <Media query="(max-width: 500px)">{ smallScreen =>
+    return <MediaQuery down="sm">{ smallScreen =>
       <TouchList
           dataType={MEDIA_ITEMS}
           getDragData={this.getDragData}
@@ -751,7 +751,7 @@ export class MediaItems extends React.PureComponent {
           ))
         })}
       </TouchList>
-    }</Media>
+    }</MediaQuery>
   }
 }
 
