@@ -204,9 +204,9 @@ After **T4**:
 - [x] Refactor to implement a `MediaQuery` component
   - [x] use `useMediaQuery` and `theme.breakpoints` intnerally
   - [x] `<MediaQuery [down='sm'] [up='sm']>` where `up` and `down` attributes are mutually exclusive
-- change responsive break point from 500px to 600px (use MUI standard break points)
-  - Use `<MediaQuery down="sm">...</MediaQuery>` (< 600px) and `up('sm')` / `up('md')` throughout. The 500px "smallScreen" boundary and the 700px "wider"/"narrow" boundary collapsed into a single `sm` breakpoint; the 850px "wideScreen" boundary maps to `md`.
-  - Remove `react-media` from dependencies. All `<Media>` wrappers replaced with `<MediaQuery>`.
+- [x] change responsive break point from 500px to 600px (use MUI standard break points)
+  - [x] Use `<MediaQuery down="sm">...</MediaQuery>` (< 600px) and `up('sm')` / `up('md')` throughout. The 500px "smallScreen" boundary and the 700px "wider"/"narrow" boundary collapsed into a single `sm` breakpoint; the 850px "wideScreen" boundary maps to `md`.
+  - [x] Remove `react-media` from dependencies. All `<Media>` wrappers replaced with `<MediaQuery>`.
 
 - adjust styling to work with MUI default line-height of 1.5
 

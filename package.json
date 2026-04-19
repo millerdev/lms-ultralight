@@ -25,7 +25,6 @@
     "react-document-title": "^2.0.3",
     "react-dom": "^18.3.1",
     "react-intersection-observer": "^10.0.0",
-    "react-media": "^1.10.0",
     "react-redux": "^9.2.0",
     "react-resize-detector": "^12.3.0",
     "react-router-dom": "^6.30.2",
