@@ -29,6 +29,21 @@ const shared = {
         disableElevation: true,
       },
     },
+    MuiIconButton: {
+      styleOverrides: {
+        root: ({ theme }) => {
+          const dark = theme.palette.mode === 'dark'
+          const bg = dark ? theme.palette.grey[700] : theme.palette.grey[300]
+          const bgHover = dark ? theme.palette.grey[600] : theme.palette.grey[400]
+          return {
+            borderRadius: theme.shape.borderRadius,
+            backgroundColor: bg,
+            '&:hover': { backgroundColor: bgHover },
+            '&.Mui-disabled': { backgroundColor: bg },
+          }
+        },
+      },
+    },
   },
 }
 
