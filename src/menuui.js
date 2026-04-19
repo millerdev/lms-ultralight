@@ -418,13 +418,14 @@ const SleepDropdown = ({player, playctl}) => {
 
 const MainMenuRoot = styled('div')({
   '& .progress-indicator': {
-    position: 'fixed',
+    position: 'absolute',
+    left: 0,
     height: 2,
     backgroundColor: '#96dbfa',
   },
   '& .song-time.progress-indicator': {
     background: 'linear-gradient(to left, #74e3ec, #c7ffe2)',
-    top: 'calc(3.4em - 3px)',
+    bottom: 0,
   },
   '& .volume-level.progress-indicator': {
     background: 'linear-gradient(to left, #ff6e56, #fffd86)',
