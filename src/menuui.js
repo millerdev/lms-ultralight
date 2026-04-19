@@ -194,16 +194,15 @@ const PowerBar = props => {
           {...props.players} />
         { props.showPlayer && <PlayerBar {...props} /> }
         <SleepDropdown player={player} playctl={playctl} />
-        <Box sx={{ marginLeft: 'auto' }}>
-          <IconButton
-            onClick={playctl.togglePower}
-            disabled={!playctl.playerid}
-            color={player.isPowerOn ? 'primary' : 'default'}
-            size="small"
-          >
-            <PowerSettingsNewRounded fontSize="large" />
-          </IconButton>
-        </Box>
+        <IconButton
+          onClick={playctl.togglePower}
+          disabled={!playctl.playerid}
+          color={player.isPowerOn ? 'primary' : 'default'}
+          size="small"
+          sx={{ marginLeft: 'auto' }}
+        >
+          <PowerSettingsNewRounded fontSize="large" />
+        </IconButton>
       </Toolbar>
       { props.showPlayer && <VolumeLevel value={player.volumeLevel} /> }
       { props.showPlayer && <SongProgress {...player} /> }
@@ -344,11 +343,12 @@ const Toaster = ({messages, onHideError}) => (
 )
 
 const VolumeGroup = ({playctl}) => (
-  <Box sx={{ display: 'flex', marginLeft: 'auto' }}>
+  <>
     <IconButton
       onClick={playctl.volumeDown}
       disabled={!playctl.playerid}
       size="small"
+      sx={{ marginLeft: 'auto' }}
     >
       <VolumeDownRounded fontSize="large" />
     </IconButton>
@@ -359,7 +359,7 @@ const VolumeGroup = ({playctl}) => (
     >
       <VolumeUpRounded fontSize="large" />
     </IconButton>
-  </Box>
+  </>
 )
 
 const SLEEP_OPTIONS = [
