@@ -222,7 +222,6 @@ const PlayerBar = props => {
         display: 'flex',
         alignItems: 'center',
         gap: 1,
-        backgroundColor: 'background.paper',
         ...bottomSx,
       }}
     >

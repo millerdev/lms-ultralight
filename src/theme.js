@@ -29,6 +29,13 @@ const shared = {
         disableElevation: true,
       },
     },
+    MuiAppBar: {
+      styleOverrides: {
+        colorDefault: ({ theme }) => ({
+          backgroundColor: theme.palette.background.paper,
+        }),
+      },
+    },
     MuiIconButton: {
       styleOverrides: {
         root: ({ theme }) => {
