@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import React from 'react'
-import Media from 'react-media'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
@@ -23,6 +22,7 @@ import { DragHandle, MediaInfo, RepeatShuffleGroup, TrackInfoIcon } from './comp
 import { effect, combine } from './effects'
 import * as lms from './lmsclient'
 import { MEDIA_ITEMS } from './library'
+import MediaQuery from './mediaquery'
 import { MenuContext } from './menucontext'
 import makeReducer from './store'
 import { TouchList } from './touch'
@@ -614,7 +614,7 @@ export class Playlist extends React.Component {
           />
         })}
       </TouchList>
-      <Media query="(max-width: 500px)">{ smallScreen =>
+      <MediaQuery down="sm">{ smallScreen =>
         <ActionMenu
           playctl={playctl}
           smallScreen={smallScreen}
@@ -627,7 +627,7 @@ export class Playlist extends React.Component {
           hasSelection={props.selection.size > 0}
           playerid={props.playerid}
         />
-      }</Media>
+      }</MediaQuery>
       <Dialog
         open={Boolean(this.state.prompt.action)}
         onClose={() => this.setState({prompt: {}})}
@@ -687,7 +687,7 @@ const ActionMenu = ({
             disabled={!playerid}
           />
         </Box>
-        <Media query="(max-width: 700px)">{ narrow => narrow ?
+        <MediaQuery down="sm">{ narrow => narrow ?
           <Box sx={{ paddingX: 2, paddingY: 1 }}>
             <IconButton onClick={playctl.prevTrack}>
               <FastRewindRounded />
@@ -696,7 +696,7 @@ const ActionMenu = ({
               <FastForwardRounded />
             </IconButton>
           </Box>
-        : null }</Media>
+        : null }</MediaQuery>
       </Menu>
     </>
   )
@@ -750,7 +750,7 @@ export class PlaylistItem extends React.Component {
     const props = this.props
     const item = props.item
     const info = props.fullTrackInfo[item.id]
-    return <Media query="(max-width: 500px)">{ smallScreen => {
+    return <MediaQuery down="sm">{ smallScreen => {
       const heightStyle = smallScreen ? this.smallStyle : this.noStyle
       return <TouchList.Item
         index={props.index}
@@ -806,7 +806,7 @@ export class PlaylistItem extends React.Component {
           </Paper> : null
         }
       </TouchList.Item>
-    }}</Media>
+    }}</MediaQuery>
   }
 }
 
