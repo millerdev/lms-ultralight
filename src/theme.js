@@ -15,11 +15,25 @@ const shared = {
         '.rc-slider-tooltip': { zIndex: 200 },
       },
     },
+    MuiButtonBase: {
+      defaultProps: {
+        disableRipple: true,
+      },
+    },
     MuiButton: {
       defaultProps: {
         variant: 'contained',
         color: 'inherit',
         disableElevation: true,
+      },
+      styleOverrides: {
+        containedInherit: ({ theme }) => {
+          const dark = theme.palette.mode === 'dark'
+          const bgActive = dark ? theme.palette.grey[500] : theme.palette.grey[500]
+          return {
+            '&:active': { backgroundColor: bgActive },
+          }
+        },
       },
     },
     MuiButtonGroup: {
@@ -42,16 +56,19 @@ const shared = {
           const dark = theme.palette.mode === 'dark'
           const bg = dark ? theme.palette.grey[700] : theme.palette.grey[300]
           const bgHover = dark ? theme.palette.grey[600] : theme.palette.grey[400]
+          const bgActive = theme.palette.grey[500]
           return {
             borderRadius: theme.shape.borderRadius,
             backgroundColor: bg,
             '&:hover': { backgroundColor: bgHover },
+            '&:active': { backgroundColor: bgActive },
             '&.Mui-disabled': { backgroundColor: bg },
             '.MuiToolbar-root &': {
               borderRadius: 0,
               backgroundColor: 'transparent',
               alignSelf: 'stretch',
               '&:hover': { backgroundColor: theme.palette.action.hover },
+              '&:active': { backgroundColor: theme.palette.action.selected },
               '&.Mui-disabled': { backgroundColor: 'transparent' },
             },
           }
