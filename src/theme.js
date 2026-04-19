@@ -40,6 +40,13 @@ const shared = {
             backgroundColor: bg,
             '&:hover': { backgroundColor: bgHover },
             '&.Mui-disabled': { backgroundColor: bg },
+            '.MuiToolbar-root &': {
+              borderRadius: 0,
+              backgroundColor: 'transparent',
+              alignSelf: 'stretch',
+              '&:hover': { backgroundColor: theme.palette.action.hover },
+              '&.Mui-disabled': { backgroundColor: 'transparent' },
+            },
           }
         },
       },

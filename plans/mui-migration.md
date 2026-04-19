@@ -231,8 +231,8 @@ After **T4**:
 
 - large screen
   - top bar
-    - has light gray color, should be white
-    - buttons have round hover highlight, should be square, full height
+    - [x] has light gray color, should be white
+    - [x] buttons have round hover highlight, should be square, full height
     - player selector
       - should not have have a border/outline
       - should have constant width, elide player name if too long
