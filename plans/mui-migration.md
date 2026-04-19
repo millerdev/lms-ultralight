@@ -208,12 +208,26 @@ After **T4**:
   - [x] Use `<MediaQuery down="sm">...</MediaQuery>` (< 600px) and `up('sm')` / `up('md')` throughout. The 500px "smallScreen" boundary and the 700px "wider"/"narrow" boundary collapsed into a single `sm` breakpoint; the 850px "wideScreen" boundary maps to `md`.
   - [x] Remove `react-media` from dependencies. All `<Media>` wrappers replaced with `<MediaQuery>`.
 
-- adjust styling to work with MUI default line-height of 1.5
+- [x] add button styles to theme
+  - [x] gray, not white
+  - [x] no outline
+  - [x] square with rounded corners, not round
+  - [x] Claude implementation comments
+    - Set MuiButton and MuiButtonGroup defaultProps to variant="contained",
+      color="inherit", disableElevation=true. MUI's built-in rendering for
+      contained+inherit is already a flat gray rectangle (grey[300] in light
+      mode, grey[700] in dark mode) with a darker hover, no border, rounded
+      corners from theme.shape.borderRadius — exactly the Semantic UI basic
+      button look the app wanted.
+    - This is the conventional way to change MUI defaults app-wide via the
+      theme's components.defaultProps. Alternative (mentioned for reference
+      but not adopted here): add a custom variant="toolbar" to MuiButton.
+      variants and opt in per call site. That would preserve MUI's default
+      blue-text look for bare <Button>, but the SUI-style grouped buttons
+      are this app's dominant usage, so changing the default is less
+      ceremony.
 
-- add button styles to theme?
-  - gray, not white
-  - no outline
-  - square with rounded corners, not round
+- adjust styling to work with MUI default line-height of 1.5
 
 - large screen
   - top bar

@@ -635,7 +635,7 @@ export class Playlist extends React.Component {
         <DialogContent>{this.state.prompt.content}</DialogContent>
         <DialogActions>
           <Button onClick={() => this.setState({prompt: {}})}>Cancel</Button>
-          <Button onClick={this.state.prompt.action} variant="contained">
+          <Button onClick={this.state.prompt.action} color="primary">
             {this.state.prompt.yesText}
           </Button>
         </DialogActions>

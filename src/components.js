@@ -24,25 +24,6 @@ import SortRounded from '@mui/icons-material/SortRounded'
 import * as lms from './lmsclient'
 import { formatTime, timer } from './util'
 
-// Shared sx for icon-only grouped toolbar buttons: subtle gray fill,
-// no elevation, inherits text/icon color from the current theme palette.
-// Approximates Semantic UI's "basic" grouped buttons look.
-const GROUPED_ICON_BUTTONS = {
-  '& .MuiButton-root': {
-    backgroundColor: 'action.hover',
-    color: 'text.secondary',
-    borderColor: 'transparent',
-    '&:hover': {
-      backgroundColor: 'action.selected',
-      borderColor: 'transparent',
-    },
-    '&.Mui-disabled': {
-      backgroundColor: 'action.hover',
-      color: 'text.disabled',
-    },
-  },
-}
-
 export const MediaInfo = (props, context) => {
   const mediaNav = props.mediaNav || context.mediaNav
   const item = props.item
@@ -220,12 +201,8 @@ export const PlaylistButtons = props => {
   return (
     <ButtonGroup
       size="small"
-      variant="contained"
-      color="inherit"
-      disableElevation
       onClick={event => event.stopPropagation()}
       className={className}
-      sx={GROUPED_ICON_BUTTONS}
     >
       <Button onClick={props.play} aria-label="play">
         <PlayArrowRounded fontSize="small" />
@@ -251,14 +228,7 @@ export const RepeatShuffleGroup = ({
   setShuffleMode,
   disabled=false,
 }) => (
-  <ButtonGroup
-    size="small"
-    variant="contained"
-    color="inherit"
-    disableElevation
-    fullWidth
-    sx={GROUPED_ICON_BUTTONS}
-  >
+  <ButtonGroup size="small" fullWidth>
     <NWayButton
       markup={[
         <ArrowRightAltRounded fontSize="small" key="no-repeat" />,

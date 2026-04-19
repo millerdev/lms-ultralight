@@ -15,6 +15,20 @@ const shared = {
         '.rc-slider-tooltip': { zIndex: 200 },
       },
     },
+    MuiButton: {
+      defaultProps: {
+        variant: 'contained',
+        color: 'inherit',
+        disableElevation: true,
+      },
+    },
+    MuiButtonGroup: {
+      defaultProps: {
+        variant: 'contained',
+        color: 'inherit',
+        disableElevation: true,
+      },
+    },
   },
 }
 
