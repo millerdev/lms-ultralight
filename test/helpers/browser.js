@@ -12,3 +12,13 @@ Object.defineProperty(global, 'navigator', {
   writable: true,
   configurable: true,
 })
+
+// MUI's useMediaQuery (used by MediaQuery) needs matchMedia with
+// addEventListener; jsdom's built-in doesn't provide one.
+window.matchMedia = () => ({
+  matches: false,
+  addEventListener: () => {},
+  removeEventListener: () => {},
+  addListener: () => {},
+  removeListener: () => {},
+})

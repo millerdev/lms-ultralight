@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import React from 'react'
-import Media from 'react-media'
 import { connect } from 'react-redux'
 import { useResizeDetector } from 'react-resize-detector'
 import { Link, Routes, Route, useMatch } from 'react-router-dom'
@@ -32,6 +31,7 @@ import VolumeUpRounded from '@mui/icons-material/VolumeUpRounded'
 import WarningRounded from '@mui/icons-material/WarningRounded'
 
 import { LiveSeekBar, ProgressIndicator } from './components'
+import MediaQuery from './mediaquery'
 import MediaSession from './mediasession'
 import pkg from '../package.json'
 import * as player from './player'
@@ -43,7 +43,7 @@ import { timer } from './util'
 const DRAWER_WIDTH = 350
 
 export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ...props}) => (
-  <Media query="(max-width: 500px)">{ smallScreen =>
+  <MediaQuery down="sm">{ smallScreen =>
     <MainMenuRoot>
       <PowerBar
         players={players}
@@ -66,7 +66,7 @@ export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ..
         <SidebarMenu {...props} />
       }
     </MainMenuRoot>
-  }</Media>
+  }</MediaQuery>
 )
 
 const SidebarMenu = (props) => {
@@ -102,12 +102,12 @@ const SidebarMenu = (props) => {
           transition: theme => theme.transitions.create('margin-left'),
         }}
       >
-        <Media query="(min-width: 850px)">{ wideScreen =>
+        <MediaQuery up="md">{ wideScreen =>
           <MainView
             {...props}
             fixedTopWidth={wideScreen && menuOpen ? `calc(100% - ${DRAWER_WIDTH}px)` : '100%'}
           />
-        }</Media>
+        }</MediaQuery>
       </Box>
     </Box>
   )
@@ -216,7 +216,7 @@ const PlayerBar = props => {
   const bottomSx = props.bottom
     ? { position: 'fixed', bottom: 0, left: 0, right: 0, borderTop: theme => `1px solid ${theme.palette.divider}` }
     : {}
-  return <Media query="(min-width: 700px)">{ wider =>
+  return <MediaQuery up="sm">{ wide =>
     <Box
       className="player-bar"
       sx={{
@@ -227,7 +227,7 @@ const PlayerBar = props => {
         ...bottomSx,
       }}
     >
-      { wider &&
+      { wide &&
         <IconButton
           onClick={playctl.prevTrack}
           disabled={!playctl.playerid}
@@ -245,7 +245,7 @@ const PlayerBar = props => {
           ? <PauseRounded fontSize="large" />
           : <PlayArrowRounded fontSize="large" />}
       </IconButton>
-      { wider &&
+      { wide &&
         <IconButton
           onClick={playctl.nextTrack}
           disabled={!playctl.playerid}
@@ -277,13 +277,11 @@ const PlayerBar = props => {
           <Box>{playctl.tags.artist} - {playctl.tags.album}</Box>
         </Box>
       </Box>
-      <Media query="(min-width: 600px)">
-        { wide => (wide || props.bottom) && <VolumeGroup playctl={playctl} /> || null }
-      </Media>
+      { (wide || props.bottom) && <VolumeGroup playctl={playctl} /> }
       { props.bottom && <SongProgress {...props.player} /> }
       { props.bottom && <VolumeLevel value={props.player.volumeLevel} /> }
     </Box>
-  }</Media>
+  }</MediaQuery>
 }
 
 const SongProgress = props => (

@@ -6,8 +6,14 @@ describe('index', function () {
   before(() => {
     global.localStorage = {getItem: () => null}
 
-    // Mock matchMedia for react-media
-    global.window.matchMedia = () => ({addListener: () => {}})
+    // Mock matchMedia for MUI's useMediaQuery (needs addEventListener)
+    global.window.matchMedia = () => ({
+      matches: false,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+    })
 
     // Mock ResizeObserver for react-resize-detector
     global.window.ResizeObserver = class ResizeObserver {
