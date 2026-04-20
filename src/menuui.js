@@ -212,19 +212,8 @@ const PowerBar = props => {
 
 const PlayerBar = props => {
   const playctl = props.playctl
-  const bottomSx = props.bottom
-    ? { position: 'fixed', bottom: 0, left: 0, right: 0, borderTop: theme => `1px solid ${theme.palette.divider}` }
-    : {}
-  return <MediaQuery up="sm">{ wide =>
-    <Box
-      className="player-bar"
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 1,
-        ...bottomSx,
-      }}
-    >
+  return <MediaQuery up="sm">{ wide => {
+    const controls = <>
       { wide &&
         <IconButton
           onClick={playctl.prevTrack}
@@ -276,10 +265,33 @@ const PlayerBar = props => {
         </Box>
       </Box>
       { (wide || props.bottom) && <VolumeGroup playctl={playctl} /> }
-      { props.bottom && <SongProgress {...props.player} /> }
-      { props.bottom && <VolumeLevel value={props.player.volumeLevel} /> }
-    </Box>
-  }</MediaQuery>
+    </>
+    if (props.bottom) {
+      return (
+        <AppBar
+          position="fixed"
+          color="default"
+          elevation={0}
+          sx={{
+            top: 'auto',
+            bottom: 0,
+            borderTop: theme => `1px solid ${theme.palette.divider}`,
+          }}
+        >
+          <Toolbar variant="dense" disableGutters sx={{ gap: 1, paddingX: 1 }}>
+            {controls}
+          </Toolbar>
+          <SongProgress {...props.player} />
+          <VolumeLevel value={props.player.volumeLevel} />
+        </AppBar>
+      )
+    }
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        {controls}
+      </Box>
+    )
+  }}</MediaQuery>
 }
 
 const SongProgress = props => (
