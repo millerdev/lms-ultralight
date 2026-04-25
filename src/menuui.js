@@ -164,7 +164,7 @@ const MainView = props => {
       <Box
         sx={{
           marginTop: props.miniPlayer ? 0 : `${height || 0}px`,
-          marginBottom: props.smallScreen && props.miniPlayer ? "3em" : 0,
+          paddingBottom: props.smallScreen && props.miniPlayer ? TOOLBAR_HEIGHT : 0,
         }}
       >
         <PlaylistRedux playctl={props.playctl} miniPlayer={props.miniPlayer} />
