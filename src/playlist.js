@@ -24,6 +24,7 @@ import { effect, combine } from './effects'
 import * as lms from './lmsclient'
 import { MEDIA_ITEMS } from './library'
 import MediaQuery from './mediaquery'
+import { TOOLBAR_HEIGHT } from './theme'
 import { MenuContext } from './menucontext'
 import makeReducer from './store'
 import { TouchList } from './touch'
@@ -619,6 +620,7 @@ export class Playlist extends React.Component {
         <ActionMenu
           playctl={playctl}
           smallScreen={smallScreen}
+          miniPlayer={props.miniPlayer}
           repeatMode={props.repeatMode}
           shuffleMode={props.shuffleMode}
           setRepeatMode={this.setRepeatMode}
@@ -646,11 +648,11 @@ export class Playlist extends React.Component {
 }
 
 const PlaylistRoot = styled('div')({
-  marginBottom: '3em',  // make room for floating action menu below playlist
+  marginBottom: '4em',  // make room for floating action menu below playlist
 })
 
 const ActionMenu = ({
-  playctl, smallScreen, repeatMode, shuffleMode, setRepeatMode, setShuffleMode,
+  playctl, smallScreen, miniPlayer, repeatMode, shuffleMode, setRepeatMode, setShuffleMode,
   onSavePlaylist, onDeleteItems, hasSelection, playerid,
 }) => {
   const [anchorEl, setAnchorEl] = React.useState(null)
@@ -662,7 +664,7 @@ const ActionMenu = ({
         sx={{
           position: 'fixed',
           right: '0.7em',
-          bottom: smallScreen ? '4em' : '0.7em',
+          bottom: smallScreen && miniPlayer ? `calc(${TOOLBAR_HEIGHT} + 0.7em)` : '0.7em',
           zIndex: 100,
         }}
       >

@@ -167,7 +167,7 @@ const MainView = props => {
           marginBottom: props.smallScreen && props.miniPlayer ? "3em" : 0,
         }}
       >
-        <PlaylistRedux playctl={props.playctl} />
+        <PlaylistRedux playctl={props.playctl} miniPlayer={props.miniPlayer} />
         {props.children}
       </Box>
     </Box>
