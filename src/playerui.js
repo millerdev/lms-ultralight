@@ -140,6 +140,8 @@ export const PlayerUI = props => {
 }
 
 const PlayerRoot = styled('div')(({ theme }) => ({
+  paddingLeft: theme.spacing(2),
+  paddingRight: theme.spacing(2),
   '& .controls-row': {
     display: 'flex',
     alignItems: 'center',
