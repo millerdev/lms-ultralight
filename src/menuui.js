@@ -41,6 +41,8 @@ import { MediaBrowser } from './library'
 import { timer } from './util'
 
 const DRAWER_WIDTH = 350
+// Must match the minHeight of the PowerBar's dense Toolbar (MUI default: 48px).
+const POWER_BAR_HEIGHT = '48px'
 
 export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ...props}) => (
   <MediaQuery down="sm">{ smallScreen =>
@@ -87,8 +89,8 @@ const SidebarMenu = (props) => {
             width: DRAWER_WIDTH,
             boxSizing: 'border-box',
             borderRight: theme => `1px solid ${theme.palette.divider}`,
-            top: '3.4em',
-            height: 'calc(100% - 3.4em)',
+            top: POWER_BAR_HEIGHT,
+            height: `calc(100% - ${POWER_BAR_HEIGHT})`,
           },
         }}
       >
@@ -140,14 +142,14 @@ const MainView = props => {
     observerOptions: { box: 'border-box' },
   })
   return (
-    <Box className="mainview" sx={{ paddingTop: '3.4em' }}>
+    <Box className="mainview" sx={{ paddingTop: POWER_BAR_HEIGHT }}>
       { !props.miniPlayer &&
         <Box
           className="fixed-top"
           ref={ref}
           sx={{
             position: 'fixed',
-            top: 'calc(3.4em - 1px)',
+            top: `calc(${POWER_BAR_HEIGHT} - 1px)`,
             width: props.fixedTopWidth || '100%',
             paddingTop: 1,
             backgroundColor: 'background.paper',
