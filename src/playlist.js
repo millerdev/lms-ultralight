@@ -670,7 +670,13 @@ const ActionMenu = ({
       >
         <MenuRounded />
       </IconButton>
-      <Menu anchorEl={anchorEl} open={!!anchorEl} onClose={close}>
+      <Menu
+        anchorEl={anchorEl}
+        open={!!anchorEl}
+        onClose={close}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
         <MenuItem onClick={() => { onSavePlaylist(); close() }}>
           <SaveRounded fontSize="small" sx={{ marginRight: 1 }} />
           Save Playlist
