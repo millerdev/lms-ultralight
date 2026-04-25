@@ -664,8 +664,6 @@ const ActionMenu = ({
           right: '0.7em',
           bottom: smallScreen ? '4em' : '0.7em',
           zIndex: 100,
-          backgroundColor: 'background.paper',
-          boxShadow: 2,
         }}
       >
         <MenuRounded />
