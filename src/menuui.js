@@ -99,6 +99,7 @@ const SidebarMenu = (props) => {
         sx={{
           flexGrow: 1,
           minWidth: 0,
+          marginLeft: menuOpen ? 0 : `-${DRAWER_WIDTH}px`,
           transition: theme => theme.transitions.create('margin-left'),
         }}
       >
