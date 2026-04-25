@@ -38,11 +38,10 @@ import * as player from './player'
 import * as players from './playerselect'
 import * as playlist from './playlist'
 import { MediaBrowser } from './library'
+import { TOOLBAR_HEIGHT } from './theme'
 import { timer } from './util'
 
 const DRAWER_WIDTH = 350
-// Must match the minHeight of the PowerBar's dense Toolbar (MUI default: 48px).
-const POWER_BAR_HEIGHT = '48px'
 
 export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ...props}) => (
   <MediaQuery down="sm">{ smallScreen =>
@@ -89,8 +88,8 @@ const SidebarMenu = (props) => {
             width: DRAWER_WIDTH,
             boxSizing: 'border-box',
             borderRight: theme => `1px solid ${theme.palette.divider}`,
-            top: POWER_BAR_HEIGHT,
-            height: `calc(100% - ${POWER_BAR_HEIGHT})`,
+            top: TOOLBAR_HEIGHT,
+            height: `calc(100% - ${TOOLBAR_HEIGHT})`,
           },
         }}
       >
@@ -142,14 +141,14 @@ const MainView = props => {
     observerOptions: { box: 'border-box' },
   })
   return (
-    <Box className="mainview" sx={{ paddingTop: POWER_BAR_HEIGHT }}>
+    <Box className="mainview" sx={{ paddingTop: TOOLBAR_HEIGHT }}>
       { !props.miniPlayer &&
         <Box
           className="fixed-top"
           ref={ref}
           sx={{
             position: 'fixed',
-            top: `calc(${POWER_BAR_HEIGHT} - 1px)`,
+            top: `calc(${TOOLBAR_HEIGHT} - 1px)`,
             width: props.fixedTopWidth || '100%',
             paddingTop: 1,
             backgroundColor: 'background.paper',

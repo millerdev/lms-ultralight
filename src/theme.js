@@ -1,5 +1,8 @@
 import { createTheme } from '@mui/material/styles'
 
+// Must match the minHeight of a dense Toolbar (MUI default: 48px).
+export const TOOLBAR_HEIGHT = '48px'
+
 const shared = {
   typography: {
     fontFamily: '"Helvetica Neue", Arial, Helvetica, sans-serif',
