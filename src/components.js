@@ -227,8 +227,9 @@ export const RepeatShuffleGroup = ({
   shuffleMode,
   setShuffleMode,
   disabled=false,
+  ...props
 }) => (
-  <ButtonGroup size="small" fullWidth>
+  <ButtonGroup size="small" {...props}>
     <NWayButton
       markup={[
         <ArrowRightAltRounded fontSize="small" key="no-repeat" />,

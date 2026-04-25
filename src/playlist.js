@@ -2,6 +2,7 @@ import _ from 'lodash'
 import React from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
+import ButtonGroup from '@mui/material/ButtonGroup'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -685,17 +686,18 @@ const ActionMenu = ({
             shuffleMode={shuffleMode}
             setShuffleMode={setShuffleMode}
             disabled={!playerid}
+            fullWidth
           />
         </Box>
         <MediaQuery down="sm">{ narrow => narrow ?
-          <Box sx={{ paddingX: 2, paddingY: 1 }}>
-            <IconButton onClick={playctl.prevTrack}>
-              <FastRewindRounded />
-            </IconButton>
-            <IconButton onClick={playctl.nextTrack}>
-              <FastForwardRounded />
-            </IconButton>
-          </Box>
+          <ButtonGroup sx={{ paddingX: 2, paddingY: 1 }} size="small" fullWidth>
+            <Button onClick={playctl.prevTrack}>
+              <FastRewindRounded fontSize="small" />
+            </Button>
+            <Button onClick={playctl.nextTrack}>
+              <FastForwardRounded fontSize="small" />
+            </Button>
+          </ButtonGroup>
         : null }</MediaQuery>
       </Menu>
     </>

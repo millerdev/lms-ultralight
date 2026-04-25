@@ -3,8 +3,9 @@ import Slider from 'rc-slider'
 import React from 'react'
 import PropTypes from 'prop-types'
 import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import ButtonGroup from '@mui/material/ButtonGroup'
 import IconButton from '@mui/material/IconButton'
-import Stack from '@mui/material/Stack'
 import { styled } from '@mui/material/styles'
 import FastForwardRounded from '@mui/icons-material/FastForwardRounded'
 import FastRewindRounded from '@mui/icons-material/FastRewindRounded'
@@ -97,29 +98,30 @@ export const PlayerUI = props => {
   const disabled = !playctl.playerid
   return <PlayerRoot>
     <Box className="controls-row">
-      <Stack direction="row" className="transport-controls">
-        <IconButton onClick={playctl.prevTrack} disabled={disabled} size="small">
-          <FastRewindRounded />
-        </IconButton>
-        <IconButton onClick={playctl.playPause} disabled={disabled} size="small">
-          {playctl.isPlaying ? <PauseRounded /> : <PlayArrowRounded />}
-        </IconButton>
-        <IconButton onClick={playctl.nextTrack} disabled={disabled} size="small">
-          <FastForwardRounded />
-        </IconButton>
-      </Stack>
+      <ButtonGroup className="transport-controls" size="small">
+        <Button onClick={playctl.prevTrack} disabled={disabled}>
+          <FastRewindRounded fontSize="small" />
+        </Button>
+        <Button onClick={playctl.playPause} disabled={disabled}>
+          {playctl.isPlaying 
+            ? <PauseRounded fontSize="small" />
+            : <PlayArrowRounded fontSize="small" />}
+        </Button>
+        <Button onClick={playctl.nextTrack} disabled={disabled}>
+          <FastForwardRounded fontSize="small" />
+        </Button>
+      </ButtonGroup>
       <Box className="volume-desktop">
         <VolumeSlider {...props} />
       </Box>
-      <Box className="repeat-shuffle">
-        <RepeatShuffleGroup
-          repeatMode={props.repeatMode}
-          setRepeatMode={value => playctl.command("playlist", "repeat", value)}
-          shuffleMode={props.shuffleMode}
-          setShuffleMode={value => playctl.command("playlist", "shuffle", value)}
-          disabled={disabled}
-        />
-      </Box>
+      <RepeatShuffleGroup
+        repeatMode={props.repeatMode}
+        setRepeatMode={value => playctl.command("playlist", "repeat", value)}
+        shuffleMode={props.shuffleMode}
+        setShuffleMode={value => playctl.command("playlist", "shuffle", value)}
+        disabled={disabled}
+        className="repeat-shuffle"
+      />
     </Box>
     <Box className="volume-mobile">
       <VolumeSlider {...props} />
@@ -153,16 +155,16 @@ const PlayerRoot = styled('div')(({ theme }) => ({
       display: 'block',
     },
   },
-  '& .repeat-shuffle': {
-    flex: '0 0 auto',
-    width: { xs: 'auto', sm: '25%', md: '14%' },
-    textAlign: 'right',
-  },
   '& .volume-mobile': {
     marginTop: theme.spacing(1),
     [theme.breakpoints.up('sm')]: {
       display: 'none',
     },
+  '& .repeat-shuffle': {
+    flex: '0 0 auto',
+    width: { xs: 'auto', sm: '25%', md: '14%' },
+    textAlign: 'right',
+  },
   },
 }))
 
