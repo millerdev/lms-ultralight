@@ -162,11 +162,9 @@ const PlayerRoot = styled('div')(({ theme }) => ({
     [theme.breakpoints.up('sm')]: {
       display: 'none',
     },
-  '& .repeat-shuffle': {
-    flex: '0 0 auto',
-    width: { xs: 'auto', sm: '25%', md: '14%' },
-    textAlign: 'right',
   },
+  '& .repeat-shuffle': {
+    marginLeft: 'auto',
   },
 }))
 
