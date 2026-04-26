@@ -458,7 +458,7 @@ export class Playlist extends React.Component {
     if (this.shouldAutoScroll && ref) {
       setTimeout(() => {
         window.scroll({
-          top: ref.offsetTop - ref.clientHeight,
+          top: ref.offsetTop - ref.clientHeight - parseInt(TOOLBAR_HEIGHT),
           left: 0,
           behavior: this.scrollBehavior,
         })
