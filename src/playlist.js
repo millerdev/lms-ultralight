@@ -685,18 +685,16 @@ const ActionMenu = ({
           <DeleteRounded fontSize="small" sx={{ marginRight: 1 }} />
           {hasSelection ? "Delete" : "Clear Playlist"}
         </MenuItem>
-        <Box sx={{ paddingX: 2, paddingY: 1 }}>
-          <RepeatShuffleGroup
-            repeatMode={repeatMode}
-            setRepeatMode={setRepeatMode}
-            shuffleMode={shuffleMode}
-            setShuffleMode={setShuffleMode}
-            disabled={!playerid}
-            fullWidth
-          />
-        </Box>
+        <RepeatShuffleGroup
+          repeatMode={repeatMode}
+          setRepeatMode={setRepeatMode}
+          shuffleMode={shuffleMode}
+          setShuffleMode={setShuffleMode}
+          disabled={!playerid}
+          fullWidth
+        />
         <MediaQuery down="sm">{ narrow => narrow ?
-          <ButtonGroup sx={{ paddingX: 2, paddingY: 1 }} size="small" fullWidth>
+          <ButtonGroup size="small" fullWidth>
             <Button onClick={playctl.prevTrack}>
               <FastRewindRounded fontSize="small" />
             </Button>

@@ -30,13 +30,19 @@ const shared = {
         disableElevation: true,
       },
       styleOverrides: {
-        containedInherit: ({ theme }) => {
-          const dark = theme.palette.mode === 'dark'
-          const bgActive = dark ? theme.palette.grey[500] : theme.palette.grey[500]
-          return {
-            '&:active': { backgroundColor: bgActive },
-          }
-        },
+        root: ({ theme }) => ({
+          '&.MuiButton-contained:active': {
+            backgroundColor: theme.palette.grey[500],
+          },
+          '.MuiMenu-list &': {
+            border: 'none',
+            '--variant-containedBg': 'transparent',
+            '@media (hover: hover)': {
+              '&:hover': { '--variant-containedBg': theme.palette.action.hover },
+            },
+            '&:active': { '--variant-containedBg': theme.palette.action.selected },
+          },
+        }),
       },
     },
     MuiButtonGroup: {
