@@ -261,6 +261,9 @@ After **T4**:
   - TODO
 
 - phone screen
+  - playlist
+    - does not scroll to correct position when player UI is visible after reload?
+      - works correctly if switch to large screen and then back
   - TODO
 
 
