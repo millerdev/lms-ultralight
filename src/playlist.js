@@ -750,29 +750,31 @@ export class PlaylistItem extends React.Component {
   playTrack = () => {
     this.props.playTrackAtIndex(this.props.item[IX])
   }
-  smallStyle = {height: 32}
-  noStyle = {}
   render() {
     const props = this.props
     const item = props.item
     const info = props.fullTrackInfo[item.id]
     return <MediaQuery down="sm">{ smallScreen => {
-      const heightStyle = smallScreen ? this.smallStyle : this.noStyle
       return <TouchList.Item
         index={props.index}
         onDoubleClick={this.playTrack}
         setItemRef={props.setItemRef}
         draggable
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 0, ...heightStyle }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 0, gap: 1 }}>
           <Box sx={{
             flex: '1 1 auto',
             minWidth: 0,
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
+            display: smallScreen ? 'flex' : 'block',
+            alignItems: 'center',
+            gap: smallScreen ? 1 : 0,
+            ...(smallScreen ? {} : {
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }),
           }}>
-            <Box component="span" sx={{ marginRight: smallScreen ? 0 : 0.5 }}>
+            <Box component="span" sx={{ marginRight: smallScreen ? 0 : 0.5, flex: '0 0 auto' }}>
               <TrackInfoIcon
                 item={item}
                 activeIcon={props.activeIcon}
@@ -820,10 +822,16 @@ const SongTitle = ({item, smallScreen}) => {
   const {artist, title, tracknum} = item
   const track = tracknum ? <Box component="span" sx={{ opacity: 0.44 }}>{tracknum + " "}</Box> : ""
   if (smallScreen) {
-    return <div>
-      <div>{track}{title}</div>
-      <Box sx={{ opacity: 0.44 }}>{artist}</Box>
-    </div>
+    const ellipsis = {
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      lineHeight: 'normal',
+    }
+    return <Box sx={{ minWidth: 0, flex: '1 1 auto' }}>
+      <Box sx={ellipsis}>{track}{title}</Box>
+      <Box sx={{ ...ellipsis, opacity: 0.44 }}>{artist}</Box>
+    </Box>
   }
   const spacer = artist && (tracknum || title) ? " - " : ""
   return <span>

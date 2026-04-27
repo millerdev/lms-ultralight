@@ -266,9 +266,9 @@ const NWayButton = ({
 )
 
 export const TrackInfoIcon = React.memo(function TrackInfoIcon(props) {
-  const icon = props.icon ? <props.icon /> : <InfoRounded />
-  const activeIcon = props.activeIcon ? <props.activeIcon /> : null
   const dims = props.smallScreen ? ICON_STYLES.big : ICON_STYLES.large
+  const icon = props.icon ? <props.icon sx={dims} /> : <InfoRounded sx={dims} />
+  const activeIcon = props.activeIcon ? <props.activeIcon sx={dims} /> : null
   return <HoverIconContainer
     onClick={props.onClick}
     className={"tap-zone" + (props.smallScreen ? " left-floated" : "")}
@@ -284,14 +284,12 @@ export const TrackInfoIcon = React.memo(function TrackInfoIcon(props) {
         sx={dims}
       />
     }
-    <Box className="hover-icon-middle" sx={dims}>
-      {icon}
-    </Box>
+    <Box className="hover-icon-middle" sx={dims}>{icon}</Box>
   </HoverIconContainer>
 })
 
 const ICON_STYLES = {
-  big: { height: "32px", width: "32px" },
+  big: { height: "36px", width: "36px" },
   large: { height: "20px", width: "20px" },
 }
 
@@ -340,6 +338,7 @@ const HoverIconContainer = styled('div')({
   position: 'relative',
   display: 'inline-block',
   verticalAlign: 'middle',
+  marginTop: '3px',
   zIndex: 5,
   '&.left-floated': {
     float: 'left',
