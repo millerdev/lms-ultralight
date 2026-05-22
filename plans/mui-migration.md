@@ -285,7 +285,7 @@ After **T4**:
 - phone screen
   - [x] search box is not visible in menu (is it under the power bar?)
   - menu (sidebar on large screen)
-    - not enough space between icon and menu item text
+    - [x] not enough space between icon and menu item text
     - hover buttons
       - [x] size is right
       - [x] have a white background that extends to the bottom of the menu item (should be transparent)

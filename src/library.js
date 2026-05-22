@@ -866,19 +866,17 @@ const MediaItemContent = styled('div')(({ theme }) => ({
   minWidth: 0,
   display: 'flex',
   alignItems: 'center',
+  gap: theme.spacing(0.8),
   [theme.breakpoints.down('sm')]: {
     alignItems: 'flex-start',
   },
 }))
 
-const MediaItemText = styled('div')(({ theme }) => ({
+const MediaItemText = styled('div')({
   flex: '1 1 auto',
   minWidth: 0,
   overflow: 'hidden',
-  [theme.breakpoints.up('sm')]: {
-    marginLeft: theme.spacing(1),
-  },
-}))
+})
 
 const MediaItemTitle = styled('div')({
   overflow: 'hidden',
