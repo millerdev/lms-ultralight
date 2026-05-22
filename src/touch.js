@@ -774,6 +774,9 @@ const TouchListRoot = styled('div')({
 const TouchListItemEl = styled('div')(({ theme }) => ({
   position: 'relative',
   padding: theme.spacing(0.5, 1, 0),
+  [theme.breakpoints.up('sm')]: {
+    padding: theme.spacing(0.25, 1),
+  },
   cursor: 'default',
   '&.selected': {
     backgroundColor: theme.palette.action.selected,

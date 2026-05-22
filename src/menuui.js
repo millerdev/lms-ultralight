@@ -449,7 +449,10 @@ const VersionItem = styled(ListItem)(({ theme }) => ({
   fontSize: '0.85rem',
 }))
 
-const MainMenuRoot = styled('div')({
+const MainMenuRoot = styled('div')(({ theme }) => ({
+  [theme.breakpoints.up('sm')]: {
+    lineHeight: 1,
+  },
   '& .progress-indicator': {
     position: 'absolute',
     left: 0,
@@ -464,4 +467,4 @@ const MainMenuRoot = styled('div')({
     background: 'linear-gradient(to left, #ff6e56, #fffd86)',
     top: 0,
   },
-})
+}))

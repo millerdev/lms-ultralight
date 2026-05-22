@@ -895,6 +895,7 @@ const SongTitleEl = styled('span')({
   display: 'block',
   minWidth: 0,
   ...ELLIPSIS,
+  lineHeight: 'normal',
 })
 
 const SongTitleSmallEl = styled('div')({

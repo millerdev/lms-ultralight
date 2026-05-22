@@ -227,10 +227,11 @@ After **T4**:
       are this app's dominant usage, so changing the default is less
       ceremony.
 
-- adjust styling to work with MUI default line-height of 1.5
+- [x] NOPE adjust styling to work with MUI default line-height of 1.5
 
 - large screen
-  - line height is too large. But do not change it on smaller screens
+  - [x] line height is too large. But do not change it on smaller screens
+    - [x] selected row background is uneven (too much space above icon, none below) — fixed by equalizing TouchListItemEl padding on sm+
   - top bar
     - [x] has light gray color, should be white
     - [x] buttons have round hover highlight, should be square, full height
