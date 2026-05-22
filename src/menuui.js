@@ -386,8 +386,9 @@ const SLEEP_OPTIONS = [
 const SleepDropdown = ({player, playctl}) => {
   const [showItem, setShowItem] = React.useState(false)
   const [anchorEl, setAnchorEl] = React.useState(null)
+  const [hovered, setHovered] = React.useState(false)
   const menuOpen = !!anchorEl
-  const visible = player.sleep || menuOpen
+  const visible = player.sleep || menuOpen || hovered
   const duration = visible ? 100 : 10000
   React.useEffect(() => { if (player.sleep) setShowItem(true) }, [player.sleep])
   const onExited = () => setShowItem(false)
@@ -401,6 +402,8 @@ const SleepDropdown = ({player, playctl}) => {
         <IconButton
           onClick={event => setAnchorEl(event.currentTarget)}
           size="small"
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
         >
           {player.sleep
             ? <BedtimeRounded fontSize="large" />

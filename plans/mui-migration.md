@@ -239,7 +239,7 @@ After **T4**:
     - sleep button
       - [x] has wrong icon, should use BedtimeRounded
       - [x] when sleep is cancelled the icon should be BedtimeOffRounded
-      - does not cancel fade on hover
+      - [x] does not cancel fade on hover
       - [x] menu styling weirdness (removed ListItemButton nesting)
     - [x] power button is blue when turned on, should be gray
     - [x] play progress is below the bar, should be just above bottom border
