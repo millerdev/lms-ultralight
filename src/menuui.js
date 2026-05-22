@@ -388,7 +388,7 @@ const SleepDropdown = ({player, playctl}) => {
   const [anchorEl, setAnchorEl] = React.useState(null)
   const [hovered, setHovered] = React.useState(false)
   const menuOpen = !!anchorEl
-  const visible = player.sleep || menuOpen || hovered
+  const visible = !!player.sleep || menuOpen || hovered
   const duration = visible ? 100 : 10000
   React.useEffect(() => { if (player.sleep) setShowItem(true) }, [player.sleep])
   const onExited = () => setShowItem(false)
