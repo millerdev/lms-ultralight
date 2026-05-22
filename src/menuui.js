@@ -125,7 +125,7 @@ const MenuItems = ({player, playlist, ...props}) => (
         numTracks={playlist.numTracks}
       />
     </ListItem>
-    <ListItem disabled>v{pkg.version}</ListItem>
+    <VersionItem>v{pkg.version}</VersionItem>
   </List>
 )
 
@@ -433,6 +433,11 @@ const PowerButton = styled(IconButton, {
 })(({ theme, isPowerOn }) => ({
   marginLeft: 'auto',
   color: isPowerOn ? theme.palette.text.primary : theme.palette.text.disabled,
+}))
+
+const VersionItem = styled(ListItem)(({ theme }) => ({
+  color: theme.palette.text.disabled,
+  fontSize: '0.85rem',
 }))
 
 const MainMenuRoot = styled('div')({
