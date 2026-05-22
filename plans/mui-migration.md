@@ -237,8 +237,8 @@ After **T4**:
       - [x] should not have have a border/outline
       - [x] should have constant width, elide player name if too long
     - sleep button
-      - has wrong icon, should use BedtimeRounded
-      - when sleep is cancelled the icon should be BedtimeOffRounded
+      - [x] has wrong icon, should use BedtimeRounded
+      - [x] when sleep is cancelled the icon should be BedtimeOffRounded
       - does not cancel fade on hover
       - [x] menu styling weirdness (removed ListItemButton nesting)
     - [x] power button is blue when turned on, should be gray

@@ -17,7 +17,8 @@ import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import Toolbar from '@mui/material/Toolbar'
 import { styled } from '@mui/material/styles'
-import BedRounded from '@mui/icons-material/BedRounded'
+import BedtimeOffRounded from '@mui/icons-material/BedtimeOffRounded'
+import BedtimeRounded from '@mui/icons-material/BedtimeRounded'
 import CloseRounded from '@mui/icons-material/CloseRounded'
 import FastForwardRounded from '@mui/icons-material/FastForwardRounded'
 import FastRewindRounded from '@mui/icons-material/FastRewindRounded'
@@ -401,7 +402,9 @@ const SleepDropdown = ({player, playctl}) => {
           onClick={event => setAnchorEl(event.currentTarget)}
           size="small"
         >
-          <BedRounded fontSize="large" />
+          {player.sleep
+            ? <BedtimeRounded fontSize="large" />
+            : <BedtimeOffRounded fontSize="large" />}
         </IconButton>
       </Fade>
       <Menu
