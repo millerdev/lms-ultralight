@@ -253,8 +253,8 @@ After **T4**:
       - [x] should have margins around border
       - [x] should have 1px border/outline when focused
     - bread crumb nav links
-      - text is too small, does not match style of other text
-      - links should not be underlined
+      - [x] text is too small, does not match style of other text
+      - [x] links should not be underlined
     - search results
       - heading link styles do not match other menu items
         - should not have underline

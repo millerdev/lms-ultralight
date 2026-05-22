@@ -489,13 +489,13 @@ export class SearchInput extends React.Component {
 export class BrowserHistory extends React.PureComponent {
   navItems(nav, active=true) {
     if (!nav) {
-      return [{key: "0", content: <Link to={this.props.basePath}>Menu</Link>}]
+      return [{key: "0", content: <NavLink to={this.props.basePath}>Menu</NavLink>}]
     }
     const items = this.navItems(nav.previous, false)
     const to = getPath(nav.pathspec)
     items.push({
       key: String(items.length),
-      content: active ? nav.name : <Link to={to} state={{nav}}>{nav.name}</Link>,
+      content: active ? nav.name : <NavLink to={to} state={{nav}}>{nav.name}</NavLink>,
       active,
     })
     return items
@@ -504,10 +504,7 @@ export class BrowserHistory extends React.PureComponent {
     const {nav} = this.props.state || {}
     return !nav && !this.props.result ? null : (
       <Paper elevation={0} sx={{ padding: 1, marginY: 1 }}>
-        <Breadcrumbs
-          separator={<NavigateNextRounded fontSize="small" />}
-          sx={{ fontSize: '0.85em' }}
-        >
+        <Breadcrumbs separator={<NavigateNextRounded fontSize="small" />}>
           {this.navItems(nav).map(section =>
             <Box key={section.key}>{section.content}</Box>
           )}
@@ -834,4 +831,12 @@ const SearchTextField = styled(TextField)({
 
 const SearchContainer = styled('div')(({ theme }) => ({
   padding: theme.spacing(0.5, 1),
+}))
+
+const NavLink = styled(Link)(({ theme }) => ({
+  textDecoration: 'none',
+  color: theme.palette.text.primary,
+  '&:visited': {
+    color: theme.palette.text.primary,
+  },
 }))
