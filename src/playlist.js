@@ -762,19 +762,8 @@ export class PlaylistItem extends React.Component {
         draggable
       >
         <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 0, gap: 1 }}>
-          <Box sx={{
-            flex: '1 1 auto',
-            minWidth: 0,
-            display: smallScreen ? 'flex' : 'block',
-            alignItems: 'center',
-            gap: smallScreen ? 1 : 0,
-            ...(smallScreen ? {} : {
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }),
-          }}>
-            <Box component="span" sx={{ marginRight: smallScreen ? 0 : 0.5, flex: '0 0 auto' }}>
+          <TrackInfoRow>
+            <IconWrapper>
               <TrackInfoIcon
                 item={item}
                 activeIcon={props.activeIcon}
@@ -782,9 +771,9 @@ export class PlaylistItem extends React.Component {
                 onClick={this.onToggleInfo}
                 smallScreen={smallScreen}
               />
-            </Box>
+            </IconWrapper>
             <SongTitle item={item} smallScreen={smallScreen} />
-          </Box>
+          </TrackInfoRow>
           <Box
             className={props.touching ? "drag-handle" : ""}
             sx={{ flex: '0 0 auto', marginLeft: 1 }}
@@ -820,25 +809,19 @@ export class PlaylistItem extends React.Component {
 
 const SongTitle = ({item, smallScreen}) => {
   const {artist, title, tracknum} = item
-  const track = tracknum ? <Box component="span" sx={{ opacity: 0.44 }}>{tracknum + " "}</Box> : ""
+  const track = tracknum ? <TrackNum>{tracknum + " "}</TrackNum> : ""
   if (smallScreen) {
-    const ellipsis = {
-      whiteSpace: 'nowrap',
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      lineHeight: 'normal',
-    }
-    return <Box sx={{ minWidth: 0, flex: '1 1 auto' }}>
-      <Box sx={ellipsis}>{track}{title}</Box>
-      <Box sx={{ ...ellipsis, opacity: 0.44 }}>{artist}</Box>
-    </Box>
+    return <SongTitleSmallEl>
+      <TitleLine>{track}{title}</TitleLine>
+      <ArtistLine>{artist}</ArtistLine>
+    </SongTitleSmallEl>
   }
   const spacer = artist && (tracknum || title) ? " - " : ""
-  return <span>
+  return <SongTitleEl>
     <span>{artist + spacer}</span>
     {track}
     <span>{title}</span>
-  </span>
+  </SongTitleEl>
 }
 
 
@@ -884,3 +867,50 @@ function playlistSaver(afterSave) {
   />
   return {load}
 }
+
+const TrackInfoRow = styled(Box)(({ theme }) => ({
+  flex: '1 1 auto',
+  minWidth: 0,
+  display: 'flex',
+  alignItems: 'center',
+  [theme.breakpoints.down('sm')]: {
+    gap: theme.spacing(1),
+  },
+}))
+
+const IconWrapper = styled('span')(({ theme }) => ({
+  flex: '0 0 auto',
+  [theme.breakpoints.up('sm')]: {
+    marginRight: theme.spacing(0.5),
+  },
+}))
+
+const ELLIPSIS = {
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+}
+
+const SongTitleEl = styled('span')({
+  display: 'block',
+  minWidth: 0,
+  ...ELLIPSIS,
+})
+
+const SongTitleSmallEl = styled('div')({
+  minWidth: 0,
+  flex: '1 1 auto',
+})
+
+const TitleLine = styled('div')({
+  ...ELLIPSIS,
+  lineHeight: 'normal',
+})
+
+const ArtistLine = styled(TitleLine)({
+  opacity: 0.44,
+})
+
+const TrackNum = styled('span')({
+  opacity: 0.44,
+})
