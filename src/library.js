@@ -3,6 +3,7 @@ import qs from 'query-string'
 import React from 'react'
 import { Link, matchPath, useLocation, useNavigate } from 'react-router-dom'
 import Box from '@mui/material/Box'
+import { styled } from '@mui/material/styles'
 import Breadcrumbs from '@mui/material/Breadcrumbs'
 import CircularProgress from '@mui/material/CircularProgress'
 import InputAdornment from '@mui/material/InputAdornment'
@@ -401,14 +402,16 @@ export const MediaBrowser = props => {
   const navigate = useNavigate()
   return (
     <div>
-      <SearchInput
-        location={location}
-        navigate={navigate}
-        basePath={props.basePath}
-        dispatch={props.dispatch}
-        isLoading={props.isLoading}
-        menuDidShow={props.menuDidShow}
-      />
+      <SearchContainer>
+        <SearchInput
+          location={location}
+          navigate={navigate}
+          basePath={props.basePath}
+          dispatch={props.dispatch}
+          isLoading={props.isLoading}
+          menuDidShow={props.menuDidShow}
+        />
+      </SearchContainer>
       <BrowserHistory
         state={location.state}
         result={props.result}
@@ -817,3 +820,7 @@ export class MediaItem extends React.Component {
     </TouchList.Item>
   }
 }
+
+const SearchContainer = styled('div')(({ theme }) => ({
+  padding: theme.spacing(0.5, 1),
+}))
