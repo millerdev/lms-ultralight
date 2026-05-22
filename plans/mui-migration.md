@@ -234,28 +234,30 @@ After **T4**:
     - [x] has light gray color, should be white
     - [x] buttons have round hover highlight, should be square, full height
     - player selector
-      - should not have have a border/outline
-      - should have constant width, elide player name if too long
+      - [x] should not have have a border/outline
+      - [x] should have constant width, elide player name if too long
     - sleep button
-      - has wrong icon?
+      - has wrong icon, should use BedtimeRounded
+      - when sleep is cancelled the icon should be BedtimeOffRounded
       - does not cancel fade on hover
-      - menu styling weirdness
-    - power button is blue when turned on - should be black? or have gray bg?
-    - play progress is below the bar, should be just above bottom border
+      - [x] menu styling weirdness (removed ListItemButton nesting)
+    - [x] power button is blue when turned on, should be gray
+    - [x] play progress is below the bar, should be just above bottom border
   - sidebar
-    - does not shift main content when closed
-    - main menu items and search box do not use full menu width
+    - appears above the drop shadow and border of the top bar
+    - [x] does not shift main content when closed
+    - [x] main menu items and search box do not use full menu width
     - search box
-      - should have margins around border
-      - should have 1px border/outline?
-    - version number in main menu should be light gray (deemphasized compared to clickable buttons)
+      - [x] should have margins around border
+      - should have 1px border/outline when focused
+    - [x] version number in main menu should be light gray
     - hover buttons
-      - are transparent, underlying text bleeds through (should not)
-      - content width can push them out beyond edge of sidebar, but they should always be aligned with the right edge
+      - [x] are transparent, underlying text bleeds through (should not)
+      - [x] content width can push them out beyond edge of sidebar
   - lower-right control menu
-    - fix button position on small screen
-    - fix menu position on small screen
-    - fix button layout in menu
+    - [x] fix button position on small screen
+    - [x] fix menu position on small screen
+    - [x] fix button layout in menu
 
 - tablet screen
   - TODO
