@@ -230,6 +230,7 @@ After **T4**:
 - adjust styling to work with MUI default line-height of 1.5
 
 - large screen
+  - line height is too large. But do not change it on smaller screens
   - top bar
     - [x] has light gray color, should be white
     - [x] buttons have round hover highlight, should be square, full height
@@ -250,8 +251,17 @@ After **T4**:
     - search box
       - [x] should have margins around border
       - [x] should have 1px border/outline when focused
+    - bread crumb nav links
+      - text is too small, does not match style of other text
+      - links should not be underlined
+    - search results
+      - heading link styles do not match other menu items
+        - should not have underline
+        - blue text
+        - no left margin/padding
     - [x] version number in main menu should be light gray
     - hover buttons
+      - have a white background that extends to the bottom of the menu item (should be transparent)
       - [x] are transparent, underlying text bleeds through (should not)
       - [x] content width can push them out beyond edge of sidebar
   - lower-right control menu
@@ -263,7 +273,13 @@ After **T4**:
   - TODO
 
 - phone screen
+  - search bar is not visible in menu (is it under the power bar?)
+  - menu (sidebar on large screen)
+    - hover buttons
+      - size is right
+      - have a white background that extends to the bottom of the menu item (should be transparent)
   - playlist
+    - line height is just right
     - does not scroll to correct position when player UI is visible after reload?
       - works correctly if switch to large screen and then back
   - TODO
