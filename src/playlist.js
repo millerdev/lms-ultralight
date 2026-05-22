@@ -761,7 +761,7 @@ export class PlaylistItem extends React.Component {
         setItemRef={props.setItemRef}
         draggable
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 0, gap: 1 }}>
+        <PlaylistItemRow>
           <TrackInfoRow>
             <IconWrapper>
               <TrackInfoIcon
@@ -774,14 +774,11 @@ export class PlaylistItem extends React.Component {
             </IconWrapper>
             <SongTitle item={item} smallScreen={smallScreen} />
           </TrackInfoRow>
-          <Box
-            className={props.touching ? "drag-handle" : ""}
-            sx={{ flex: '0 0 auto', marginLeft: 1 }}
-          >
+          <DurationBox className={props.touching ? "drag-handle" : ""}>
             {formatTime(item.duration || 0)}
             {props.touching ? <DragHandle /> : ""}
-          </Box>
-        </Box>
+          </DurationBox>
+        </PlaylistItemRow>
         { this.state.expanded ?
           <Paper
             variant="outlined"
@@ -868,6 +865,16 @@ function playlistSaver(afterSave) {
   return {load}
 }
 
+const PlaylistItemRow = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  minWidth: 0,
+  gap: theme.spacing(1),
+  [theme.breakpoints.down('sm')]: {
+    alignItems: 'flex-start',
+  },
+}))
+
 const TrackInfoRow = styled(Box)(({ theme }) => ({
   flex: '1 1 auto',
   minWidth: 0,
@@ -875,6 +882,17 @@ const TrackInfoRow = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   [theme.breakpoints.down('sm')]: {
     gap: theme.spacing(1),
+  },
+}))
+
+const DurationBox = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  flex: '0 0 auto',
+  marginLeft: theme.spacing(1),
+  [theme.breakpoints.down('sm')]: {
+    alignItems: 'flex-start',
+    lineHeight: 'normal',
   },
 }))
 
