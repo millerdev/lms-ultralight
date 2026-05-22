@@ -797,11 +797,9 @@ const TouchListItemEl = styled('div')(({ theme }) => ({
   '& .playlist-controls': {
     position: 'absolute',
     zIndex: 5,
-    right: 0,
+    right: theme.spacing(0.25),
     top: 0,
-    bottom: 0,
     display: 'none',
-    backgroundColor: theme.palette.background.paper,
   },
   '&:hover .playlist-controls': {
     display: 'block',

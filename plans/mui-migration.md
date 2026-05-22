@@ -266,8 +266,8 @@ After **T4**:
         - should use light text color on hover - use common nav link style
     - [x] version number in main menu should be light gray
     - hover buttons
-      - have a white background that extends to the bottom of the menu item (should be transparent)
-      - should have small right margin, don't slam against sideabar edge
+      - [x] have a white background that extends to the bottom of the menu item (should be transparent)
+      - [x] should have small right margin, don't slam against sideabar edge
       - [x] are transparent, underlying text bleeds through (should not)
       - [x] content width can push them out beyond edge of sidebar
   - lower-right control menu
@@ -282,8 +282,8 @@ After **T4**:
   - search bar is not visible in menu (is it under the power bar?)
   - menu (sidebar on large screen)
     - hover buttons
-      - size is right
-      - have a white background that extends to the bottom of the menu item (should be transparent)
+      - [x] size is right
+      - [x] have a white background that extends to the bottom of the menu item (should be transparent)
   - playlist
     - line height is just right
     - does not scroll to correct position when player UI is visible after reload?
