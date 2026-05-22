@@ -2,6 +2,7 @@ import _ from 'lodash'
 import React from 'react'
 import MenuItem from '@mui/material/MenuItem'
 import Select from '@mui/material/Select'
+import { styled } from '@mui/material/styles'
 
 import * as lms from './lmsclient'
 
@@ -43,7 +44,7 @@ export function loadPlayers(dispatch) {
 const maybeLoadPlayers = _.throttle(loadPlayers, 30000, {trailing: false})
 
 export const SelectPlayer = props => (
-  <Select
+  <PlayerSelect
     value={props.playerid || ""}
     onChange={(event) => props.onPlayerSelected(event.target.value)}
     onOpen={() => maybeLoadPlayers(props.dispatch)}
@@ -61,5 +62,14 @@ export const SelectPlayer = props => (
     {_.map(props.players, item => (
       <MenuItem key={item.playerid} value={item.playerid}>{item.name}</MenuItem>
     ))}
-  </Select>
+  </PlayerSelect>
 )
+
+const PlayerSelect = styled(Select)({
+  width: 140,
+  '& .MuiSelect-select': {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+})

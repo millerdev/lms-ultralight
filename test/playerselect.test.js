@@ -1,7 +1,6 @@
 import React from 'react'
 import { shallow } from 'enzyme'
 import MenuItem from '@mui/material/MenuItem'
-import Select from '@mui/material/Select'
 
 import * as mod from '../src/playerselect'
 
@@ -55,7 +54,7 @@ describe('playerselect', function () {
           players={PLAYERS}
           error={true}
           />)
-      assert.equal(dom.find(Select).prop('error'), true)
+      assert.equal(dom.prop('error'), true)
     })
   })
 })
