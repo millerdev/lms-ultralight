@@ -14,12 +14,12 @@ Semantic UI React is no longer maintained. This project (https://github.com/mill
 
 ## Process and historical context
 
-- Look at the commits on the `mui-migration-take2` branch since commit a8eab398cb29446f0a914221c86c486887683130 for context on how this migration has been approached in the past. That was a messy attempt. Take a cleaner approach this time where we have a clear indication of progress and next steps if the work needs to be paused at any time along the way.
-- Many component layout styles have been moved into the theme. This is the wrong approach. Instead move them into `styled` components. Example commit: "theme: localize hover-icon interactions" git:d05b295e7ff79edea63ab47482d11a102ce14460
+- Look at commits on the mui-migration branch for context on what has been done so far. Take a clean approach where we have a clear indication of progress and next steps if the work needs to be paused at any time along the way.
+- Prefer putting styles in `styled` components over putting them in the theme. Avoid `sx=...` styles; absolutely do not use them in logic components
 
 Make a plan of the approach first, then pause for adjustments before commencing with the migration.
 
-## Current state (verified on `main` @ `a8eab39`)
+## Initial state (verified on `main` @ `a8eab39`)
 
 - **Deps**: `semantic-ui-react ^2.1.5`, `semantic-ui-css ^2.4.1`. No MUI, no emotion, no styled-components.
 - **7 files import `semantic-ui-react`** (17 distinct components used):
