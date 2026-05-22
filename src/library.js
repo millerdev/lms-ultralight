@@ -245,7 +245,7 @@ export const mediaNav = (item, navigate, basePath, previous) => {
   }
   const to = getPath(nav.pathspec)
   return {
-    link: () => <Link to={to} state={{nav}}>{nav.name}</Link>,
+    link: () => <NavLink to={to} state={{nav}}>{nav.name}</NavLink>,
     show: () => navigate(to, {state: {nav}}),
   }
 }
@@ -766,7 +766,7 @@ export const MediaHeader = ({sector, location, basePath}) => {
     const path = getPath(pathspec)
     const nav = {name: sector.title, pathspec, previous}
     const to = {...pathspec, state: {nav}}
-    return <SectionLink to={to} href={path}>{sector.title}</SectionLink>
+    return <NavLink to={to} href={path}>{sector.title}</NavLink>
   }
   return (
     <MediaHeaderRoot>
@@ -843,14 +843,12 @@ const NavLink = styled(Link)(({ theme }) => ({
   '&:visited': {
     color: theme.palette.text.primary,
   },
+  '&:hover': {
+    color: theme.palette.text.secondary,
+  },
 }))
 
 const MediaHeaderRoot = styled('div')(({ theme }) => ({
   fontWeight: 600,
   padding: theme.spacing(1, 1),
 }))
-
-const SectionLink = styled(Link)({
-  textDecoration: 'none',
-  color: 'inherit',
-})

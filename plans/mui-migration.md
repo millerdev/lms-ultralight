@@ -257,13 +257,13 @@ After **T4**:
       - [x] text is too small, does not match style of other text
       - [x] links should not be underlined
       - [x] top margin is too big, should be closer to search box
-      - should use light text color on hover - add common nav link style
+      - [x] should use light text color on hover - add common nav link style
     - search results
       - [x] heading link styles do not match other menu items
         - [x] should not have underline
         - [x] blue text
         - [x] left padding should match list items
-        - should use light text color on hover - use common nav link style
+        - [x] should use light text color on hover - use common nav link style
     - [x] version number in main menu should be light gray
     - hover buttons
       - [x] have a white background that extends to the bottom of the menu item (should be transparent)
