@@ -56,7 +56,9 @@ export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ..
       <Toaster messages={messages} onHideError={onHideError} />
       { smallScreen ?
         <Routes>
-          <Route path="/menu/*" element={<MenuItems {...props} />} />
+          <Route path="/menu/*" element={
+            <SmallScreenMenu><MenuItems {...props} /></SmallScreenMenu>
+          } />
           <Route path="*" element={
             <div>
               <MainView {...props} smallScreen />
@@ -468,3 +470,7 @@ const MainMenuRoot = styled('div')(({ theme }) => ({
     top: 0,
   },
 }))
+
+const SmallScreenMenu = styled('div')({
+  paddingTop: TOOLBAR_HEIGHT,
+})

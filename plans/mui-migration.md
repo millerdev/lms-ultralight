@@ -283,7 +283,7 @@ After **T4**:
   - TODO
 
 - phone screen
-  - search box is not visible in menu (is it under the power bar?)
+  - [x] search box is not visible in menu (is it under the power bar?)
   - menu (sidebar on large screen)
     - not enough space between icon and menu item text
     - hover buttons
