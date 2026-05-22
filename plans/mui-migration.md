@@ -252,17 +252,22 @@ After **T4**:
     - search box
       - [x] should have margins around border
       - [x] should have 1px border/outline when focused
-    - bread crumb nav links
+      - increase top margin (it's currently too close to top bar)
+    - breadcrumb nav links
       - [x] text is too small, does not match style of other text
       - [x] links should not be underlined
+      - top margin is too big, should be closer to search box
+      - should use light text color on hover - add common nav link style
     - search results
       - [x] heading link styles do not match other menu items
         - [x] should not have underline
         - [x] blue text
         - [x] left padding should match list items
+        - should use light text color on hover - use common nav link style
     - [x] version number in main menu should be light gray
     - hover buttons
       - have a white background that extends to the bottom of the menu item (should be transparent)
+      - should have small right margin, don't slam against sideabar edge
       - [x] are transparent, underlying text bleeds through (should not)
       - [x] content width can push them out beyond edge of sidebar
   - lower-right control menu
