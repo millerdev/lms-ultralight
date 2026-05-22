@@ -801,6 +801,9 @@ const TouchListItemEl = styled('div')(({ theme }) => ({
     top: 0,
     display: 'none',
   },
+  '& .playlist-controls .MuiButton-root.Mui-disabled': {
+    backgroundColor: theme.palette.grey[300],
+  },
   '&:hover .playlist-controls': {
     display: 'block',
   },

@@ -289,7 +289,7 @@ After **T4**:
     - hover buttons
       - [x] size is right
       - [x] have a white background that extends to the bottom of the menu item (should be transparent)
-      - disabled hover buttons should not be transparent, underlying text bleeds through
+      - [x] disabled hover buttons should not be transparent, underlying text bleeds through
   - playlist
     - line height is just right
     - does not scroll to correct position when player UI is visible after reload?
