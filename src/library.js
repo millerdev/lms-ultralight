@@ -503,13 +503,13 @@ export class BrowserHistory extends React.PureComponent {
   render() {
     const {nav} = this.props.state || {}
     return !nav && !this.props.result ? null : (
-      <Paper elevation={0} sx={{ padding: 1, marginY: 1 }}>
+      <BreadcrumbPaper elevation={0}>
         <Breadcrumbs separator={<NavigateNextRounded fontSize="small" />}>
           {this.navItems(nav).map(section =>
             <Box key={section.key}>{section.content}</Box>
           )}
         </Breadcrumbs>
-      </Paper>
+      </BreadcrumbPaper>
     )
   }
 }
@@ -830,7 +830,11 @@ const SearchTextField = styled(TextField)({
 })
 
 const SearchContainer = styled('div')(({ theme }) => ({
-  padding: theme.spacing(0.5, 1),
+  padding: theme.spacing(1, 1, 0),
+}))
+
+const BreadcrumbPaper = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(1),
 }))
 
 const NavLink = styled(Link)(({ theme }) => ({

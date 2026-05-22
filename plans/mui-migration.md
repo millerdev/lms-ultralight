@@ -252,11 +252,11 @@ After **T4**:
     - search box
       - [x] should have margins around border
       - [x] should have 1px border/outline when focused
-      - increase top margin (it's currently too close to top bar)
+      - [x] increase top margin (it's currently too close to top bar)
     - breadcrumb nav links
       - [x] text is too small, does not match style of other text
       - [x] links should not be underlined
-      - top margin is too big, should be closer to search box
+      - [x] top margin is too big, should be closer to search box
       - should use light text color on hover - add common nav link style
     - search results
       - [x] heading link styles do not match other menu items
