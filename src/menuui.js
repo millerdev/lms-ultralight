@@ -196,15 +196,14 @@ const PowerBar = props => {
           {...props.players} />
         { props.showPlayer && <PlayerBar {...props} /> }
         <SleepDropdown player={player} playctl={playctl} />
-        <IconButton
+        <PowerButton
           onClick={playctl.togglePower}
           disabled={!playctl.playerid}
-          color={player.isPowerOn ? 'primary' : 'default'}
           size="small"
-          sx={{ marginLeft: 'auto' }}
+          isPowerOn={player.isPowerOn}
         >
           <PowerSettingsNewRounded fontSize="large" />
-        </IconButton>
+        </PowerButton>
       </Toolbar>
       { props.showPlayer && <VolumeLevel value={player.volumeLevel} /> }
       { props.showPlayer && <SongProgress {...player} /> }
@@ -429,6 +428,13 @@ const SleepDropdown = ({player, playctl}) => {
     </>
   )
 }
+
+const PowerButton = styled(IconButton, {
+  shouldForwardProp: prop => prop !== 'isPowerOn',
+})(({ theme, isPowerOn }) => ({
+  marginLeft: 'auto',
+  color: isPowerOn ? theme.palette.text.primary : theme.palette.text.disabled,
+}))
 
 const MainMenuRoot = styled('div')({
   '& .progress-indicator': {
