@@ -177,12 +177,11 @@ const PowerBar = props => {
   const { playctl, player } = props
   const menuOpen = useMatch("/menu/*")
   return (
-    <AppBar
+    <PowerBarRoot
       position="fixed"
       color="default"
       className="power-bar"
       elevation={1}
-      sx={{ zIndex: 200 }}
     >
       <Toolbar variant="dense" disableGutters sx={{ gap: 1, paddingX: 1 }}>
         <IconButton component={Link} to={menuOpen ? "/" : "/menu"} size="small">
@@ -206,7 +205,7 @@ const PowerBar = props => {
       </Toolbar>
       { props.showPlayer && <VolumeLevel value={player.volumeLevel} /> }
       { props.showPlayer && <SongProgress {...player} /> }
-    </AppBar>
+    </PowerBarRoot>
   )
 }
 
@@ -433,6 +432,10 @@ const PowerButton = styled(IconButton, {
 })(({ theme, isPowerOn }) => ({
   marginLeft: 'auto',
   color: isPowerOn ? theme.palette.text.primary : theme.palette.text.disabled,
+}))
+
+const PowerBarRoot = styled(AppBar)(({ theme }) => ({
+  zIndex: theme.zIndex.drawer + 1,
 }))
 
 const VersionItem = styled(ListItem)(({ theme }) => ({

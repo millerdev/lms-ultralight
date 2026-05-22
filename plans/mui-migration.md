@@ -244,7 +244,7 @@ After **T4**:
     - [x] power button is blue when turned on, should be gray
     - [x] play progress is below the bar, should be just above bottom border
   - sidebar
-    - appears above the drop shadow and border of the top bar
+    - [x] appears above the drop shadow and border of the top bar
     - [x] does not shift main content when closed
     - [x] main menu items and search box do not use full menu width
     - search box
