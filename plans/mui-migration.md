@@ -270,6 +270,10 @@ After **T4**:
       - [x] should have small right margin, don't slam against sideabar edge
       - [x] are transparent, underlying text bleeds through (should not)
       - [x] content width can push them out beyond edge of sidebar
+  - track info screen
+    - play button should be on the left side of the song title
+    - info text spacing is wrong, line height too crowded
+    - download link should not have underline
   - lower-right control menu
     - [x] fix button position on small screen
     - [x] fix menu position on small screen
@@ -279,16 +283,17 @@ After **T4**:
   - TODO
 
 - phone screen
-  - search bar is not visible in menu (is it under the power bar?)
+  - search box is not visible in menu (is it under the power bar?)
   - menu (sidebar on large screen)
+    - not enough space between icon and menu item text
     - hover buttons
       - [x] size is right
       - [x] have a white background that extends to the bottom of the menu item (should be transparent)
+      - disabled hover buttons should not be transparent, underlying text bleeds through
   - playlist
     - line height is just right
     - does not scroll to correct position when player UI is visible after reload?
       - works correctly if switch to large screen and then back
-  - TODO
 
 
 **Goal**: refactor and simplify the code to use MUI conventions and defaults throughout.
