@@ -794,26 +794,28 @@ export class MediaItem extends React.Component {
         onDoubleClick={() => props.playOrEnqueue(item)}
         index={item.index}
         draggable>
-      <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
-        <Box sx={{ flex: '1 1 auto', minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <MediaItemRow>
+        <MediaItemContent>
           <TrackInfoIcon
             {...props}
             icon={item.type === "track" ? null : AddBoxRounded}
             onClick={props.mediaNav(item).show}
             smallScreen={smallScreen}
           />
-          <Box component="span" sx={{ marginLeft: smallScreen ? 0 : 1 }}>{item.title}</Box>
-          { smallScreen && secondaryInfo ?
-            <Box sx={{ opacity: 0.44 }}>{secondaryInfo}</Box> : null
-          }
-        </Box>
+          <MediaItemText>
+            <MediaItemTitle>{item.title}</MediaItemTitle>
+            {smallScreen && secondaryInfo &&
+              <MediaItemSecondary>{secondaryInfo}</MediaItemSecondary>
+            }
+          </MediaItemText>
+        </MediaItemContent>
         <Box className="playlist-controls tap-zone">
           <PlaylistButtons
             play={() => props.playItem(item)}
             playNext={props.playNext ? () => props.playNext(item) : null}
             addToPlaylist={() => props.addToPlaylist(item)} />
         </Box>
-      </Box>
+      </MediaItemRow>
     </TouchList.Item>
   }
 }
@@ -852,3 +854,38 @@ const MediaHeaderRoot = styled('div')(({ theme }) => ({
   fontWeight: 600,
   padding: theme.spacing(1, 1),
 }))
+
+const MediaItemRow = styled('div')({
+  display: 'flex',
+  alignItems: 'center',
+  minWidth: 0,
+})
+
+const MediaItemContent = styled('div')(({ theme }) => ({
+  flex: '1 1 auto',
+  minWidth: 0,
+  display: 'flex',
+  alignItems: 'center',
+  [theme.breakpoints.down('sm')]: {
+    alignItems: 'flex-start',
+  },
+}))
+
+const MediaItemText = styled('div')(({ theme }) => ({
+  flex: '1 1 auto',
+  minWidth: 0,
+  overflow: 'hidden',
+  [theme.breakpoints.up('sm')]: {
+    marginLeft: theme.spacing(1),
+  },
+}))
+
+const MediaItemTitle = styled('div')({
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+})
+
+const MediaItemSecondary = styled(MediaItemTitle)({
+  opacity: 0.44,
+})
