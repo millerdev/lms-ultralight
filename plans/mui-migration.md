@@ -256,10 +256,10 @@ After **T4**:
       - [x] text is too small, does not match style of other text
       - [x] links should not be underlined
     - search results
-      - heading link styles do not match other menu items
-        - should not have underline
-        - blue text
-        - no left margin/padding
+      - [x] heading link styles do not match other menu items
+        - [x] should not have underline
+        - [x] blue text
+        - [x] left padding should match list items
     - [x] version number in main menu should be light gray
     - hover buttons
       - have a white background that extends to the bottom of the menu item (should be transparent)

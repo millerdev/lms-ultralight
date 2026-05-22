@@ -766,12 +766,12 @@ export const MediaHeader = ({sector, location, basePath}) => {
     const path = getPath(pathspec)
     const nav = {name: sector.title, pathspec, previous}
     const to = {...pathspec, state: {nav}}
-    return <Link to={to} href={path}>{sector.title}</Link>
+    return <SectionLink to={to} href={path}>{sector.title}</SectionLink>
   }
   return (
-    <Box sx={{ fontWeight: 600, padding: theme => theme.spacing(1, 0) }}>
+    <MediaHeaderRoot>
       {getContent()}
-    </Box>
+    </MediaHeaderRoot>
   )
 }
 
@@ -840,3 +840,13 @@ const NavLink = styled(Link)(({ theme }) => ({
     color: theme.palette.text.primary,
   },
 }))
+
+const MediaHeaderRoot = styled('div')(({ theme }) => ({
+  fontWeight: 600,
+  padding: theme.spacing(1, 1),
+}))
+
+const SectionLink = styled(Link)({
+  textDecoration: 'none',
+  color: 'inherit',
+})
