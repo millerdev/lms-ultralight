@@ -12,7 +12,6 @@ import Fade from '@mui/material/Fade'
 import IconButton from '@mui/material/IconButton'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
-import ListItemButton from '@mui/material/ListItemButton'
 import ListSubheader from '@mui/material/ListSubheader'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
@@ -421,7 +420,7 @@ const SleepDropdown = ({player, playctl}) => {
               setAnchorEl(null)
             }}
           >
-            <ListItemButton sx={{ padding: 0 }}>{opt.label}</ListItemButton>
+            {opt.label}
           </MenuItem>
         ))}
       </Menu>
