@@ -11,7 +11,7 @@ import FastForwardRounded from '@mui/icons-material/FastForwardRounded'
 import FastRewindRounded from '@mui/icons-material/FastRewindRounded'
 import PauseRounded from '@mui/icons-material/PauseRounded'
 import PlayArrowRounded from '@mui/icons-material/PlayArrowRounded'
-import RemoveRounded from '@mui/icons-material/RemoveRounded'
+import MinimizeRounded from '@mui/icons-material/MinimizeRounded'
 import 'rc-slider/assets/index.css'
 
 import { drillable, RepeatShuffleGroup } from './components'
@@ -132,7 +132,7 @@ export const PlayerUI = props => {
         size="small"
         sx={{ float: "right" }}
       >
-        <RemoveRounded />
+        <MinimizeRounded />
       </IconButton>
     </CurrentTrackInfo>
     {props.children}
