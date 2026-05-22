@@ -249,7 +249,7 @@ After **T4**:
     - [x] main menu items and search box do not use full menu width
     - search box
       - [x] should have margins around border
-      - should have 1px border/outline when focused
+      - [x] should have 1px border/outline when focused
     - [x] version number in main menu should be light gray
     - hover buttons
       - [x] are transparent, underlying text bleeds through (should not)

@@ -471,7 +471,7 @@ export class SearchInput extends React.Component {
       : inputHasValue
         ? <CloseRounded sx={{ cursor: 'pointer' }} onClick={() => this.onClearSearch()} />
         : <SearchRounded />
-    return <TextField
+    return <SearchTextField
       inputRef={this.input}
       onChange={event => this.onSearch(event.target.value)}
       placeholder="Search..."
@@ -824,6 +824,12 @@ export class MediaItem extends React.Component {
 const MediaBrowserRoot = styled('div')({
   width: '100%',
   minWidth: 0,
+})
+
+const SearchTextField = styled(TextField)({
+  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+    borderWidth: 1,
+  },
 })
 
 const SearchContainer = styled('div')(({ theme }) => ({
