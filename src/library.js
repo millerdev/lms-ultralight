@@ -401,7 +401,7 @@ export const MediaBrowser = props => {
   const location = useLocation()
   const navigate = useNavigate()
   return (
-    <div>
+    <MediaBrowserRoot>
       <SearchContainer>
         <SearchInput
           location={location}
@@ -417,7 +417,7 @@ export const MediaBrowser = props => {
         result={props.result}
         basePath={props.basePath} />
       <BrowserItems {...props} location={location} />
-    </div>
+    </MediaBrowserRoot>
   )
 }
 
@@ -820,6 +820,11 @@ export class MediaItem extends React.Component {
     </TouchList.Item>
   }
 }
+
+const MediaBrowserRoot = styled('div')({
+  width: '100%',
+  minWidth: 0,
+})
 
 const SearchContainer = styled('div')(({ theme }) => ({
   padding: theme.spacing(0.5, 1),
