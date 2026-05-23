@@ -27,6 +27,18 @@ import { formatTime, timer } from './util'
 export const MediaInfo = (props, context) => {
   const mediaNav = props.mediaNav || context.mediaNav
   const item = props.item
+  const compact = props.imageSize === "tiny"
+  const buttons = props.button ||
+    <PlaylistButtons
+      play={() => props.playctl.playItems([item])}
+      playNext={() => props.playctl.playNext(item)}
+      addToPlaylist={() => props.playctl.addToPlaylist([item])}
+    />
+  const descriptions = _.map(["artist", "album"], key => _.has(item, key) ?
+    <Box className="media-info-description" key={key}>
+      {drillable(item, key, mediaNav)}
+    </Box> : ""
+  )
   return (
     <MediaInfoRoot>
       <Box className="media-info-header">
@@ -34,36 +46,37 @@ export const MediaInfo = (props, context) => {
           component="img"
           src={lms.getImageUrl(item)}
           className="media-info-image"
-          sx={{ width: props.imageSize === "tiny" ? 80 : 150 }}
+          sx={{ width: compact ? 80 : 150 }}
         />
-        <Box className="media-info-body">
-          <Box className="media-info-actions">
-            { props.onClose ?
-              <IconButton
-                onClick={props.onClose}
-                size="small"
-                aria-label="close"
-              >
-                <CloseRounded fontSize="small" />
-              </IconButton> : null
-            }
+        { compact ? (
+          <Box className="media-info-actions">{buttons}</Box>
+        ) : (
+          <Box className="media-info-body">
+            <Box className="media-info-actions">
+              { props.onClose ?
+                <IconButton
+                  onClick={props.onClose}
+                  size="small"
+                  aria-label="close"
+                >
+                  <CloseRounded fontSize="small" />
+                </IconButton> : null
+              }
+            </Box>
+            <Box className="media-info-title-row">
+              {buttons}
+              <Box className="media-info-title">{item.title}</Box>
+            </Box>
+            {descriptions}
           </Box>
-          <Box className="media-info-title-row">
-            { props.button ||
-              <PlaylistButtons
-                play={() => props.playctl.playItems([item])}
-                playNext={() => props.playctl.playNext(item)}
-                addToPlaylist={() => props.playctl.addToPlaylist([item])}
-              /> }
-            <Box className="media-info-title">{item.title}</Box>
-          </Box>
-          {_.map(["artist", "album"], key => _.has(item, key) ?
-            <Box className="media-info-description" key={key}>
-              {drillable(item, key, mediaNav)}
-            </Box> : ""
-          )}
-        </Box>
+        )}
       </Box>
+      { compact && (
+        <Box className="media-info-body">
+          <Box className="media-info-title">{item.title}</Box>
+          {descriptions}
+        </Box>
+      )}
       <Box className="media-info-details">
         <Backdrop
           open={props.isLoading || false}
@@ -387,8 +400,11 @@ const MediaInfoRoot = styled('div')(({ theme }) => ({
     position: 'relative',
   },
   '& .media-info-actions': {
+    // float: right applies in full mode (block context inside media-info-body);
+    // in compact mode (flex context inside media-info-header) float is ignored
+    // and marginLeft: auto pushes the buttons to the right.
     float: 'right',
-    marginLeft: theme.spacing(1),
+    marginLeft: 'auto',
   },
   '& .media-info-title-row': {
     display: 'flex',
