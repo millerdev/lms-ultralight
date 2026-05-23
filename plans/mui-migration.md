@@ -16,6 +16,7 @@ Semantic UI React is no longer maintained. This project (https://github.com/mill
 
 - Look at commits on the mui-migration branch for context on what has been done so far. Take a clean approach where we have a clear indication of progress and next steps if the work needs to be paused at any time along the way.
 - Prefer putting styles in `styled` components over putting them in the theme. Avoid `sx=...` styles; absolutely do not use them in logic components
+- Do one thing per commit, and allow me to review changes before committing.
 
 Make a plan of the approach first, then pause for adjustments before commencing with the migration.
 
@@ -271,10 +272,12 @@ After **T4**:
       - [x] are transparent, underlying text bleeds through (should not)
       - [x] content width can push them out beyond edge of sidebar
   - track info screen
-    - play button should be on the left side of the song title
+    - [x] play button should be on the left side of the song title
     - close button should be an X with no background or border
     - info text spacing is wrong, line height too crowded
     - download link should not have underline
+    - should be able to select text and right-click
+    - the top margin in the track info component is too big; the space to the right of the album artwork shoudl be the same as the space above, but it has more space above.
   - lower-right control menu
     - [x] fix button position on small screen
     - [x] fix menu position on small screen

@@ -47,14 +47,16 @@ export const MediaInfo = (props, context) => {
                 <CloseRounded fontSize="small" />
               </IconButton> : null
             }
+          </Box>
+          <Box className="media-info-title-row">
             { props.button ||
               <PlaylistButtons
                 play={() => props.playctl.playItems([item])}
                 playNext={() => props.playctl.playNext(item)}
                 addToPlaylist={() => props.playctl.addToPlaylist([item])}
               /> }
+            <Box className="media-info-title">{item.title}</Box>
           </Box>
-          <Box className="media-info-title">{item.title}</Box>
           {_.map(["artist", "album"], key => _.has(item, key) ?
             <Box className="media-info-description" key={key}>
               {drillable(item, key, mediaNav)}
@@ -386,10 +388,12 @@ const MediaInfoRoot = styled('div')(({ theme }) => ({
   },
   '& .media-info-actions': {
     float: 'right',
-    display: 'flex',
-    gap: theme.spacing(0.5),
-    alignItems: 'center',
     marginLeft: theme.spacing(1),
+  },
+  '& .media-info-title-row': {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: theme.spacing(1),
   },
   '& .media-info-title': {
     fontWeight: 600,
