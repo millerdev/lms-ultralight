@@ -794,12 +794,11 @@ export class PlaylistItem extends React.Component {
           </DurationBox>
         </PlaylistItemRow>
         { this.state.expanded ?
-          <Paper
+          <TrackInfoPaper
             variant="outlined"
             className="tap-zone no-drag"
             onClick={event => event.stopPropagation()}
             onDoubleClick={event => event.stopPropagation() && false}
-            sx={{ padding: 1, marginTop: 1 }}
           >
             <MediaInfo
               item={info || item}
@@ -811,7 +810,7 @@ export class PlaylistItem extends React.Component {
               }
               onClose={this.onCollapseInfo}
             />
-          </Paper> : null
+          </TrackInfoPaper> : null
         }
       </TouchList.Item>
     }}</MediaQuery>
@@ -956,3 +955,8 @@ const ArtistLine = styled(TitleLine)({
 const TrackNum = styled('span')({
   opacity: 0.44,
 })
+
+const TrackInfoPaper = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(1),
+  marginTop: theme.spacing(1),
+}))
