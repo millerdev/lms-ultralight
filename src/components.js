@@ -40,7 +40,10 @@ export const MediaInfo = (props, context) => {
     </Box> : ""
   )
   return (
-    <MediaInfoRoot>
+    <MediaInfoRoot
+      onContextMenu={e => e.stopPropagation()}
+      onMouseDown={allowMediaInfoTextSelection}
+    >
       <Box className="media-info-header">
         <Box
           component="img"
@@ -105,6 +108,18 @@ export const MediaInfo = (props, context) => {
 
 MediaInfo.contextTypes = {
   mediaNav: PropTypes.func,
+}
+
+function allowMediaInfoTextSelection(e) {
+  // Temporarily disable draggable on the nearest draggable ancestor while the
+  // mouse button is held, so the browser allows text selection instead of drag.
+  const draggable = e.currentTarget.closest('[draggable="true"]')
+  if (draggable) {
+    draggable.setAttribute('draggable', 'false')
+    document.addEventListener('mouseup', () => {
+      draggable.setAttribute('draggable', 'true')
+    }, { once: true })
+  }
 }
 
 
@@ -395,6 +410,8 @@ const MediaInfoCloseButton = styled(IconButton)({
 const MediaInfoRoot = styled('div')(({ theme }) => ({
   position: 'relative',
   marginTop: theme.spacing(2),
+  userSelect: 'text',
+  cursor: 'auto',
   '& .media-info-header': {
     display: 'flex',
     gap: theme.spacing(2),
@@ -425,7 +442,6 @@ const MediaInfoRoot = styled('div')(({ theme }) => ({
     fontSize: '1.2em',
   },
   '& .media-info-description': {
-    userSelect: 'text',
     marginTop: theme.spacing(0.25),
     [theme.breakpoints.up('sm')]: {
       marginTop: theme.spacing(1),

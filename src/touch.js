@@ -712,7 +712,7 @@ function makeSlider(touchlist) {
   }
   function dragStart(event, index) {
     const target = document.elementFromPoint(event.clientX, event.clientY)
-    if (hasClass(target, "no-drag")) {
+    if (target.closest(".no-drag")) {
       event.preventDefault()
       return
     }
