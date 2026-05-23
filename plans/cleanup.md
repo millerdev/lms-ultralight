@@ -6,7 +6,7 @@ The MUI migration is complete and the UI looks good. However, the migration intr
 
 ## Commits (in order)
 
-- [ ] **1** — Remove commented-out DevTools code
+- [x] **1** — Remove commented-out DevTools code
 - [ ] **2** — Fix inverted `ICON_STYLES` names in `TrackInfoIcon`
 - [ ] **3** — Replace `contextTypes` with `useContext`; remove dead `contextTypes`
 - [ ] **4** — Move minimize-button `sx` into `PlayerRoot`

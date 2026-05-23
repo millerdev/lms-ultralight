@@ -4,7 +4,6 @@ import { connect, Provider } from 'react-redux'
 import CssBaseline from '@mui/material/CssBaseline'
 import { ThemeProvider } from '@mui/material/styles'
 
-//import DevTools from './devtools'
 import { combine, split } from './effects'
 import * as menu from './menu'
 import * as player from './player'
@@ -49,9 +48,8 @@ const App = () => (
     <ThemeProvider theme={lightTheme}>
       <CssBaseline />
       <Router basename={basename} future={{v7_relativeSplatPath: true, v7_startTransition: true}}>
-        <MainMenu>
-          {/* <DevTools /> */}
-        </MainMenu>
+        <MainMenu />
+
       </Router>
     </ThemeProvider>
   </Provider>
