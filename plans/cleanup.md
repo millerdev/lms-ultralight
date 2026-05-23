@@ -17,7 +17,6 @@ The MUI migration is complete and the UI looks good. However, the migration intr
 - [ ] **9** — Move `PlaylistItem` info-panel `Paper sx` into `TrackInfoPaper`
 - [ ] **10** — Extract progress-bar color constants from `MainMenuRoot`
 - [ ] **11** — Use theme color for `TouchListItemEl` drop-indicator shadow
-- [ ] **12** — Remove redundant Sleep item from `BrowseMenu`
 
 ---
 
@@ -275,17 +274,11 @@ Replace with `theme.palette.text.primary`:
 
 ---
 
-### 12. Remove redundant Sleep item from `BrowseMenu`
-**File:** `src/library.js`
-
-`BrowseMenu` (line 647) has a `Sleep` item that hardcodes 15 minutes, annotated `/* temporary until long-press power button is implemented */`. The full `SleepDropdown` with all time options is now in the power bar. Remove the item entirely.
-
----
-
 ## Verification
 
-After each commit:
-- `npm run build` — build must pass (ESLint runs as part of build)
-- `npm test` — all 237 tests must pass
+- Pause before each commit, suggesting a commit message and waiting for review. User may make adjustments and will commit.
+- During the pause before each commit:
+  - `npm run build` — build must pass (ESLint runs as part of build)
+  - `npm test` — all 237 tests must pass
 
 For commits 3–9 (component rendering changes): manual smoke test in the browser to confirm affected areas render and behave identically to before.
