@@ -785,10 +785,10 @@ const TouchListItemEl = styled('div')(({ theme }) => ({
     backgroundColor: theme.palette.action.selected,
   },
   '&.dropBefore': {
-    boxShadow: 'inset 0 4px 3px -5px black',
+    boxShadow: `inset 0 4px 3px -5px ${theme.palette.text.primary}`,
   },
   '&.dropAfter': {
-    boxShadow: 'inset 0 -4px 3px -5px black',
+    boxShadow: `inset 0 -4px 3px -5px ${theme.palette.text.primary}`,
   },
   '& .drag-handle': {
     touchAction: 'none',

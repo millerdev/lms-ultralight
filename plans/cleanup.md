@@ -16,7 +16,7 @@ The MUI migration is complete and the UI looks good. However, the migration intr
 - [x] **8** — Move `ActionMenu` `sx` into styled components
 - [x] **9** — Move `PlaylistItem` info-panel `Paper sx` into `TrackInfoPaper`
 - [x] **10** — Extract progress-bar color constants from `MainMenuRoot`
-- [ ] **11** — Use theme color for `TouchListItemEl` drop-indicator shadow
+- [x] **11** — Use theme color for `TouchListItemEl` drop-indicator shadow
 
 ---
 
