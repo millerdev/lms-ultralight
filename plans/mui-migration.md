@@ -275,7 +275,7 @@ After **T4**:
     - [x] play button should be on the left side of the song title
     - [x] close button should be an X with no background or border
     - [x] info text spacing is wrong, line height too crowded
-    - download link should not have underline
+    - [x] download link should not have underline
     - should be able to select text and right-click
     - the top margin in the track info component is too big; the space to the right of the album artwork shoudl be the same as the space above, but it has more space above.
     - When displayed in the sidebar, media info has no left and right margins. Add some breathing room.

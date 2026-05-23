@@ -430,6 +430,9 @@ const MediaInfoRoot = styled('div')(({ theme }) => ({
     [theme.breakpoints.up('sm')]: {
       marginTop: theme.spacing(1),
     },
+    '& a': {
+      textDecoration: 'none',
+    },
   },
   '& .media-info-details': {
     position: 'relative',
