@@ -143,36 +143,27 @@ const MainView = props => {
     observerOptions: { box: 'border-box' },
   })
   return (
-    <Box className="mainview" sx={{ paddingTop: TOOLBAR_HEIGHT }}>
+    <MainViewBody className="mainview">
       { !props.miniPlayer &&
-        <Box
+        <FixedTop
           className="fixed-top"
           ref={ref}
-          sx={{
-            position: 'fixed',
-            top: `calc(${TOOLBAR_HEIGHT} - 1px)`,
-            width: props.fixedTopWidth || '100%',
-            paddingTop: 1,
-            backgroundColor: 'background.paper',
-            zIndex: 50,
-          }}
+          fixedWidth={props.fixedTopWidth || '100%'}
         >
           <PlayerRedux
             playctl={props.playctl}
             toggleMiniPlayer={props.toggleMiniPlayer}
           />
-        </Box>
+        </FixedTop>
       }
-      <Box
-        sx={{
-          marginTop: props.miniPlayer ? 0 : `${height || 0}px`,
-          paddingBottom: props.smallScreen && props.miniPlayer ? TOOLBAR_HEIGHT : 0,
-        }}
+      <MainContent
+        topOffset={props.miniPlayer ? 0 : (height || 0)}
+        hasBottomBar={props.smallScreen && props.miniPlayer}
       >
         <PlaylistRedux playctl={props.playctl} miniPlayer={props.miniPlayer} />
         {props.children}
-      </Box>
-    </Box>
+      </MainContent>
+    </MainViewBody>
   )
 }
 
@@ -474,3 +465,25 @@ const MainMenuRoot = styled('div')(({ theme }) => ({
 const SmallScreenMenu = styled('div')({
   paddingTop: TOOLBAR_HEIGHT,
 })
+
+const MainViewBody = styled(Box)({
+  paddingTop: TOOLBAR_HEIGHT,
+})
+
+const FixedTop = styled(Box, {
+  shouldForwardProp: prop => prop !== 'fixedWidth',
+})(({ theme, fixedWidth = '100%' }) => ({
+  position: 'fixed',
+  top: `calc(${TOOLBAR_HEIGHT} - 1px)`,
+  width: fixedWidth,
+  paddingTop: theme.spacing(1),
+  backgroundColor: theme.palette.background.paper,
+  zIndex: 50,
+}))
+
+const MainContent = styled(Box, {
+  shouldForwardProp: prop => prop !== 'topOffset' && prop !== 'hasBottomBar',
+})(({ topOffset = 0, hasBottomBar = false }) => ({
+  marginTop: topOffset,
+  paddingBottom: hasBottomBar ? TOOLBAR_HEIGHT : 0,
+}))
