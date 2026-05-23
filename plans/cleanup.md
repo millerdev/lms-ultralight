@@ -10,7 +10,7 @@ The MUI migration is complete and the UI looks good. However, the migration intr
 - [x] **2** — Fix inverted `ICON_STYLES` names in `TrackInfoIcon`
 - [x] **3** — Replace `contextTypes` with `useContext`; remove dead `contextTypes`
 - [x] **4** — Move minimize-button `sx` into `PlayerRoot`
-- [ ] **5** — Extract `DenseToolbar` to eliminate repeated Toolbar `sx`
+- [x] **5** — Extract `DenseToolbar` to eliminate repeated Toolbar `sx`
 - [ ] **6** — Move `SidebarMenu` layout `sx` into styled components
 - [ ] **7** — Move `PlayerBar` inline `sx` into styled components
 - [ ] **8** — Move `ActionMenu` `sx` into styled components

@@ -181,7 +181,7 @@ const PowerBar = props => {
       className="power-bar"
       elevation={1}
     >
-      <Toolbar variant="dense" disableGutters sx={{ gap: 1, paddingX: 1 }}>
+      <DenseToolbar>
         <IconButton component={Link} to={menuOpen ? "/" : "/menu"} size="small">
           <MenuRounded fontSize="large" />
         </IconButton>
@@ -200,7 +200,7 @@ const PowerBar = props => {
         >
           <PowerSettingsNewRounded fontSize="large" />
         </PowerButton>
-      </Toolbar>
+      </DenseToolbar>
       { props.showPlayer && <VolumeLevel value={player.volumeLevel} /> }
       { props.showPlayer && <SongProgress {...player} /> }
     </PowerBarRoot>
@@ -275,9 +275,9 @@ const PlayerBar = props => {
             borderTop: theme => `1px solid ${theme.palette.divider}`,
           }}
         >
-          <Toolbar variant="dense" disableGutters sx={{ gap: 1, paddingX: 1 }}>
+          <DenseToolbar>
             {controls}
-          </Toolbar>
+          </DenseToolbar>
           <SongProgress {...props.player} />
           <VolumeLevel value={props.player.volumeLevel} />
         </AppBar>
@@ -429,6 +429,12 @@ const SleepDropdown = ({player, playctl}) => {
     </>
   )
 }
+
+const DenseToolbar = styled(Toolbar)(({ theme }) => ({
+  gap: theme.spacing(1),
+  paddingInline: theme.spacing(1),
+}))
+DenseToolbar.defaultProps = { variant: 'dense', disableGutters: true }
 
 const PowerButton = styled(IconButton, {
   shouldForwardProp: prop => prop !== 'isPowerOn',
