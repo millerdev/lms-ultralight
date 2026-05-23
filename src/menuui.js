@@ -215,55 +215,30 @@ const PlayerBar = props => {
           <FastForwardRounded fontSize="large" />
         </IconButton>
       }
-      <Box
-        className="track-info"
-        onClick={props.toggleMiniPlayer}
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1,
-          flex: '1 1 auto',
-          minWidth: 0,
-          overflow: 'hidden',
-          cursor: 'pointer',
-        }}
-      >
-        <Box
-          component="img"
-          src={playctl.imageUrl}
-          sx={{ width: 32, height: 32, flex: '0 0 auto' }}
-        />
-        <Box sx={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <TrackInfoBox className="track-info" onClick={props.toggleMiniPlayer}>
+        <AlbumArtImg src={playctl.imageUrl} />
+        <TrackTextBox>
           <Box>{playctl.tags.title}</Box>
           <Box>{playctl.tags.artist} - {playctl.tags.album}</Box>
-        </Box>
-      </Box>
+        </TrackTextBox>
+      </TrackInfoBox>
       { (wide || props.bottom) && <VolumeGroup playctl={playctl} /> }
     </>
     if (props.bottom) {
       return (
-        <AppBar
-          position="fixed"
-          color="default"
-          elevation={0}
-          sx={{
-            top: 'auto',
-            bottom: 0,
-            borderTop: theme => `1px solid ${theme.palette.divider}`,
-          }}
-        >
+        <BottomAppBar position="fixed" color="default" elevation={0}>
           <DenseToolbar>
             {controls}
           </DenseToolbar>
           <SongProgress {...props.player} />
           <VolumeLevel value={props.player.volumeLevel} />
-        </AppBar>
+        </BottomAppBar>
       )
     }
     return (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <InlinePlayerBox>
         {controls}
-      </Box>
+      </InlinePlayerBox>
     )
   }}</MediaQuery>
 }
@@ -498,4 +473,39 @@ const PowerButton = styled(IconButton, {
 })(({ theme, isPowerOn }) => ({
   marginLeft: 'auto',
   color: isPowerOn ? theme.palette.text.primary : theme.palette.text.disabled,
+}))
+
+const TrackInfoBox = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(1),
+  flex: '1 1 auto',
+  minWidth: 0,
+  overflow: 'hidden',
+  cursor: 'pointer',
+}))
+
+const AlbumArtImg = styled('img')({
+  width: 32,
+  height: 32,
+  flex: '0 0 auto',
+})
+
+const TrackTextBox = styled(Box)({
+  minWidth: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+})
+
+const BottomAppBar = styled(AppBar)(({ theme }) => ({
+  top: 'auto',
+  bottom: 0,
+  borderTop: `1px solid ${theme.palette.divider}`,
+}))
+
+const InlinePlayerBox = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(1),
 }))
