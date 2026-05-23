@@ -125,7 +125,7 @@ export const PlayerUI = props => {
       <IconButton
         onClick={props.toggleMiniPlayer}
         size="small"
-        sx={{ float: "right" }}
+        className="minimize-button"
       >
         <MinimizeRounded />
       </IconButton>
@@ -160,6 +160,9 @@ const PlayerRoot = styled('div')(({ theme }) => ({
   },
   '& .repeat-shuffle': {
     marginLeft: 'auto',
+  },
+  '& .minimize-button': {
+    float: 'right',
   },
 }))
 
