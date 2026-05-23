@@ -298,7 +298,7 @@ const NWayButton = ({
 )
 
 export const TrackInfoIcon = React.memo(function TrackInfoIcon(props) {
-  const dims = props.smallScreen ? ICON_STYLES.big : ICON_STYLES.large
+  const dims = props.smallScreen ? ICON_STYLES.large : ICON_STYLES.small
   const icon = props.icon ? <props.icon sx={dims} /> : <InfoRounded sx={dims} />
   const activeIcon = props.activeIcon ? <props.activeIcon sx={dims} /> : null
   return <HoverIconContainer
@@ -321,8 +321,8 @@ export const TrackInfoIcon = React.memo(function TrackInfoIcon(props) {
 })
 
 const ICON_STYLES = {
-  big: { height: "36px", width: "36px" },
-  large: { height: "20px", width: "20px" },
+  large: { height: "36px", width: "36px" },
+  small: { height: "20px", width: "20px" },
 }
 
 export const DragHandle = () => (
