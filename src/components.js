@@ -427,6 +427,9 @@ const MediaInfoRoot = styled('div')(({ theme }) => ({
   '& .media-info-description': {
     userSelect: 'text',
     marginTop: theme.spacing(0.25),
+    [theme.breakpoints.up('sm')]: {
+      marginTop: theme.spacing(1),
+    },
   },
   '& .media-info-details': {
     position: 'relative',
