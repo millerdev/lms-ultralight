@@ -78,42 +78,19 @@ const SidebarMenu = (props) => {
     if (menuOpen) props.menuDidShow.fire()
   }, [menuOpen, props.menuDidShow])
   return (
-    <Box sx={{ display: 'flex' }}>
-      <Drawer
-        variant="persistent"
-        anchor="left"
-        open={menuOpen}
-        sx={{
-          width: DRAWER_WIDTH,
-          flexShrink: 0,
-          '& .MuiDrawer-paper': {
-            width: DRAWER_WIDTH,
-            boxSizing: 'border-box',
-            borderRight: theme => `1px solid ${theme.palette.divider}`,
-            top: TOOLBAR_HEIGHT,
-            height: `calc(100% - ${TOOLBAR_HEIGHT})`,
-          },
-        }}
-      >
+    <SidebarLayout>
+      <SidebarDrawer variant="persistent" anchor="left" open={menuOpen}>
         <MenuItems {...props} />
-      </Drawer>
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          minWidth: 0,
-          marginLeft: menuOpen ? 0 : `-${DRAWER_WIDTH}px`,
-          transition: theme => theme.transitions.create('margin-left'),
-        }}
-      >
+      </SidebarDrawer>
+      <SidebarMain component="main" menuOpen={menuOpen}>
         <MediaQuery up="md">{ wideScreen =>
           <MainView
             {...props}
             fixedTopWidth={wideScreen && menuOpen ? `calc(100% - ${DRAWER_WIDTH}px)` : '100%'}
           />
         }</MediaQuery>
-      </Box>
-    </Box>
+      </SidebarMain>
+    </SidebarLayout>
   )
 }
 
@@ -430,28 +407,6 @@ const SleepDropdown = ({player, playctl}) => {
   )
 }
 
-const DenseToolbar = styled(Toolbar)(({ theme }) => ({
-  gap: theme.spacing(1),
-  paddingInline: theme.spacing(1),
-}))
-DenseToolbar.defaultProps = { variant: 'dense', disableGutters: true }
-
-const PowerButton = styled(IconButton, {
-  shouldForwardProp: prop => prop !== 'isPowerOn',
-})(({ theme, isPowerOn }) => ({
-  marginLeft: 'auto',
-  color: isPowerOn ? theme.palette.text.primary : theme.palette.text.disabled,
-}))
-
-const PowerBarRoot = styled(AppBar)(({ theme }) => ({
-  zIndex: theme.zIndex.drawer + 1,
-}))
-
-const VersionItem = styled(ListItem)(({ theme }) => ({
-  color: theme.palette.text.disabled,
-  fontSize: '0.85rem',
-}))
-
 const MainMenuRoot = styled('div')(({ theme }) => ({
   [theme.breakpoints.up('sm')]: {
     lineHeight: 1,
@@ -476,6 +431,36 @@ const SmallScreenMenu = styled('div')({
   paddingTop: TOOLBAR_HEIGHT,
 })
 
+const SidebarLayout = styled(Box)({
+  display: 'flex',
+})
+
+const SidebarDrawer = styled(Drawer)(({ theme }) => ({
+  width: DRAWER_WIDTH,
+  flexShrink: 0,
+  '& .MuiDrawer-paper': {
+    width: DRAWER_WIDTH,
+    boxSizing: 'border-box',
+    borderRight: `1px solid ${theme.palette.divider}`,
+    top: TOOLBAR_HEIGHT,
+    height: `calc(100% - ${TOOLBAR_HEIGHT})`,
+  },
+}))
+
+const SidebarMain = styled(Box, {
+  shouldForwardProp: prop => prop !== 'menuOpen',
+})(({ theme, menuOpen }) => ({
+  flexGrow: 1,
+  minWidth: 0,
+  marginLeft: menuOpen ? 0 : `-${DRAWER_WIDTH}px`,
+  transition: theme.transitions.create('margin-left'),
+}))
+
+const VersionItem = styled(ListItem)(({ theme }) => ({
+  color: theme.palette.text.disabled,
+  fontSize: '0.85rem',
+}))
+
 const MainViewBody = styled(Box)({
   paddingTop: TOOLBAR_HEIGHT,
 })
@@ -496,4 +481,21 @@ const MainContent = styled(Box, {
 })(({ topOffset = 0, hasBottomBar = false }) => ({
   marginTop: topOffset,
   paddingBottom: hasBottomBar ? TOOLBAR_HEIGHT : 0,
+}))
+
+const PowerBarRoot = styled(AppBar)(({ theme }) => ({
+  zIndex: theme.zIndex.drawer + 1,
+}))
+
+const DenseToolbar = styled(Toolbar)(({ theme }) => ({
+  gap: theme.spacing(1),
+  paddingInline: theme.spacing(1),
+}))
+DenseToolbar.defaultProps = { variant: 'dense', disableGutters: true }
+
+const PowerButton = styled(IconButton, {
+  shouldForwardProp: prop => prop !== 'isPowerOn',
+})(({ theme, isPowerOn }) => ({
+  marginLeft: 'auto',
+  color: isPowerOn ? theme.palette.text.primary : theme.palette.text.disabled,
 }))

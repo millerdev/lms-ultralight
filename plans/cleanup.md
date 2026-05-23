@@ -11,7 +11,7 @@ The MUI migration is complete and the UI looks good. However, the migration intr
 - [x] **3** — Replace `contextTypes` with `useContext`; remove dead `contextTypes`
 - [x] **4** — Move minimize-button `sx` into `PlayerRoot`
 - [x] **5** — Extract `DenseToolbar` to eliminate repeated Toolbar `sx`
-- [ ] **6** — Move `SidebarMenu` layout `sx` into styled components
+- [x] **6** — Move `SidebarMenu` layout `sx` into styled components
 - [ ] **7** — Move `PlayerBar` inline `sx` into styled components
 - [ ] **8** — Move `ActionMenu` `sx` into styled components
 - [ ] **9** — Move `PlaylistItem` info-panel `Paper sx` into `TrackInfoPaper`
