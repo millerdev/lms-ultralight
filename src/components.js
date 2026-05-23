@@ -54,13 +54,14 @@ export const MediaInfo = (props, context) => {
           <Box className="media-info-body">
             <Box className="media-info-actions">
               { props.onClose ?
-                <IconButton
+                <MediaInfoCloseButton
                   onClick={props.onClose}
                   size="small"
                   aria-label="close"
+                  disableRipple
                 >
                   <CloseRounded fontSize="small" />
-                </IconButton> : null
+                </MediaInfoCloseButton> : null
               }
             </Box>
             <Box className="media-info-title-row">
@@ -380,6 +381,14 @@ const HoverIconContainer = styled('div')({
   },
   '&:hover .hover-icon-middle': {
     opacity: 1,
+  },
+})
+
+// && doubles the specificity to override the theme's MuiIconButton styleOverrides
+// which apply a gray background to all IconButtons unconditionally.
+const MediaInfoCloseButton = styled(IconButton)({
+  '&&': {
+    backgroundColor: 'transparent',
   },
 })
 
