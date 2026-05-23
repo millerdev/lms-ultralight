@@ -95,11 +95,18 @@ const shared = {
   },
 }
 
+const progressBar = {
+  base: '#96dbfa',
+  songTime: 'linear-gradient(to left, #74e3ec, #c7ffe2)',
+  volumeLevel: 'linear-gradient(to left, #ff6e56, #fffd86)',
+}
+
 export const lightTheme = createTheme({
   ...shared,
   palette: {
     mode: 'light',
     primary: { main: '#4183C4' },
+    progressBar,
   },
 })
 
@@ -108,5 +115,6 @@ export const darkTheme = createTheme({
   palette: {
     mode: 'dark',
     primary: { main: '#4183C4' },
+    progressBar,
   },
 })

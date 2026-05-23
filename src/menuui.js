@@ -390,14 +390,14 @@ const MainMenuRoot = styled('div')(({ theme }) => ({
     position: 'absolute',
     left: 0,
     height: 2,
-    backgroundColor: '#96dbfa',
+    backgroundColor: theme.palette.progressBar.base,
   },
   '& .song-time.progress-indicator': {
-    background: 'linear-gradient(to left, #74e3ec, #c7ffe2)',
+    background: theme.palette.progressBar.songTime,
     bottom: 0,
   },
   '& .volume-level.progress-indicator': {
-    background: 'linear-gradient(to left, #ff6e56, #fffd86)',
+    background: theme.palette.progressBar.volumeLevel,
     top: 0,
   },
 }))
