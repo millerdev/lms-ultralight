@@ -445,29 +445,48 @@ export class Playlist extends React.Component {
     this.shouldAutoScroll = true
     this.scrollBehavior = "instant"
     this.scrollTimer = timer()
+    this.playingItemRef = null
+    this._scrollTimeout = null
   }
   componentDidMount() {
     this.context.addKeydownHandler(8 /* backspace */, this.onDeleteItems)
     this.context.addKeydownHandler(46 /* delete */, this.onDeleteItems)
     this.context.addKeydownHandler(13 /* enter */, this.onEnterKey)
   }
+  componentDidUpdate(prevProps) {
+    if (prevProps.playerHeight !== this.props.playerHeight) {
+      // Adjust scroll position for MainContent topOffset change
+      const delta = (this.props.playerHeight || 0) - (prevProps.playerHeight || 0)
+      window.scrollBy({ top: delta, behavior: 'instant' })
+      if (this.shouldAutoScroll && this.playingItemRef) {
+        this._scheduleScroll()
+      }
+    }
+  }
   componentDidCatch(error, errorInfo) {
     window.console.error(error, errorInfo)
   }
   setPlayingItem = (ref) => {
+    this.playingItemRef = ref
     if (this.shouldAutoScroll && ref) {
-      setTimeout(() => {
-        window.scroll({
-          top: ref.offsetTop - ref.clientHeight - parseInt(TOOLBAR_HEIGHT),
-          left: 0,
-          behavior: this.scrollBehavior,
-        })
-        if (!this.shouldAutoLoad) {
-          this.scrollBehavior = "smooth"
-          setTimeout(() => this.shouldAutoLoad = true, 1000)
-        }
-      }, 0)
+      this._scheduleScroll()
     }
+  }
+  _scheduleScroll = () => {
+    clearTimeout(this._scrollTimeout)
+    this._scrollTimeout = setTimeout(() => {
+      const ref = this.playingItemRef
+      if (!ref) return
+      window.scroll({
+        top: ref.offsetTop - parseInt(TOOLBAR_HEIGHT) - (this.props.playerHeight || 0) - ref.clientHeight,
+        left: 0,
+        behavior: this.scrollBehavior,
+      })
+      if (!this.shouldAutoLoad) {
+        this.scrollBehavior = "smooth"
+        setTimeout(() => this.shouldAutoLoad = true, 1000)
+      }
+    }, 0)
   }
   pauseAutoScroll = (timeout=TWO_MINUTES) => {
     this.shouldAutoScroll = false

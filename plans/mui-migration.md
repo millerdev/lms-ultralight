@@ -272,6 +272,7 @@ After **T4**:
       - [x] content width can push them out beyond edge of sidebar
   - track info screen
     - play button should be on the left side of the song title
+    - close button should be an X with no background or border
     - info text spacing is wrong, line height too crowded
     - download link should not have underline
   - lower-right control menu
@@ -291,9 +292,9 @@ After **T4**:
       - [x] have a white background that extends to the bottom of the menu item (should be transparent)
       - [x] disabled hover buttons should not be transparent, underlying text bleeds through
   - playlist
-    - line height is just right
-    - does not scroll to correct position when player UI is visible after reload?
-      - works correctly if switch to large screen and then back
+    - [x] line height is just right
+    - [x] does not scroll to correct position when player UI is visible after reload?
+          works correctly if switch to large screen and then back
 
 
 **Goal**: refactor and simplify the code to use MUI conventions and defaults throughout.

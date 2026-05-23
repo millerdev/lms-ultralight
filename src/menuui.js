@@ -160,7 +160,11 @@ const MainView = props => {
         topOffset={props.miniPlayer ? 0 : (height || 0)}
         hasBottomBar={props.smallScreen && props.miniPlayer}
       >
-        <PlaylistRedux playctl={props.playctl} miniPlayer={props.miniPlayer} />
+        <PlaylistRedux
+          playctl={props.playctl}
+          miniPlayer={props.miniPlayer}
+          playerHeight={props.miniPlayer ? 0 : (height || 0)}
+        />
         {props.children}
       </MainContent>
     </MainViewBody>
