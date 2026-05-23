@@ -30,7 +30,15 @@ const shared = {
         disableElevation: true,
       },
       styleOverrides: {
-        root: ({ theme }) => ({
+        root: ({ theme }) => {
+          const dark = theme.palette.mode === 'dark'
+          const bgHover = dark ? theme.palette.grey[600] : theme.palette.grey[400]
+          return {
+          '&.MuiButton-colorInherit.MuiButton-contained': {
+            '@media (hover: hover)': {
+              '&:hover': { '--variant-containedBg': bgHover },
+            },
+          },
           '&.MuiButton-contained:active': {
             backgroundColor: theme.palette.grey[500],
           },
@@ -42,7 +50,7 @@ const shared = {
             },
             '&:active': { '--variant-containedBg': theme.palette.action.selected },
           },
-        }),
+        }},
       },
     },
     MuiButtonGroup: {
