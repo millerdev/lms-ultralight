@@ -231,7 +231,7 @@ _.each(MEDIA_INFO, item => {
 export const PlaylistButtons = props => {
   const className = _.filter(["playlist-buttons", props.className]).join(" ")
   return (
-    <ButtonGroup
+    <PlaylistButtonGroup
       size="small"
       onClick={event => event.stopPropagation()}
       className={className}
@@ -249,7 +249,7 @@ export const PlaylistButtons = props => {
       <Button onClick={props.addToPlaylist} aria-label="add to playlist">
         <AddRounded fontSize="small" />
       </Button>
-    </ButtonGroup>
+    </PlaylistButtonGroup>
   )
 }
 
@@ -405,6 +405,14 @@ const HoverIconContainer = styled('div')({
 const MediaInfoCloseButton = styled(IconButton)({
   '&&': {
     backgroundColor: 'transparent',
+  },
+})
+
+// ButtonGroup adds a border between each button as a divider. PlaylistButtons
+// are small icon buttons where the dividers are visually noisy — remove them.
+const PlaylistButtonGroup = styled(ButtonGroup)({
+  '&& .MuiButtonGroup-grouped:not(:last-of-type)': {
+    borderRight: 'none',
   },
 })
 
