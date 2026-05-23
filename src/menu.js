@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import React from 'react'
-import DocumentTitle from 'react-document-title'
 
 import { combine, effect, split, IGNORE_ACTION } from './effects'
 import { MenuContext } from './menucontext'
@@ -62,7 +61,12 @@ export class MainMenu extends React.Component {
     this.keydownHandlers = {}
     this.didShow = createEventForwarder()
   }
+  getTitle() {
+    const tags = this.props.playlist.currentTrack || {}
+    return _.filter([tags.title, tags.artist, "Ultralight"]).join(" - ")
+  }
   componentDidMount() {
+    document.title = this.getTitle()
     document.addEventListener("keydown", event => this.onKeyDown(event))
     players.loadPlayers(this.props.dispatch).then(data => {
       let playerid = localStorage.currentPlayer
@@ -109,13 +113,14 @@ export class MainMenu extends React.Component {
     localStorage.currentPlayer = playerid
     loadPlayer(playerid, true).then(this.props.dispatch)
   }
+  componentDidUpdate() {
+    document.title = this.getTitle()
+  }
   onHideError = () => {
     this.props.dispatch(actions.hideOperationError())
   }
   render() {
     const {menu, children, ...props} = this.props
-    const tags = props.playlist.currentTrack || {}
-    const title = _.filter([tags.title, tags.artist, "Ultralight"]).join(" - ")
     const context = {
       addKeydownHandler: this.addKeydownHandler,
       mediaNav: this.mediaNav,
@@ -135,9 +140,7 @@ export class MainMenu extends React.Component {
           toggleMiniPlayer={this.toggleMiniPlayer}
           menuDidShow={this.didShow}
         >
-          <DocumentTitle title={title}>
-            {children}
-          </DocumentTitle>
+          {children}
         </MainMenuUI>
       </MenuContext.Provider>
     )
