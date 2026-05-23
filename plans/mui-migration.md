@@ -278,7 +278,7 @@ After **T4**:
     - [x] download link should not have underline
     - [x] should be able to select text and right-click
     - [x] the top margin in the track info component is too big; the space to the right of the album artwork shoudl be the same as the space above, but it has more space above.
-    - When displayed in the sidebar, media info has no left and right margins. Add some breathing room.
+    - [x] When displayed in the sidebar, media info has no left and right margins. Add some breathing room.
   - lower-right control menu
     - [x] fix button position on small screen
     - [x] fix menu position on small screen

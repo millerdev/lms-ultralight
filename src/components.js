@@ -41,6 +41,7 @@ export const MediaInfo = (props, context) => {
   )
   return (
     <MediaInfoRoot
+      className={compact ? "compact" : undefined}
       onContextMenu={e => e.stopPropagation()}
       onMouseDown={allowMediaInfoTextSelection}
     >
@@ -411,6 +412,9 @@ const MediaInfoRoot = styled('div')(({ theme }) => ({
   position: 'relative',
   userSelect: 'text',
   cursor: 'auto',
+  '&.compact': {
+    padding: theme.spacing(0, 1),
+  },
   '& .media-info-header': {
     display: 'flex',
     gap: theme.spacing(2),
