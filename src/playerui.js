@@ -1,7 +1,6 @@
 import _ from 'lodash'
 import Slider from 'rc-slider'
 import React from 'react'
-import PropTypes from 'prop-types'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
@@ -30,10 +29,6 @@ const CurrentTrackInfo = ({mediaNav, playctl: { imageUrl, tags }, children}) => 
     </Box>
   </TrackInfoRow>
 )
-
-CurrentTrackInfo.contextTypes = {
-  mediaNav: PropTypes.func,
-}
 
 export class SeekBar extends React.Component {
   // TODO display time at mouse pointer on hover

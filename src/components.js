@@ -1,6 +1,5 @@
 import _ from 'lodash'
-import React from 'react'
-import PropTypes from 'prop-types'
+import React, { useContext } from 'react'
 import Backdrop from '@mui/material/Backdrop'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -22,10 +21,12 @@ import SkipNextRounded from '@mui/icons-material/SkipNextRounded'
 import SortRounded from '@mui/icons-material/SortRounded'
 
 import * as lms from './lmsclient'
+import { MenuContext } from './menucontext'
 import { formatTime, timer } from './util'
 
-export const MediaInfo = (props, context) => {
-  const mediaNav = props.mediaNav || context.mediaNav
+export const MediaInfo = (props) => {
+  const { mediaNav: contextMediaNav } = useContext(MenuContext)
+  const mediaNav = props.mediaNav || contextMediaNav
   const item = props.item
   const compact = props.imageSize === "tiny"
   const buttons = props.button ||
@@ -105,10 +106,6 @@ export const MediaInfo = (props, context) => {
       </Box>
     </MediaInfoRoot>
   )
-}
-
-MediaInfo.contextTypes = {
-  mediaNav: PropTypes.func,
 }
 
 function allowMediaInfoTextSelection(e) {
