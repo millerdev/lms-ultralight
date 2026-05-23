@@ -678,17 +678,12 @@ const ActionMenu = ({
   const close = () => setAnchorEl(null)
   return (
     <>
-      <IconButton
+      <FloatingMenuButton
         onClick={event => setAnchorEl(event.currentTarget)}
-        sx={{
-          position: 'fixed',
-          right: '0.7em',
-          bottom: smallScreen && miniPlayer ? `calc(${TOOLBAR_HEIGHT} + 0.7em)` : '0.7em',
-          zIndex: 100,
-        }}
+        bottomOffset={smallScreen && miniPlayer ? `calc(${TOOLBAR_HEIGHT} + 0.7em)` : '0.7em'}
       >
         <MenuRounded />
-      </IconButton>
+      </FloatingMenuButton>
       <Menu
         anchorEl={anchorEl}
         open={!!anchorEl}
@@ -883,6 +878,15 @@ function playlistSaver(afterSave) {
   />
   return {load}
 }
+
+const FloatingMenuButton = styled(IconButton, {
+  shouldForwardProp: prop => prop !== 'bottomOffset',
+})(({ bottomOffset }) => ({
+  position: 'fixed',
+  right: '0.7em',
+  bottom: bottomOffset,
+  zIndex: 100,
+}))
 
 const PlaylistItemRow = styled(Box)(({ theme }) => ({
   display: 'flex',
