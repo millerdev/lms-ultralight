@@ -409,7 +409,6 @@ const MediaInfoCloseButton = styled(IconButton)({
 
 const MediaInfoRoot = styled('div')(({ theme }) => ({
   position: 'relative',
-  marginTop: theme.spacing(2),
   userSelect: 'text',
   cursor: 'auto',
   '& .media-info-header': {
