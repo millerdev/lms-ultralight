@@ -75,7 +75,7 @@ The goal is to clean up one item at a time, running tests after each, so regress
   - **Change**: Bump in package.json; check for any CLI flag/command deprecations affecting `package.json` scripts.
   - **Verify**: `npm run build`, `npm run dev` starts.
 
-- [ ] **Step 9: Upgrade `jsdom` 27 → 28**
+- [x] **Step 9: Upgrade `jsdom` 27 → 28**
   - **Change**: Bump in package.json; jsdom is a transitive test dep — run tests to confirm no breakage.
   - **Verify**: `npm test`.
 
