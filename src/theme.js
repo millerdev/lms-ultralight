@@ -47,6 +47,7 @@ const shared = {
             '--variant-containedBg': 'transparent',
             '@media (hover: hover)': {
               '&:hover': { '--variant-containedBg': theme.palette.action.hover },
+              '&.MuiButton-colorInherit.MuiButton-contained:hover': { '--variant-containedBg': theme.palette.action.hover },
             },
             '&:active': { '--variant-containedBg': theme.palette.action.selected },
           },
