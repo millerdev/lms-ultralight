@@ -23,7 +23,7 @@ The goal is to clean up one item at a time, running tests after each, so regress
   - **Why**: Not referenced anywhere in `webpack.config.js`. Webpack 5 handles JSON imports natively.
   - **Change**: Remove from `package.json` devDependencies; run `npm install`.
 
-- [ ] **Step 3: Remove `react-test-renderer`**
+- [x] **Step 3: Remove `react-test-renderer`**
   - **Why**: Not imported in any test file; listed in devDependencies but never used.
   - **Change**: Remove from `package.json` devDependencies; run `npm install`.
 
