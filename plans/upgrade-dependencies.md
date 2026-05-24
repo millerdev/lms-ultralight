@@ -48,7 +48,7 @@ The goal is to clean up one item at a time, running tests after each, so regress
 
 ### Phase 3 – Medium Upgrades (require config/code changes)
 
-- [ ] **Step 5: Upgrade ESLint 8 → 9 + eslint-webpack-plugin 4 → 6**
+- [x] **Step 5: Upgrade ESLint 8 → 9 + eslint-webpack-plugin 4 → 6**
   - **Why**: ESLint 9 uses flat config format; `.eslintrc.js` (legacy) must be migrated to `eslint.config.js`.
   - **ESLint 9 flat config** replaces `.eslintrc.js`. Key mappings:
     - `extends: "eslint:recommended"` → `js.configs.recommended`
