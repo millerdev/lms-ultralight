@@ -67,7 +67,7 @@ The goal is to clean up one item at a time, running tests after each, so regress
     - The `tipFormatter` prop is also removed; tooltip must be handled via `handleRender`
   - **Verify**: Visual check of seek bar and volume slider + `npm test`.
 
-- [ ] **Step 7: Upgrade `copy-webpack-plugin` 13 → 14**
+- [x] **Step 7: Upgrade `copy-webpack-plugin` 13 → 14**
   - **Change**: Bump in package.json; check `webpack.config.js` for any breaking API changes (CopyPlugin constructor options).
   - **Verify**: `npm run build`.
 
