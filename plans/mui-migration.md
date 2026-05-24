@@ -1,3 +1,5 @@
+The migration is ~complete. It covers the tag range of v0.5.4a1 to 0.6.0a1
+
 # Migrate from Semantic UI React to Material UI (MUI)
 
 Semantic UI React is no longer maintained. This project (https://github.com/millerdev/lms-ultralight), a Lyrion Media Server skin, needs to migrate to a maintained component library.
