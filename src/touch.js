@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import PropTypes from 'prop-types'
 import React from 'react'
 import { useInView } from 'react-intersection-observer'
 import { useResizeDetector } from 'react-resize-detector'
@@ -12,9 +11,9 @@ export const SINGLE = "single"
 export const TO_LAST = "to last"
 
 const TouchListContext = React.createContext({
-  TouchList_isSelected: PropTypes.func.isRequired,
-  TouchList_onItemSelected: PropTypes.func.isRequired,
-  TouchList_slide: PropTypes.object.isRequired,
+  TouchList_isSelected: null,
+  TouchList_onItemSelected: null,
+  TouchList_slide: null,
 })
 
 /**

@@ -83,7 +83,7 @@ The goal is to clean up one item at a time, running tests after each, so regress
 
 ### Phase 4 – Small Eliminations with Code Changes
 
-- [ ] **Step 10: Remove `prop-types`**
+- [x] **Step 10: Remove `prop-types`**
   - **Why**: Only 5 PropTypes declarations in 2 files. React has deprecated the prop-types package.
   - **Files**:
     - `src/menucontext.js` – remove `PropTypes.func.isRequired` declarations
