@@ -179,7 +179,7 @@ describe('playlist', function () {
         const [result, effects] = split(reduce(state, gotPlayer(STATUS)))
         assert.deepEqual(
           result,
-          {...state, timestamp: STATUS.playlist_timestamp}
+          {...state, timestamp: STATUS.playlist_timestamp},
         )
         assert.deepEqual(effects, [])
       })
@@ -244,7 +244,7 @@ describe('playlist', function () {
         const [result, effects] = split(reduce(state, action))
         assert.equal(
           stripLastSelected(makeConfig(result)),
-          stripLastSelected(endConfig)
+          stripLastSelected(endConfig),
         )
         assert.deepEqual(result, {...makeState(endConfig), timestamp: null})
         assert.equal(result.currentTrack["playlist index"],
@@ -988,7 +988,7 @@ function makeState(config, firstIndex=0, numTracks, timestamp) {
   const match = /^((?:[a-z]|\([a-z]\))+)(?: \| ([a-z]*))?$/i.exec(config)
   const playchars = match ? _.filter(match[1].split(""), c => /[a-z]/i.test(c)) : []
   const indexMap = _.fromPairs(
-    playchars.map((c, i) => [c.toLowerCase(), i + firstIndex])
+    playchars.map((c, i) => [c.toLowerCase(), i + firstIndex]),
   )
   const currentChar = /\(([a-z])\)/i.exec(config) || {1: playchars[0]}
   const current = index(currentChar[1])
@@ -1005,7 +1005,7 @@ function makeState(config, firstIndex=0, numTracks, timestamp) {
       _(playchars)
       .filter(c => /[A-Z]/.test(c))
       .map(index)
-      .value()
+      .value(),
     ),
     currentIndex: current,
     currentTrack: items[current - firstIndex],

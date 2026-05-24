@@ -38,7 +38,7 @@ export const MediaInfo = (props) => {
   const descriptions = _.map(["artist", "album"], key => _.has(item, key) ?
     <Box className="media-info-description" key={key}>
       {drillable(item, key, mediaNav)}
-    </Box> : ""
+    </Box> : "",
   )
   return (
     <MediaInfoRoot
@@ -101,7 +101,7 @@ export const MediaInfo = (props) => {
           !info.display(item[info.key], item, info.key) ? null :
             <Box className="media-info-description" key={info.key}>
               {info.name}: {info.transform(item[info.key], item, info, mediaNav)}
-            </Box>
+            </Box>,
         )}
       </Box>
     </MediaInfoRoot>

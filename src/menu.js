@@ -78,7 +78,7 @@ export class MainMenu extends React.Component {
       }
       loadPlayer(playerid, true).then(this.props.dispatch)
     }).catch(err =>
-      this.props.dispatch(operationError("Cannot load players", err))
+      this.props.dispatch(operationError("Cannot load players", err)),
     )
   }
   addKeydownHandler = (code, handler) => {

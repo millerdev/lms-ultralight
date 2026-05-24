@@ -113,7 +113,7 @@ const doMediaLoad = (item, query, key, range=[0, 100]) => {
   const params = [sector.param + ":" + item.id].concat(
     ["tags", "sort"]
     .filter(name => _.has(sector, name))
-    .map(name => name + ":" + sector[name])
+    .map(name => name + ":" + sector[name]),
   ).concat(taggedParams(query))
   const cmd = _.isArray(sector.cmd) ? sector.cmd : [sector.cmd]
   return lms.command("::", ...cmd, ...range, ...params)
@@ -506,7 +506,7 @@ export class BrowserHistory extends React.PureComponent {
       <BreadcrumbPaper elevation={0}>
         <Breadcrumbs separator={<NavigateNextRounded fontSize="small" />}>
           {this.navItems(nav).map(section =>
-            <Box key={section.key}>{section.content}</Box>
+            <Box key={section.key}>{section.content}</Box>,
           )}
         </Breadcrumbs>
       </BreadcrumbPaper>
@@ -686,7 +686,7 @@ export class MediaItems extends React.PureComponent {
   deselect = (items) => {
     const indexes = new Set(items.map(item => item.index))
     this.getItems().selection = new Set(
-      [...this.getItems().selection].filter(index => !indexes.has(index))
+      [...this.getItems().selection].filter(index => !indexes.has(index)),
     )
     this.forceUpdate()
   }
@@ -747,7 +747,7 @@ export class MediaItems extends React.PureComponent {
               addToPlaylist={this.addToPlaylist}
               playOrEnqueue={this.playOrEnqueue}
               item={item}
-              key={item.type + "-" + item.id + "-" + i} />
+              key={item.type + "-" + item.id + "-" + i} />,
           ))
         })}
       </TouchList>

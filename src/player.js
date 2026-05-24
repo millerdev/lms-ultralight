@@ -50,7 +50,7 @@ export const reducer = makeReducer({
     if (state.playerid === playerid) {
       return combine(
         {...state, elapsedTime: value, localTime: now},
-        [effect(seek, playerid, value)]
+        [effect(seek, playerid, value)],
       )
     }
     return state
@@ -124,7 +124,7 @@ export const loadPlayerAfter = (() => {
     }
     const wait = fetchBackoff()
     return time.after(wait, () =>
-      loadPlayer(playerid, [], {resetInterval: false})
+      loadPlayer(playerid, [], {resetInterval: false}),
     )
   }
 })()

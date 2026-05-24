@@ -17,7 +17,7 @@ const DevTools = createDevTools(
                changePositionKey="ctrl-shift-p"
                defaultIsVisible={false}>
     <LogMonitor theme="tomorrow" />
-  </DockMonitor>
+  </DockMonitor>,
 )
 
 export default DevTools

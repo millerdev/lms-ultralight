@@ -15,7 +15,7 @@ describe('playctl', function () {
         playctl.playItems(items).then(played => {
           assert.deepEqual(actions, ["load item-1"])
           assert.deepEqual(played, items)
-        })
+        }),
       )
     })
 
@@ -78,7 +78,7 @@ describe('playctl', function () {
             "add item-5",
           ])
           assert.deepEqual(added, items)
-        })
+        }),
       )
     })
 
@@ -94,7 +94,7 @@ describe('playctl', function () {
             "add item-5 artist_id:20",
           ])
           assert.deepEqual(added, items)
-        })
+        }),
       )
     })
 

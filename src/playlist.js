@@ -142,15 +142,15 @@ export const reducer = makeReducer({
     const deselect = new Set(
       _.takeWhile(
         _.range(fromIndex, stop, step),
-        i => i === fromIndex || selection.has(i)
-      )
+        i => i === fromIndex || selection.has(i),
+      ),
     )
     return {
       ...state,
       items: moveItem(state.items, fromIndex, toIndex, item),
       timestamp: null,
       selection: new Set(
-        [...selection].filter(x => !deselect.has(x)).map(reindex)
+        [...selection].filter(x => !deselect.has(x)).map(reindex),
       ),
       currentIndex: currentIndex,
       currentTrack: {...state.currentTrack, [IX]: currentIndex},
@@ -171,7 +171,7 @@ export const reducer = makeReducer({
       selection: new Set(
         [...state.selection]
         .filter(x => x !== index)
-        .map(reindex)
+        .map(reindex),
       ),
     }
     const currentIndex = state.currentIndex

@@ -189,7 +189,7 @@ describe("LoadingList", function () {
           mod.updateLoadingContext(cx, before, count, total)
           const actual = _.map(
             cx.ranges,
-            (item, key) => `${key}:${item[0]}-${item[1]}`
+            (item, key) => `${key}:${item[0]}-${item[1]}`,
           ).join(",")
           assert.equal(actual, expect)
         })
