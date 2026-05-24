@@ -19,7 +19,7 @@ The goal is to clean up one item at a time, running tests after each, so regress
   - **Why**: Completely unused. `document.title` is set directly in `src/menu.js`.
   - **Change**: Remove from `package.json` dependencies; run `npm install`.
 
-- [ ] **Step 2: Remove `json-loader`**
+- [x] **Step 2: Remove `json-loader`**
   - **Why**: Not referenced anywhere in `webpack.config.js`. Webpack 5 handles JSON imports natively.
   - **Change**: Remove from `package.json` devDependencies; run `npm install`.
 
