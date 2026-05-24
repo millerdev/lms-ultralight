@@ -7,6 +7,17 @@ import babelParser from "@babel/eslint-parser"
 export default [
   js.configs.recommended,
   {
+    files: ["test/**/*.js"],
+    languageOptions: {
+      globals: {
+        ...globals.mocha,
+        chai: "readonly",
+        assert: "readonly",
+        expect: "readonly",
+      },
+    },
+  },
+  {
     plugins: {
       react,
       "react-hooks": reactHooks,
