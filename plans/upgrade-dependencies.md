@@ -31,7 +31,7 @@ The goal is to clean up one item at a time, running tests after each, so regress
 
 ### Phase 2 – Minor/Patch Version Bumps
 
-- [ ] **Step 4: Bump minor/patch packages**
+- [x] **Step 4: Bump minor/patch packages**
   Bump the following to their latest available minor/patch:
   - `@babel/runtime: ^7.16.3` → `^7.29.0` (align with other Babel packages at 7.28–7.29)
   - `axios: ^1.13.2` → `^1.16.1`
