@@ -91,7 +91,7 @@ The goal is to clean up one item at a time, running tests after each, so regress
   - **Change**: Remove import, remove declarations, remove from package.json, run `npm install`.
   - **Verify**: `npm test`.
 
-- [ ] **Step 11: Remove `intersection-observer` polyfill**
+- [x] **Step 11: Remove `intersection-observer` polyfill**
   - **Why**: IntersectionObserver has >97% native browser support. The conditional polyfill in `src/polyfills.js` is no longer needed.
   - **Files**: `src/polyfills.js` – remove the `if (window.IntersectionObserver === undefined)` block (or delete file if empty).
   - **Change**: Remove package from package.json, remove/simplify polyfills.js.

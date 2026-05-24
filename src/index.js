@@ -2,7 +2,6 @@
 // This file does not get hot reloaded
 // its better to put global resources in app.js
 
-import './polyfills'
 import axios from 'axios'
 import React from 'react'
 import { createRoot } from 'react-dom/client'
