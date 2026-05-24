@@ -59,7 +59,7 @@ The goal is to clean up one item at a time, running tests after each, so regress
   - **Also upgrade**: `eslint-plugin-react ^7.37.5` may need a compatible version for ESLint 9.
   - **Verify**: `npm run build` (ESLint pass) + `npm test`.
 
-- [ ] **Step 6: Upgrade `rc-slider` 9 → 11**
+- [x] **Step 6: Upgrade `rc-slider` 9 → 11**
   - **Why**: rc-slider 10 removed `Slider.createSliderWithTooltip`. The tooltip API changed.
   - **File**: `src/playerui.js`
     - Remove `const ToolTipSlider = Slider.createSliderWithTooltip(Slider)` (line ~19)

@@ -20,7 +20,7 @@
     "lodash": "^4.18.1",
     "prop-types": "^15.7.2",
     "query-string": "^9.3.1",
-    "rc-slider": "^9.7.5",
+    "rc-slider": "^11.1.9",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-intersection-observer": "^10.0.3",

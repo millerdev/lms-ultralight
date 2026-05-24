@@ -6,6 +6,7 @@ import Button from '@mui/material/Button'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import IconButton from '@mui/material/IconButton'
 import { styled } from '@mui/material/styles'
+import Tooltip from '@mui/material/Tooltip'
 import FastForwardRounded from '@mui/icons-material/FastForwardRounded'
 import FastRewindRounded from '@mui/icons-material/FastRewindRounded'
 import PauseRounded from '@mui/icons-material/PauseRounded'
@@ -16,7 +17,6 @@ import 'rc-slider/assets/index.css'
 import { drillable, RepeatShuffleGroup } from './components'
 import { formatTime } from './util'
 
-const ToolTipSlider = Slider.createSliderWithTooltip(Slider)
 
 const CurrentTrackInfo = ({mediaNav, playctl: { imageUrl, tags }, children}) => (
   <TrackInfoRow>
@@ -44,7 +44,7 @@ export class SeekBar extends React.Component {
         {formatTime(elapsed)}
       </Box>
       <Box className="seek-slider">
-        <ToolTipSlider
+        <Slider
           max={_.max([total, elapsed, 1])}
           value={this.state.seeking ? this.state.seek : elapsed}
           onBeforeChange={seek => this.setState({seeking: true, seek})}
@@ -53,7 +53,11 @@ export class SeekBar extends React.Component {
             this.props.onSeek(value < total ? value : total)
             this.setState({seeking: false})
           }}
-          tipFormatter={formatTime}
+          handleRender={(origin, { value }) => (
+            <Tooltip title={formatTime(value)} placement="top">
+              {origin}
+            </Tooltip>
+          )}
           disabled={this.props.disabled} />
       </Box>
       <Box className="seek-time seek-time-right">
@@ -72,7 +76,7 @@ export class VolumeSlider extends React.Component {
   setVolume = _.throttle(level => this.props.playctl.setVolume(level), 500)
   render() {
     const { playerid, volumeLevel } = this.props
-    return <ToolTipSlider
+    return <Slider
       marks={this.marks}
       value={this.state.sliding ? this.state.level : volumeLevel}
       onBeforeChange={level => this.setState({sliding: true, level})}
@@ -83,6 +87,11 @@ export class VolumeSlider extends React.Component {
         this.setState({level})
       }}
       onAfterChange={() => this.setState({sliding: false})}
+      handleRender={(origin, { value }) => (
+        <Tooltip title={value} placement="top">
+          {origin}
+        </Tooltip>
+      )}
       disabled={!playerid}
     />
   }
