@@ -114,7 +114,7 @@ The goal is to clean up one item at a time, running tests after each, so regress
       return size
     }
     ```
-  - **Change**: Add hook to `src/util.js`, replace `useResizeDetector` calls, remove package from package.json.
+  - **Change**: Create `useResizeObserver` in a new file: `src/resizeobserver.js`. Replace `useResizeDetector` calls, remove package from package.json.
   - **Verify**: `npm test`; visually confirm resize-dependent layouts.
 
 ---
@@ -186,7 +186,9 @@ Enzyme is unmaintained. The community adapter (`@cfaester/enzyme-adapter-react-1
 ---
 
 ## Verification (per step)
+- Propose a commit message after each change.
 - Run `npm test` after every step
 - For webpack changes: also run `npm run build`
 - For ESLint changes: also check `npm run build` lint output
 - For React/Router upgrades: manual smoke test of app in browser
+- Wait for review and commit before proceeding to next item.
