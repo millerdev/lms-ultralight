@@ -15,7 +15,7 @@ The goal is to clean up one item at a time, running tests after each, so regress
 
 ### Phase 1 – Remove Unused Dependencies (no code changes required)
 
-- [ ] **Step 1: Remove `react-document-title`**
+- [x] **Step 1: Remove `react-document-title`**
   - **Why**: Completely unused. `document.title` is set directly in `src/menu.js`.
   - **Change**: Remove from `package.json` dependencies; run `npm install`.
 
