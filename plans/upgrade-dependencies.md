@@ -71,7 +71,7 @@ The goal is to clean up one item at a time, running tests after each, so regress
   - **Change**: Bump in package.json; check `webpack.config.js` for any breaking API changes (CopyPlugin constructor options).
   - **Verify**: `npm run build`.
 
-- [ ] **Step 8: Upgrade `webpack-cli` 6 → 7**
+- [x] **Step 8: Upgrade `webpack-cli` 6 → 7**
   - **Change**: Bump in package.json; check for any CLI flag/command deprecations affecting `package.json` scripts.
   - **Verify**: `npm run build`, `npm run dev` starts.
 
