@@ -57,7 +57,10 @@ export const MainMenuUI = ({messages, players, onHideError, onPlayerSelected, ..
       { smallScreen ?
         <Routes>
           <Route path="/menu/*" element={
-            <SmallScreenMenu><MenuItems {...props} /></SmallScreenMenu>
+            <>
+              <SmallScreenMenu><MenuItems {...props} /></SmallScreenMenu>
+              <PlayerBar {...props} bottom />
+            </>
           } />
           <Route path="*" element={
             <div>
@@ -410,7 +413,7 @@ const MainMenuRoot = styled('div')(({ theme }) => ({
 }))
 
 const SmallScreenMenu = styled('div')({
-  paddingTop: TOOLBAR_HEIGHT,
+  padding: `${TOOLBAR_HEIGHT} 0`,
 })
 
 const SidebarLayout = styled(Box)({
