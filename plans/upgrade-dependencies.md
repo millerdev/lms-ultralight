@@ -144,7 +144,7 @@ Enzyme is unmaintained. The community adapter (`@cfaester/enzyme-adapter-react-1
   - Uses `shallow()`.
   - Likely simplest of the enzyme files.
 
-- [ ] **Step 17: Migrate `test/playlist.test.js` to RTL**
+- [x] **Step 17: Migrate `test/playlist.test.js` to RTL**
   - Uses both `shallow()` and direct `module.__Rewire__()` for timer mocking — most complex.
   - Tackle last.
 

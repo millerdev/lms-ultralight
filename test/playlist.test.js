@@ -1,4 +1,4 @@
-import { shallow } from 'enzyme'
+import { render, act } from '@testing-library/react'
 import _ from 'lodash'
 import React from 'react'
 
@@ -8,6 +8,7 @@ import { effect, getEffects, getState, split } from '../src/effects'
 import * as mod from '../src/playlist'
 import {__RewireAPI__ as module} from '../src/playlist'
 import { MEDIA_ITEMS } from '../src/library'
+import { MenuContext } from '../src/menucontext'
 import { operationError, timer } from '../src/util'
 
 describe('playlist', function () {
@@ -706,8 +707,8 @@ describe('playlist', function () {
   })
 
   describe("Playlist component", function () {
-    const opts = {disableLifecycleMethods: true}
     let timers = null
+    const menuContextValue = { addKeydownHandler: () => {} }
 
     before(() => {
       timers = []
@@ -716,6 +717,19 @@ describe('playlist', function () {
         timers.push(tix)
         return tix
       })
+      global.ResizeObserver = class ResizeObserver {
+        constructor() {}
+        observe() {}
+        disconnect() {}
+      }
+      global.IntersectionObserver = class IntersectionObserver {
+        constructor() {}
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      }
+      window.scroll = () => {}
+      window.scrollBy = () => {}
     })
 
     after(() => {
@@ -725,19 +739,31 @@ describe('playlist', function () {
       )
       timers = null
       module.__ResetDependency__('timer')
+      delete global.ResizeObserver
+      delete global.IntersectionObserver
+      delete window.scroll
+      delete window.scrollBy
     })
 
     it('should setup empty selection state', function () {
       const state = makeState("abcdef")
-      const dom = shallow(<mod.Playlist {...state} />, opts)
-      assert.deepEqual(dom.find("TouchList").props().selection, new Set())
+      const { container } = render(
+        <MenuContext.Provider value={menuContextValue}>
+          <mod.Playlist {...state} />
+        </MenuContext.Provider>,
+      )
+      assert.equal(container.querySelectorAll('.selected').length, 0)
     })
 
     it('should map selection to touchlist indexes', function () {
       const state = makeState("abCdEf", 10)
       assert.deepEqual(state.selection, new Set([12, 14]))
-      const dom = shallow(<mod.Playlist {...state} />, opts)
-      assert.deepEqual(dom.find("TouchList").props().selection, new Set([12, 14]))
+      const { container } = render(
+        <MenuContext.Provider value={menuContextValue}>
+          <mod.Playlist {...state} />
+        </MenuContext.Provider>,
+      )
+      assert.equal(container.querySelectorAll('.selected').length, 2)
     })
 
     it(`should not fetch playlist on play track at index`, () => {
@@ -751,8 +777,7 @@ describe('playlist', function () {
         },
       }
       state.dispatch = {}
-      const component = <mod.Playlist playctl={playctl} {...state} />
-      const playlist = shallow(component, opts).instance()
+      const playlist = renderPlaylist({playctl, ...state})
       const promise = promiseChecker()
       playlist.playTrackAtIndex(103)
       promise.check()
@@ -762,26 +787,28 @@ describe('playlist', function () {
     it('should convert selection indexes on delete', function () {
       const state = makeState("abCdEf", 10)
       state.dispatch = {}
-      const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+      const playlist = renderPlaylist(state)
       assert.equal(playlist.props.selection.size, 2)
 
       const promise = promiseChecker()
-      rewire(module, {
-        deleteSelection: (playerid, selection) => {
-          assert.equal(playerid, PLAYERID)
-          assert.deepEqual([...selection], [12, 14])  // verify selection
-          return promise
-            .then(loadPlayer => loadPlayer())
-            .catch(() => {/* ignore */})
-            .then(callback => assert.equal(callback, state.dispatch))
-            .done()
-        },
-        loadPlayer: (playerid, fetchRange) => {
-          assert.equal(playerid, PLAYERID)
-          assert.equal(fetchRange, undefined)
-        },
-      }, () => {
-        playlist.deleteItems()
+      act(() => {
+        rewire(module, {
+          deleteSelection: (playerid, selection) => {
+            assert.equal(playerid, PLAYERID)
+            assert.deepEqual([...selection], [12, 14])  // verify selection
+            return promise
+              .then(loadPlayer => loadPlayer())
+              .catch(() => {/* ignore */})
+              .then(callback => assert.equal(callback, state.dispatch))
+              .done()
+          },
+          loadPlayer: (playerid, fetchRange) => {
+            assert.equal(playerid, PLAYERID)
+            assert.equal(fetchRange, undefined)
+          },
+        }, () => {
+          playlist.deleteItems()
+        })
       })
       promise.check()
     })
@@ -789,26 +816,28 @@ describe('playlist', function () {
     it('should clear playlist on delete with no selection', function () {
       const state = makeState("abcdef", 10)
       state.dispatch = {}
-      const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+      const playlist = renderPlaylist(state)
       assert.equal(playlist.props.selection.size, 0)
 
       const promise = promiseChecker()
-      rewire(module, {
-        lms: {command: (playerid, ...args) => {
-          assert.equal(playerid, PLAYERID)
-          assert.deepEqual(args, ["playlist", "clear"])
-          return promise
-            .then(loadPlayer => loadPlayer())
-            .catch(() => {/* ignore */})
-            .then(callback => { assert.equal(callback, state.dispatch) })
-            .done()
-        }},
-        loadPlayer: (playerid, fetchRange) => {
-          assert.equal(playerid, PLAYERID)
-          assert.equal(fetchRange, undefined)
-        },
-      }, () => {
-        playlist.deleteItems()
+      act(() => {
+        rewire(module, {
+          lms: {command: (playerid, ...args) => {
+            assert.equal(playerid, PLAYERID)
+            assert.deepEqual(args, ["playlist", "clear"])
+            return promise
+              .then(loadPlayer => loadPlayer())
+              .catch(() => {/* ignore */})
+              .then(callback => { assert.equal(callback, state.dispatch) })
+              .done()
+          }},
+          loadPlayer: (playerid, fetchRange) => {
+            assert.equal(playerid, PLAYERID)
+            assert.equal(fetchRange, undefined)
+          },
+        }, () => {
+          playlist.deleteItems()
+        })
       })
       promise.check()
     })
@@ -821,9 +850,11 @@ describe('playlist', function () {
         assert.deepEqual(action.args, [new Set([12, 14, 15])])
         dispatched = true
       }
-      const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+      const playlist = renderPlaylist(state)
       assert.equal(playlist.props.selection.size, 1)
-      playlist.onSelectionChanged(new Set([12, 14, 15]), false)
+      act(() => {
+        playlist.onSelectionChanged(new Set([12, 14, 15]), false)
+      })
       assert(dispatched, "dispatch not called")
       playlist.scrollTimer.clear()
     })
@@ -831,7 +862,7 @@ describe('playlist', function () {
     it('should move item after last item in playlist', function () {
       const state = makeState("abcdef", 10)
       state.dispatch = {}
-      const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+      const playlist = renderPlaylist(state)
       const promise = promiseChecker()
       rewire(module, {
         moveItems: (selection, index, playerid, dispatch) => {
@@ -859,7 +890,7 @@ describe('playlist', function () {
     it('should drop items after last item in playlist', function () {
       const state = makeState("abcdef", 10)
       state.dispatch = {}
-      const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+      const playlist = renderPlaylist(state)
       const data = {items: [{item: "..."}], params: ["tag:value"]}
       let asserted = false
       rewire(module, {
@@ -883,7 +914,7 @@ describe('playlist', function () {
       it("should dispatch load", function () {
         const state = makeState("abcdef", 10)
         state.dispatch = {}
-        const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+        const playlist = renderPlaylist(state)
         playlist.shouldAutoLoad = true
         const promise = promiseChecker()
         rewire(module, {
@@ -904,7 +935,7 @@ describe('playlist', function () {
 
       it("should load at most 100 items at beginning", function () {
         const state = makeState("abcdef", 151)
-        const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+        const playlist = renderPlaylist(state)
         playlist.shouldAutoLoad = true
         rewire(module, {
           loadPlayer: (playerid, indexRange) => {
@@ -919,7 +950,7 @@ describe('playlist', function () {
 
       it("should load at most 100 items at end", function () {
         const state = makeState("abcdef", 0, 200)
-        const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+        const playlist = renderPlaylist(state)
         playlist.shouldAutoLoad = true
         rewire(module, {
           loadPlayer: (playerid, indexRange) => {
@@ -934,7 +965,7 @@ describe('playlist', function () {
 
       it("should dedup loads", function () {
         const state = makeState("abcdef", 201, 500)
-        const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+        const playlist = renderPlaylist(state)
         playlist.shouldAutoLoad = true
         const loads = []
         rewire(module, {
@@ -956,7 +987,7 @@ describe('playlist', function () {
 
       it("should ignore undefined range", function () {
         const state = makeState("abcdef", 151)
-        const playlist = shallow(<mod.Playlist {...state} />, opts).instance()
+        const playlist = renderPlaylist(state)
         const loads = []
         rewire(module, {
           loadPlayer: (playerid, indexRange) => {
@@ -971,6 +1002,16 @@ describe('playlist', function () {
 
       const fakePromise = {then: () => fakePromise}
     })
+
+    function renderPlaylist(props) {
+      const ref = React.createRef()
+      render(
+        <MenuContext.Provider value={menuContextValue}>
+          <mod.Playlist ref={ref} {...props} />
+        </MenuContext.Provider>,
+      )
+      return ref.current
+    }
   })
 })
 
