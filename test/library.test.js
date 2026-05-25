@@ -1,6 +1,7 @@
-import { shallow } from 'enzyme'
+import { render } from '@testing-library/react'
 import _ from 'lodash'
 import React from 'react'
+import { MemoryRouter } from 'react-router-dom'
 
 import * as mod from '../src/library'
 
@@ -44,11 +45,15 @@ describe('library', function () {
       const pathname = path.slice(0, qstart)
       const search = path.slice(qstart)
       const dispatch = makeDispatch()
-      shallow(<mod.BrowserItems
-        dispatch={dispatch}
-        basePath="/menu"
-        location={{pathname, search}}
-      />)
+      render(
+        <MemoryRouter>
+          <mod.BrowserItems
+            dispatch={dispatch}
+            basePath="/menu"
+            location={{pathname, search}}
+          />
+        </MemoryRouter>,
+      )
       return dispatch.getAction()
     }
   })

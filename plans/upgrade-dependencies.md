@@ -136,7 +136,7 @@ Enzyme is unmaintained. The community adapter (`@cfaester/enzyme-adapter-react-1
   - Uses `shallow()` and `render()`.
   - Uses `babel-plugin-rewire` (4 rewire calls) — refactor or add `sinon`.
 
-- [ ] **Step 15: Migrate `test/library.test.js` to RTL**
+- [x] **Step 15: Migrate `test/library.test.js` to RTL**
   - Uses `shallow()`.
   - Uses `babel-plugin-rewire`.
 
