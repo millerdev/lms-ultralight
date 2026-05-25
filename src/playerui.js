@@ -195,6 +195,7 @@ const TrackInfoRow = styled('div')(({ theme }) => ({
   display: 'flex',
   gap: theme.spacing(2),
   marginTop: theme.spacing(2),
+  marginBottom: theme.spacing(1.5),
   '& .track-image': {
     width: 80,
     height: 80,
