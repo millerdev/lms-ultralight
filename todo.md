@@ -1,6 +1,5 @@
 # TODO
 
-- fix warnings in browser console
 - alarm clock mode
   - snooze feature
   - access to alarms

@@ -57,6 +57,11 @@
     "webpack-cli": "^7.0.2",
     "webpack-dev-server": "^5.2.4"
   },
+  "overrides": {
+    "diff": "^9.0.0",
+    "serialize-javascript": "^7.0.5",
+    "uuid": "^14.0.0"
+  },
   "scripts": {
     "start": "npm run build && http-server dist",
     "build": "node tools/rm dist && NODE_ENV=production webpack --bail --progress",
