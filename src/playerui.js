@@ -12,6 +12,8 @@ import FastRewindRounded from '@mui/icons-material/FastRewindRounded'
 import PauseRounded from '@mui/icons-material/PauseRounded'
 import PlayArrowRounded from '@mui/icons-material/PlayArrowRounded'
 import MinimizeRounded from '@mui/icons-material/MinimizeRounded'
+import VolumeDownRounded from '@mui/icons-material/VolumeDownRounded'
+import VolumeUpRounded from '@mui/icons-material/VolumeUpRounded'
 import 'rc-slider/assets/index.css'
 
 import { drillable, RepeatShuffleGroup } from './components'
@@ -75,25 +77,33 @@ export class VolumeSlider extends React.Component {
   }
   setVolume = _.throttle(level => this.props.playctl.setVolume(level), 500)
   render() {
-    const { playerid, volumeLevel } = this.props
-    return <Slider
-      marks={this.marks}
-      value={this.state.sliding ? this.state.level : volumeLevel}
-      onBeforeChange={level => this.setState({sliding: true, level})}
-      onChange={level => {
-        // TODO make volume adjustment UI smoother: decouple slider adjustment (and
-        // state update) speed from sending events to the server
-        this.setVolume(level)
-        this.setState({level})
-      }}
-      onAfterChange={() => this.setState({sliding: false})}
-      handleRender={(origin, { value }) => (
-        <Tooltip title={value} placement="top">
-          {origin}
-        </Tooltip>
-      )}
-      disabled={!playerid}
-    />
+    const { playerid, playctl } = this.props
+    const disabled = !playerid
+    return <VolumeRow>
+      <IconButton size="small" onClick={playctl.volumeDown} disabled={disabled}>
+        <VolumeDownRounded fontSize="small" />
+      </IconButton>
+      <Slider
+        className="volume-slider"
+        marks={this.marks}
+        value={this.state.sliding ? this.state.level : this.props.volumeLevel}
+        onBeforeChange={level => this.setState({sliding: true, level})}
+        onChange={level => {
+          // TODO make volume adjustment UI smoother: decouple slider adjustment (and
+          // state update) speed from sending events to the server
+          this.setVolume(level)
+          this.setState({level})
+        }}
+        onChangeComplete={() => this.setState({sliding: false})}
+        handleRender={(origin, { value }) => (
+          <Tooltip title={value} placement="top">{origin}</Tooltip>
+        )}
+        disabled={disabled}
+      />
+      <IconButton size="small" onClick={playctl.volumeUp} disabled={disabled}>
+        <VolumeUpRounded fontSize="small" />
+      </IconButton>
+    </VolumeRow>
   }
 }
 
@@ -216,5 +226,14 @@ const TrackInfoRow = styled('div')(({ theme }) => ({
     '&:hover': {
       textDecoration: 'underline',
     },
+  },
+}))
+
+const VolumeRow = styled('div')(({ theme }) => ({
+  display: 'flex',
+  gap: theme.spacing(0.5),
+  alignItems: 'center',
+  '& .volume-slider': {
+    flex: '1 1 auto',
   },
 }))
