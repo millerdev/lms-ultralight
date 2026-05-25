@@ -159,7 +159,7 @@ Enzyme is unmaintained. The community adapter (`@cfaester/enzyme-adapter-react-1
 
 ### Phase 6 – Major Framework Upgrades
 
-- [ ] **Step 19: Upgrade React 18 → 19**
+- [x] **Step 19: Upgrade React 18 → 19**
   - **Known React 19 changes**:
     - `ref` is now a plain prop (no more `forwardRef`); update any `forwardRef` usage
     - `react-dom/client` API is stable (already used in v18)
