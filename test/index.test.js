@@ -15,10 +15,10 @@ describe('index', function () {
       removeListener: () => {},
     })
 
-    // Mock ResizeObserver for react-resize-detector
-    global.window.ResizeObserver = class ResizeObserver {
+    global.ResizeObserver = class ResizeObserver {
       constructor() {}
       observe() {}
+      disconnect() {}
     }
 
     // Mock Element and HTMLDocument for semantic-ui-react and react-resize-detector
@@ -38,6 +38,7 @@ describe('index', function () {
 
     delete global.HTMLDocument
     delete global.Element
+    delete global.ResizeObserver
     delete global.window.ResizeObserver
     delete global.window.matchMedia
     delete global.localStorage

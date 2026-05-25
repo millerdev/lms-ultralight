@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import React from 'react'
 import { connect } from 'react-redux'
-import { useResizeDetector } from 'react-resize-detector'
+import { useResizeObserver } from './resizeobserver'
 import { Link, Routes, Route, useMatch } from 'react-router-dom'
 import Alert from '@mui/material/Alert'
 import AppBar from '@mui/material/AppBar'
@@ -113,12 +113,7 @@ const PlayerRedux = connect(state => state.player)(player.Player)
 const PlaylistRedux = connect(state => state.playlist)(playlist.Playlist)
 
 const MainView = props => {
-  const { height, ref } = useResizeDetector({
-    handleWidth: false,
-    refreshMode: 'debounce',
-    refreshRate: 50,
-    observerOptions: { box: 'border-box' },
-  })
+  const { height, ref } = useResizeObserver()
   return (
     <MainViewBody className="mainview">
       { !props.miniPlayer &&

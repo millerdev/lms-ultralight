@@ -97,7 +97,7 @@ The goal is to clean up one item at a time, running tests after each, so regress
   - **Change**: Remove package from package.json, remove/simplify polyfills.js.
   - **Verify**: `npm test`; manually confirm intersection-based features still work.
 
-- [ ] **Step 12: Replace `react-resize-detector` with native ResizeObserver hook**
+- [x] **Step 12: Replace `react-resize-detector` with native ResizeObserver hook**
   - **Why**: ResizeObserver is natively supported; `react-resize-detector` is a thin wrapper. Eliminate the dependency.
   - **Files**: `src/menuui.js`, `src/touch.js` – replace `useResizeDetector()` with a small custom hook:
     ```js

@@ -171,7 +171,7 @@ describe("LoadingList", function () {
   function renderWithHeight(height, props, check) {
     let asserted = false
     rewire(module, {
-      useResizeDetector: () => ({height}),
+      useResizeObserver: () => ({height}),
     }, () => {
       check(render(<mod.LoadingList {...props} />))
       asserted = true

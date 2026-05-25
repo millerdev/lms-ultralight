@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import React from 'react'
 import { useInView } from 'react-intersection-observer'
-import { useResizeDetector } from 'react-resize-detector'
+import { useResizeObserver } from './resizeobserver'
 import CircularProgress from '@mui/material/CircularProgress'
 import { styled } from '@mui/material/styles'
 
@@ -224,7 +224,7 @@ export class TouchList extends React.Component {
 export const LoadingList = ({
   items, itemsOffset, itemsTotal, onLoadItems, maxLoad, listRef, ...props
 }) => {
-  const { height, ref } = useResizeDetector({handleWidth: false})
+  const { height, ref } = useResizeObserver()
   const combinedRef = React.useCallback(node => {
     ref(node)
     if (listRef) {

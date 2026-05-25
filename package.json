@@ -23,7 +23,6 @@
     "react-dom": "^18.3.1",
     "react-intersection-observer": "^10.0.3",
     "react-redux": "^9.3.0",
-    "react-resize-detector": "^12.3.0",
     "react-router-dom": "^6.30.3",
     "redux": "^5.0.1"
   },
