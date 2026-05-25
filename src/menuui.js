@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { connect } from 'react-redux'
 import { useResizeObserver } from './resizeobserver'
 import { Link, Routes, Route, useMatch } from 'react-router'
@@ -114,6 +114,7 @@ const PlaylistRedux = connect(state => state.playlist)(playlist.Playlist)
 
 const MainView = props => {
   const { height, ref } = useResizeObserver()
+  const scrolled = useScrolled()
   return (
     <MainViewBody className="mainview">
       { !props.miniPlayer &&
@@ -121,6 +122,7 @@ const MainView = props => {
           className="fixed-top"
           ref={ref}
           fixedWidth={props.fixedTopWidth || '100%'}
+          scrolled={scrolled}
         >
           <PlayerRedux
             playctl={props.playctl}
@@ -141,6 +143,16 @@ const MainView = props => {
       </MainContent>
     </MainViewBody>
   )
+}
+
+function useScrolled() {
+  const [scrolled, setScrolled] = useState(false)
+  useEffect(() => {
+    const handler = () => setScrolled(window.scrollY > 0)
+    window.addEventListener('scroll', handler, {passive: true})
+    return () => window.removeEventListener('scroll', handler)
+  }, [])
+  return scrolled
 }
 
 const PowerBar = props => {
@@ -436,14 +448,16 @@ const MainViewBody = styled(Box)({
 })
 
 const FixedTop = styled(Box, {
-  shouldForwardProp: prop => prop !== 'fixedWidth',
-})(({ theme, fixedWidth = '100%' }) => ({
+  shouldForwardProp: prop => prop !== 'fixedWidth' && prop !== 'scrolled',
+})(({ theme, fixedWidth = '100%', scrolled = false }) => ({
   position: 'fixed',
   top: `calc(${TOOLBAR_HEIGHT} - 1px)`,
   width: fixedWidth,
   paddingTop: theme.spacing(1),
   backgroundColor: theme.palette.background.paper,
   zIndex: 50,
+  boxShadow: scrolled ? `0 4px 6px -4px ${theme.palette.action.disabled}` : 'none',
+  transition: 'box-shadow 0.2s ease',
 }))
 
 const MainContent = styled(Box, {
