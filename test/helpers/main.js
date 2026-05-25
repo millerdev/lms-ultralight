@@ -18,3 +18,6 @@ Map.prototype.toString = function () {
 assert.equal = assert.strictEqual
 
 require('./browser')
+
+const { cleanup } = require('@testing-library/react')
+afterEach(cleanup)

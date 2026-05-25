@@ -128,7 +128,7 @@ Enzyme is unmaintained. The community adapter (`@cfaester/enzyme-adapter-react-1
 
 > **Note on `babel-plugin-rewire`**: Four test files mock internal module variables via `__RewireAPI__.__set__()`. Since the project uses Mocha (not Jest), Jest module mocking is not available. The migration strategy is to use `sinon` stubs for module-boundary mocking, or refactor the affected code to accept dependencies as arguments. Each test file must be handled case-by-case.
 
-- [ ] **Step 13: Migrate `test/components.test.js` to RTL**
+- [x] **Step 13: Migrate `test/components.test.js` to RTL**
   - Uses `shallow()` for basic component rendering.
   - Replace with RTL `render()` + DOM queries (`getByRole`, `getByText`, etc.).
 
