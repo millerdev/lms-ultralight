@@ -148,11 +148,12 @@ Enzyme is unmaintained. The community adapter (`@cfaester/enzyme-adapter-react-1
   - Uses both `shallow()` and direct `module.__Rewire__()` for timer mocking — most complex.
   - Tackle last.
 
-- [ ] **Step 18: Remove Enzyme + babel-plugin-rewire**
-  After all 5 test files are migrated:
-  - Remove `enzyme`, `@cfaester/enzyme-adapter-react-18`, `babel-plugin-rewire` from package.json.
-  - Remove enzyme setup from `test/helpers/main.js`.
-  - Remove `babel-plugin-rewire` from `babel.config.json` test env.
+- [x] **Step 18: Remove Enzyme**
+  - Removed `enzyme`, `@cfaester/enzyme-adapter-react-18` from package.json.
+  - Removed enzyme setup from `test/helpers/main.js`.
+  - **Note**: `babel-plugin-rewire` was retained — six test files still use it for
+    module-level mocking (`__RewireAPI__`). It was not replaced with sinon stubs during
+    the Phase 5 migration. Removing it is a separate future step.
 
 ---
 
