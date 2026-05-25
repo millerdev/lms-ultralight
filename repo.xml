@@ -6,10 +6,8 @@
     URL: https://raw.githubusercontent.com/millerdev/lms-ultralight/master/repo.xml
 
     To update after a new release:
-      1. npm run package          (builds UltralightSkin-vX.Y.Z.zip)
-      2. sha1sum UltralightSkin-vX.Y.Z.zip
-      3. Update version=, sha=, and url= below.
-      4. Commit and push to master.
+      1. npm run package          (builds ZIP and auto-updates version=, sha=, url= below)
+      2. Commit repo.xml and push to master.
 -->
 <extensions>
     <details>
