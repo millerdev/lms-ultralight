@@ -1,9 +1,16 @@
+import axios from 'axios'
+import MockAdapter from 'axios-mock-adapter'
+
 describe('index', function () {
   const errors = []
   /* eslint-disable-next-line no-console */
   const originalError = console.error
+  let mock
 
   before(() => {
+    mock = new MockAdapter(axios)
+    mock.onPost('/jsonrpc.js').reply(200, JSON.stringify({result: {players_loop: []}}))
+
     global.localStorage = {getItem: () => null}
 
     // Mock matchMedia for MUI's useMediaQuery (needs addEventListener)
@@ -33,6 +40,8 @@ describe('index', function () {
   })
 
   after(() => {
+    mock.restore()
+
     /* eslint-disable-next-line no-console */
     console.error = originalError
 

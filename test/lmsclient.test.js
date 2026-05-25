@@ -4,9 +4,15 @@ import MockAdapter from 'axios-mock-adapter'
 import * as lms from '../src/lmsclient'
 
 describe('lmsclient', function () {
-  const mock = new MockAdapter(axios)
+  let mock
+  before(function () {
+    mock = new MockAdapter(axios)
+  })
   afterEach(function () {
     mock.reset()
+  })
+  after(function () {
+    mock.restore()
   })
 
   it('getPlayers should return a list of players', function (done) {
