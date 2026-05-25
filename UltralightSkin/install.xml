@@ -10,7 +10,7 @@
 	<type>2</type>
 	<enforce>1</enforce>
 	<targetApplication>
-		<id>Logitech Media Server</id>
+		<id>Lyrion Media Server</id>
 		<minVersion>7.9</minVersion>
 		<maxVersion>*</maxVersion>
 	</targetApplication>

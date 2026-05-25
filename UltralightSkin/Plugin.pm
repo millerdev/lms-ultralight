@@ -6,7 +6,7 @@ use File::Spec::Functions qw(catfile catdir);
 use constant SKIN_DIR => 'HTML/ultralight';
 
 # this plugin registers the helper files (fonts, manifest) as raw downloads as
-# well as extra paths, which will allow Logitech Media Server to serve those
+# well as extra paths, which will allow Lyrion Media Server to serve those
 # files without a patch
 sub initPlugin {
 	my $baseDir = dirname($INC{'Plugins/UltralightSkin/Plugin.pm'});

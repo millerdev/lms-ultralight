@@ -1,6 +1,6 @@
-# Ultralight - a Logitech Media Server skin
+# Ultralight - a Lyrion Media Server skin
 
-Ultralight is a responsive skin for Logitech Media Server that works well
+Ultralight is a responsive skin for Lyrion Media Server that works well
 on desktop and mobile browsers. 
 
 ![Ultralight](ultralight.png?raw=true "Ultralight")
