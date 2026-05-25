@@ -1,5 +1,5 @@
 import React from 'react'
-import { BrowserRouter as Router, useNavigate } from 'react-router-dom'
+import { BrowserRouter as Router, useNavigate } from 'react-router'
 import { connect, Provider } from 'react-redux'
 import CssBaseline from '@mui/material/CssBaseline'
 import { ThemeProvider } from '@mui/material/styles'

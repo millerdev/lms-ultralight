@@ -1,5 +1,5 @@
 import React from 'react'
-import { useHref } from 'react-router-dom'
+import { useHref } from 'react-router'
 
 const MediaSession = ({ playctl }) => {
   const controls = useMediaControls()

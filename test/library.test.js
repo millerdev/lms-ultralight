@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react'
 import _ from 'lodash'
 import React from 'react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 
 import * as mod from '../src/library'
 

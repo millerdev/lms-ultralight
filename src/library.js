@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import qs from 'query-string'
 import React from 'react'
-import { Link, matchPath, useLocation, useNavigate } from 'react-router-dom'
+import { Link, matchPath, useLocation, useNavigate } from 'react-router'
 import Box from '@mui/material/Box'
 import { styled } from '@mui/material/styles'
 import Breadcrumbs from '@mui/material/Breadcrumbs'
