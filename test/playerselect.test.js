@@ -1,8 +1,10 @@
+import { render, fireEvent, screen } from '@testing-library/react'
 import React from 'react'
-import { shallow } from 'enzyme'
-import MenuItem from '@mui/material/MenuItem'
+
+import { rewire } from './util'
 
 import * as mod from '../src/playerselect'
+import {__RewireAPI__ as module} from '../src/playerselect'
 
 const PLAYERS = [
   {playerid: "1:1:1:1", name: "One"},
@@ -39,22 +41,25 @@ describe('playerselect', function () {
 
   describe('<SelectPlayer />', function () {
     it('should render a MenuItem for each player', function () {
-      const dom = shallow(<mod.SelectPlayer players={PLAYERS} />)
-      const items = dom.find(MenuItem)
-      assert.equal(items.length, 2)
-      assert.equal(items.at(0).prop('value'), "1:1:1:1")
-      assert.equal(items.at(0).children().text(), "One")
-      assert.equal(items.at(1).prop('value'), "2:2:2:2")
-      assert.equal(items.at(1).children().text(), "Two")
+      const { container } = render(
+        <mod.SelectPlayer players={PLAYERS} dispatch={() => {}} />,
+      )
+      rewire(module, {maybeLoadPlayers: () => {}}, () => {
+        fireEvent.mouseDown(container.querySelector('.MuiSelect-select'))
+      })
+      const options = screen.getAllByRole('option')
+      assert.equal(options.length, 2)
+      assert.equal(options[0].getAttribute('data-value'), "1:1:1:1")
+      assert.equal(options[0].textContent, "One")
+      assert.equal(options[1].getAttribute('data-value'), "2:2:2:2")
+      assert.equal(options[1].textContent, "Two")
     })
 
     it('should set error flag on players error', function () {
-      const dom = shallow(
-        <mod.SelectPlayer
-          players={PLAYERS}
-          error={true}
-          />)
-      assert.equal(dom.prop('error'), true)
+      const { container } = render(
+        <mod.SelectPlayer players={PLAYERS} error={true} />,
+      )
+      assert(container.querySelector('.Mui-error'), 'expected Mui-error class')
     })
   })
 })

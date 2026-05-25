@@ -140,7 +140,7 @@ Enzyme is unmaintained. The community adapter (`@cfaester/enzyme-adapter-react-1
   - Uses `shallow()`.
   - Uses `babel-plugin-rewire`.
 
-- [ ] **Step 16: Migrate `test/playerselect.test.js` to RTL**
+- [x] **Step 16: Migrate `test/playerselect.test.js` to RTL**
   - Uses `shallow()`.
   - Likely simplest of the enzyme files.
 
