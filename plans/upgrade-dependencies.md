@@ -169,7 +169,7 @@ Enzyme is unmaintained. The community adapter (`@cfaester/enzyme-adapter-react-1
   - **Files**: `package.json` (react, react-dom); also bump react-test peer deps if any.
   - **Verify**: Full `npm test`; visual QA of the app.
 
-- [ ] **Step 20: Upgrade React Router 6 → 7**
+- [x] **Step 20: Upgrade React Router 6 → 7**
   - **Known changes**: React Router v7 reworked to align with Remix; SPA usage is still supported.
   - **Files** (4 files): `src/app.js`, `src/menuui.js`, `src/library.js`, `src/mediasession.js`
   - **Key API changes to check**:

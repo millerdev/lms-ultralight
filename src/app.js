@@ -47,7 +47,7 @@ const App = () => (
   <Provider store={store}>
     <ThemeProvider theme={lightTheme}>
       <CssBaseline />
-      <Router basename={basename} future={{v7_relativeSplatPath: true, v7_startTransition: true}}>
+      <Router basename={basename}>
         <MainMenu />
 
       </Router>
