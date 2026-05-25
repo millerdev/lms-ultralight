@@ -1,16 +1,17 @@
 # TODO
 
-- alarm clock mode
-  - snooze feature
-  - access to alarms
-- fix play/pause bug where a track wants to advance but gets stuck in a loop
-  - observe play command sent by Material skin
-- mobile (firefox?) bug: media session causes audio from other apps to not play
-  - [x] workaround: disable media session on power off player
 - add file to repo for first-class plugin status
   - make it possible to switch to another theme when set as default
   - get it added to the default set of plugins
 - add to desktop as stand-alone app on Android
+- make a new release
+- mobile (firefox?) bug: media session causes audio from other apps to not play
+  - [x] workaround: disable media session on power off player
+- alarm clock mode
+  - [x] snooze feature
+  - access to alarms
+- fix play/pause bug where a track wants to advance but gets stuck in a loop
+  - observe play command sent by Material skin
 - fix drag/drop in Chrome on Android
 
 - fix play/pause via browser media session on Chrome
