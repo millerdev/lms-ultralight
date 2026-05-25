@@ -132,7 +132,7 @@ Enzyme is unmaintained. The community adapter (`@cfaester/enzyme-adapter-react-1
   - Uses `shallow()` for basic component rendering.
   - Replace with RTL `render()` + DOM queries (`getByRole`, `getByText`, etc.).
 
-- [ ] **Step 14: Migrate `test/touch.test.js` to RTL**
+- [x] **Step 14: Migrate `test/touch.test.js` to RTL**
   - Uses `shallow()` and `render()`.
   - Uses `babel-plugin-rewire` (4 rewire calls) — refactor or add `sinon`.
 
