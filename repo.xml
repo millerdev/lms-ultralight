@@ -19,11 +19,11 @@
                 creator="Daniel Miller"
                 email="dmiller@dimagi.com"
                 link="https://github.com/millerdev/lms-ultralight"
-                version="0.5.1"
+                version="0.6.0"
                 minTarget="7.9"
                 maxTarget="*"
-                sha="7a4d805315f2a34089ec0dc35b2a615b19a70b2b"
-                url="https://github.com/millerdev/lms-ultralight/releases/download/v0.5.1/UltralightSkin-v0.5.1.zip">
+                sha="7deffc1ab1ae112d1ce4b0a096c9195a25cd9af0"
+                url="https://github.com/millerdev/lms-ultralight/releases/download/v0.6.0/UltralightSkin-v0.6.0.zip">
             <title lang="EN">Ultralight</title>
             <desc lang="EN">A modern, responsive skin for Lyrion Music Server. Touch-friendly interface with a clean design, suitable for mobile and desktop use.</desc>
         </plugin>

@@ -1,5 +1,15 @@
 # Ultralight change log
 
+## 2026-05-25 - v0.6.0
+- Add Sleep feature.
+- Add Settings item to menu.
+- Show player bar below menu on phone.
+- Minor visual improvements to player component.
+- Fix mobile app install.
+- Fix cache invalidation - should improve update experience.
+- Change UI toolkit from Semantic UI React (unmaintained) to Material UI.
+- Upgrade JS libraries.
+
 ## 2023-01-31 - v0.5.2
 - Fix next/previous buttons in playlist menu.
 

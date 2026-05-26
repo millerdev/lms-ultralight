@@ -1,10 +1,11 @@
 # TODO
 
 - add file to repo for first-class plugin status
-  - make it possible to switch to another theme when set as default
+  - [x] make it possible to switch to another theme when set as default
   - get it added to the default set of plugins
-- add to desktop as stand-alone app on Android
-- make a new release
+- [x] add to desktop as stand-alone app on Android
+- [x] make a new release
+
 - mobile (firefox?) bug: media session causes audio from other apps to not play
   - [x] workaround: disable media session on power off player
 - alarm clock mode
