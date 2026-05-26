@@ -17,7 +17,7 @@
         <plugin name="UltralightSkin"
                 category="skin"
                 creator="Daniel Miller"
-                email="dmiller@dimagi.com"
+                email="millerdev@gmail.com"
                 link="https://github.com/millerdev/lms-ultralight"
                 version="0.6.0"
                 minTarget="7.9"

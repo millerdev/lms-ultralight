@@ -1,10 +1,12 @@
 # TODO
 
-- add file to repo for first-class plugin status
-  - [x] make it possible to switch to another theme when set as default
-  - get it added to the default set of plugins
-- [x] add to desktop as stand-alone app on Android
-- [x] make a new release
+- rework player screen on phone
+  - large artwork
+  - no playlist
+  - toggle button where artwork was on bottom player bar
+- select mode
+  - invert selection button in top bar
+  - back button in top bar? (problematic: does other back button work the same?)
 
 - mobile (firefox?) bug: media session causes audio from other apps to not play
   - [x] workaround: disable media session on power off player
