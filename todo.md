@@ -4,6 +4,7 @@
   - large artwork
   - no playlist
   - toggle button where artwork was on bottom player bar
+  - add skip forward/back buttons at end of seek bar
 - select mode
   - invert selection button in top bar
   - back button in top bar? (problematic: does other back button work the same?)
@@ -18,10 +19,10 @@
 - fix drag/drop in Chrome on Android
 
 - fix play/pause via browser media session on Chrome
-- invalidate browser cache on install new version on server
+- [x] invalidate browser cache on install new version on server
 - fix cover art displayed in the Now Playing part of the display often belongs to the previous track
   this may be a bug in LMS, not the skin
-- distribute as proper LMS plugin (show in "Inactive plugins" in settings)
+- [x] distribute as proper LMS plugin (show in "Inactive plugins" in settings)
 - fix auto-load playlist does not always load, showing blank loading section
   TODO reproduction steps
 - make path elements in song path (parent folders) clickable
@@ -42,13 +43,6 @@
 - fix breadcrumbs do not update properly after BrowserSync reload + click new crumb link
 
 - compare bundle size to v0.3.3a0 or v0.3.2 and optimize if possible
-- optimize semantic-ui bundling
-  https://github.com/skleeschulte/babel-plugin-transform-semantic-ui-react-imports
-  https://stackoverflow.com/a/43288212/10840
-- fix media query override in semantic.min.css (is this still needed?)
-  see commit:21d9fe4c5da60c260ef0b417403cd4e8a69b013d
-  see also commit:684a6cf960cdf5db2d2922aa66f9ffd2a917aab9
-  reverted to standard semantic.min.css in 2eb603d8cd3194769c5d6afbc047896dedd2085f
 - fix unnecessary render in menu on gotPlayer
 - fix delete not deleting all selected items
 - hotkey help screen
@@ -58,23 +52,18 @@
   - track info popup
     - button to remove from playlist
     - show plugin actions (walk with me, youtube, etc.)
-  - do not hard-code playlist range [0, 100]
-  - infinite scroll - http://devblog.orgsync.com/react-list/
+  - [x] do not hard-code playlist range [0, 100]
+  - [x] infinite scroll - http://devblog.orgsync.com/react-list/
 
 - add more content types to search
   - playlists? - looks like this is possible (cmd "playlists search:<term>")
   - folders/files?
 - swipe to delete track(s) (delete multiple if selected)
 - get better slider controls? (maybe not since upgrade)
-- add volume buttons to end of slider when < ?480px?
+- [x] add volume buttons to end of slider when < ?480px?
 
 - fix auto-advance to next track after play previous then skip to end
   this appears to be a bug in LMS (can reproduce on stock web interface)
-
-- replace semantic-ui-react with
-  - https://blog.bitsrc.io/11-react-component-libraries-you-should-know-178eb1dd6aa4
-  - https://material.io/ via https://github.com/jamesmfriedman/rmwc (con: no CSS?)
-  - https://ant.design/docs/react/introduce
 
 - after switch to material.io
   - fix buttons stay in hover state after click
