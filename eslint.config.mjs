@@ -7,6 +7,14 @@ import babelParser from "@babel/eslint-parser"
 export default [
   js.configs.recommended,
   {
+    files: ["src/static/sw.js"],
+    languageOptions: {
+      globals: {
+        ...globals.serviceworker,
+      },
+    },
+  },
+  {
     files: ["test/**/*.js"],
     languageOptions: {
       globals: {

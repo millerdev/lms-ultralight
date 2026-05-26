@@ -14,6 +14,14 @@ if (process.env.NODE_ENV === "development") {
   axios.defaults.baseURL = ""
 }
 
+if (process.env.NODE_ENV !== 'development' && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/ultralight/sw.js', {scope: '/ultralight/'})
+      .catch(() => {}) // registration failure is non-critical
+  })
+}
+
 const root = createRoot(document.getElementById('app'))
 const renderer = App => root.render(<App />)
 

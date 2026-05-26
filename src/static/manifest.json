@@ -17,5 +17,7 @@
     }
   ],
   "start_url": "/ultralight/",
-  "display": "standalone"
+  "display": "standalone",
+  "theme_color": "#4183C4",
+  "background_color": "#ffffff"
 }
