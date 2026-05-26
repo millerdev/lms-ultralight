@@ -29,10 +29,14 @@ sub initPlugin {
 		}
 	}
 
-	# menu handler
+	# menu handler — index.html must not be cached so browsers always fetch the
+	# latest version (which references content-hashed JS bundle filenames)
 	my $indexFile = catfile($skinDir, "index.html");
 	Slim::Web::Pages->addPageFunction(qr/^menu(\/.*)?$/, sub {
-		return Slim::Web::HTTP::getStaticContent($indexFile);
+		my ($client, $params, $callback, $httpClient, $response) = @_;
+		my $content = Slim::Web::HTTP::getStaticContent($indexFile);
+		$response->header('Cache-Control' => 'no-store');
+		return $content;
 	});
 }
 

@@ -106,6 +106,8 @@ module.exports = {
   },
   output: {
     publicPath: BASE_PATH,
+    filename: DEV_MODE ? '[name].js' : '[name].[contenthash].js',
+    chunkFilename: DEV_MODE ? '[id].js' : '[id].[contenthash].js',
   },
   plugins: plugins,
   module: {rules: rules},
